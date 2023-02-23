@@ -1,7 +1,6 @@
 import * as dotenv from "dotenv";
 import { HardhatUserConfig } from "hardhat/config";
-import "@nomiclabs/hardhat-etherscan";
-import "@nomiclabs/hardhat-waffle";
+import "@nomicfoundation/hardhat-toolbox";
 import "@typechain/hardhat";
 
 dotenv.config();
@@ -10,12 +9,12 @@ dotenv.config();
 // Go to https://hardhat.org/config/ to learn more
 
 // chain urls
-const GANACHE_URL = "http://127.0.0.1:7545";
+// const GANACHE_URL = "http://127.0.0.1:7545";
 // const UZH_URL = "http://130.60.244.246:8545";
 
 const config: HardhatUserConfig = {
   solidity: {
-    version: "0.7.6",
+    version: "0.8.9",
     settings: {
       optimizer: {
         runs: 200,
@@ -23,18 +22,16 @@ const config: HardhatUserConfig = {
       },
     },
   },
-  defaultNetwork: "ganache",
+  defaultNetwork: "hardhat",
   networks: {
+    hardhat: {},
     ganache: {
-      url: GANACHE_URL,
-      accounts: [
-        ...(process.env.GANACHE_PRIVATE_KEY
-          ? [process.env.GANACHE_PRIVATE_KEY]
-          : []),
-        ...(process.env.GANACHE_PRIVATE_KEY_2
-          ? [process.env.GANACHE_PRIVATE_KEY_2]
-          : []),
-      ],
+      url: "http://localhost:8545",
+      chainId: 1337,
+    },
+    sepolia: {
+      url: `https://eth-sepolia-rpc.avax-test.network`,
+      chainId: 43113,
     },
 
     // uzh: {
