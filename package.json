@@ -8,9 +8,8 @@
     "compile": "npx hardhat compile",
     "test": "npx hardhat test",
     "deploy": "hardhat run scripts/deploy-contracts.ts --network hardhat",
-    "deploy:uzh": "hardhat run scripts/deploy-uniswap.ts --network uzh && hardhat run scripts/deploy-tokens.ts --network uzh",
-    "deploy:ganache": "hardhat run scripts/deploy-uniswap.ts --network ganache && hardhat run scripts/deploy-tokens.ts --network ganache",
-    "deploy-token:ganache": "hardhat run scripts/deploy-tokens.ts --network ganache"
+    "deploy-ganache": "hardhat run scripts/deploy-contracts.ts --network ganache",
+    "deploy-goerli": "hardhat run scripts/deploy-contracts.ts --network goerli"
   },
   "keywords": [],
   "author": "",

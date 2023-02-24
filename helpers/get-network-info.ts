@@ -2,8 +2,11 @@ import { Signer } from "ethers";
 
 export const getNetworkInfo = async (
   deployer: Signer
-): Promise<number | undefined> => {
+): Promise<{
+  name: string | undefined;
+  id: number | undefined;
+}> => {
   // get current network
   const currentNetwork = await deployer.provider?.getNetwork();
-  return currentNetwork?.chainId;
+  return { name: currentNetwork?.name, id: currentNetwork?.chainId };
 };

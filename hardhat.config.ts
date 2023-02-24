@@ -9,8 +9,9 @@ dotenv.config();
 // Go to https://hardhat.org/config/ to learn more
 
 // chain urls
-// const GANACHE_URL = "http://127.0.0.1:7545";
-// const UZH_URL = "http://130.60.244.246:8545";
+const GANACHE_URL = "HTTP://127.0.0.1:7545";
+const SEPOLIA_URL = `https://sepolia.infura.io/v3/${process.env.INFURA_API_KEY}`;
+const GOERLI_URL = `https://goerli.infura.io/v3/${process.env.INFURA_API_KEY}`;
 
 const config: HardhatUserConfig = {
   solidity: {
@@ -26,23 +27,45 @@ const config: HardhatUserConfig = {
   networks: {
     hardhat: {},
     ganache: {
-      url: "http://localhost:8545",
+      url: GANACHE_URL,
       chainId: 1337,
+      accounts: [
+        ...(process.env.GANACHE_PRIVATE_KEY
+          ? [process.env.GANACHE_PRIVATE_KEY]
+          : []),
+        ...(process.env.GANACHE_SECOND_PRIVATE_KEY
+          ? [process.env.GANACHE_SECOND_PRIVATE_KEY]
+          : []),
+      ],
+    },
+    goerli: {
+      url: GOERLI_URL,
+      chainId: 5,
+      accounts: [
+        ...(process.env.DEPLOYER_OWNER_PK
+          ? [process.env.DEPLOYER_OWNER_PK]
+          : []),
+        ...(process.env.RECEIVER_COMPANY_PK
+          ? [process.env.RECEIVER_COMPANY_PK]
+          : []),
+        ...(process.env.REFERRER_PK ? [process.env.REFERRER_PK] : []),
+        ...(process.env.REFEREE_PK ? [process.env.REFEREE_PK] : []),
+      ],
     },
     sepolia: {
-      url: `https://eth-sepolia-rpc.avax-test.network`,
+      url: SEPOLIA_URL,
       chainId: 43113,
+      accounts: [
+        ...(process.env.DEPLOYER_OWNER_PK
+          ? [process.env.DEPLOYER_OWNER_PK]
+          : []),
+        ...(process.env.RECEIVER_COMPANY_PK
+          ? [process.env.RECEIVER_COMPANY_PK]
+          : []),
+        ...(process.env.REFERRER_PK ? [process.env.REFERRER_PK] : []),
+        ...(process.env.REFEREE_PK ? [process.env.REFEREE_PK] : []),
+      ],
     },
-
-    // uzh: {
-    //   url: UZH_URL,
-    //   accounts: [
-    //     ...(process.env.UZH_PRIVATE_KEY ? [process.env.UZH_PRIVATE_KEY] : []),
-    //     ...(process.env.UZH_PRIVATE_KEY_2
-    //       ? [process.env.UZH_PRIVATE_KEY_2]
-    //       : []),
-    //   ],
-    // },
   },
 };
 
