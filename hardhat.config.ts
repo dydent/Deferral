@@ -1,7 +1,9 @@
 import * as dotenv from "dotenv";
 import { HardhatUserConfig } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox";
+import "@nomiclabs/hardhat-etherscan";
 import "@typechain/hardhat";
+import "@openzeppelin/hardhat-upgrades";
 
 dotenv.config();
 
@@ -66,6 +68,9 @@ const config: HardhatUserConfig = {
         ...(process.env.REFEREE_PK ? [process.env.REFEREE_PK] : []),
       ],
     },
+  },
+  etherscan: {
+    apiKey: process.env.ETHERSCAN_API_KEY,
   },
 };
 

@@ -8,6 +8,7 @@
     "compile": "npx hardhat compile",
     "test": "npx hardhat test",
     "deploy": "hardhat run scripts/deploy-contracts.ts --network hardhat",
+    "deploy-upgrades": "hardhat run scripts/deploy-upgrades.ts --network hardhat",
     "deploy-ganache": "hardhat run scripts/deploy-contracts.ts --network ganache",
     "deploy-goerli": "hardhat run scripts/deploy-contracts.ts --network goerli"
   },
@@ -50,7 +51,10 @@
     "typescript": "^4.4.4"
   },
   "dependencies": {
-    "@openzeppelin/contracts": "^3.4.1-solc-0.7-2",
+    "@openzeppelin/contracts": "^4.8.1",
+    "@openzeppelin/contracts-upgradeable": "^4.8.1",
+    "@openzeppelin/hardhat-upgrades": "^1.22.1",
+    "@openzeppelin/truffle-upgrades": "^1.17.0",
     "chai-as-promised": "^7.1.1",
     "hardhat-shorthand": "^1.0.0"
   }
