@@ -4,6 +4,7 @@ import "@nomicfoundation/hardhat-toolbox";
 import "@nomiclabs/hardhat-etherscan";
 import "@typechain/hardhat";
 import "@openzeppelin/hardhat-upgrades";
+import "hardhat-gas-reporter";
 
 dotenv.config();
 
@@ -71,6 +72,16 @@ const config: HardhatUserConfig = {
   },
   etherscan: {
     apiKey: process.env.ETHERSCAN_API_KEY,
+  },
+  gasReporter: {
+    enabled: !!process.env.REPORT_GAS,
+    currency: "USD",
+    // proxyResolver: "EtherRouter",
+    // gasPrice: 34,
+    // outputFile:
+    coinmarketcap: process.env.COINMARKETCAP_API_KEY,
+    gasPriceApi:
+      "https://api.etherscan.io/api?module=proxy&action=eth_gasPrice",
   },
 };
 

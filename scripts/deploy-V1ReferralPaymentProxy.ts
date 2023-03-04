@@ -1,9 +1,14 @@
-import { ethers } from "hardhat";
-import { ethConverter } from "../helpers/converters";
-import { getNetworkInfo } from "../helpers/get-network-info";
-import { writeLogFile } from "../helpers/write-files";
-import { ReferralPaymentProxy } from "../typechain";
-import { resolveNetworkIds } from "../helpers/resolve-network-ids";
+import {ethers} from "hardhat";
+import {ethConverter} from "../helpers/converters";
+import {getNetworkInfo} from "../helpers/get-network-info";
+import {writeLogFile} from "../helpers/write-files";
+import {resolveNetworkIds} from "../helpers/resolve-network-ids";
+
+//-----------------------------------------------------
+// deployment script for V1ReferralPaymentProxy Contract
+//-----------------------------------------------------
+
+const CONTRACT = "V1ReferralPaymentProxy";
 
 const PAYMENT_AMOUNT = ethConverter(10);
 const REFERRAL_REWARD = ethConverter(1);
@@ -21,12 +26,10 @@ async function main() {
   const networkName = resolveNetworkIds(networkInfo.name, networkInfo.id);
   const networkId = networkInfo.id;
   // log message
-  console.log(`Deploying referral contract to ${networkName} network...\n`);
+  console.log(`Deploying ${CONTRACT} contract to ${networkName} network...\n`);
 
   // deploy contract --> deployer account signs this transaction
-  const referralContract = await ethers.getContractFactory(
-    "ReferralPaymentProxy"
-  );
+  const referralContract = await ethers.getContractFactory(CONTRACT);
 
   // get deployer / signer address that deploys the contract
   const contractSignerAddress = await referralContract.signer.getAddress();
@@ -43,7 +46,7 @@ async function main() {
 
   // log message
   console.log(
-    ` ${contractSignerAddress} deployed ReferralPaymentProxy contract to ${deployedReferralContract.address}\n`
+    ` ${contractSignerAddress} deployed ${CONTRACT} contract to ${deployedReferralContract.address}\n`
   );
 
   // time measuring
@@ -52,12 +55,12 @@ async function main() {
   // create (write & store) log files of deployments for overview
   const logInput = {
     date: new Date(),
-    contract: "V1 ReferralPaymentProxy",
+    contract: CONTRACT,
     contractAddress: deployedReferralContract.address,
     signer: contractSignerAddress,
     durationInMs: endTime - startTime,
   };
-  const logInputFile: string = "deployedContracts.json";
+  const logInputFile: string = "contract-deployments.json";
 
   writeLogFile({
     filePath: logInputFile,
@@ -67,8 +70,11 @@ async function main() {
   });
 }
 
-// catch errors
+// catch deployment errors
 main().catch((error) => {
-  console.error(`Something went wrong with the deployment:\n`, error);
+  console.error(
+    `Something went wrong with the ${CONTRACT} deployment:\n`,
+    error
+  );
   process.exitCode = 1;
 });

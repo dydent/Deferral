@@ -1,165 +1,193 @@
 import { ethers, upgrades } from "hardhat";
 import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 import { ethConverter } from "../helpers/converters";
-import { V2UpgradableReferralPaymentProxy } from "../typechain-types";
+import { expect } from "chai";
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import { ContractFactory } from "ethers";
+import {
+  UpgradableV1ReferralPaymentProxy,
+  UpgradableV2ReferralPaymentProxy,
+} from "../typechain-types";
 
-describe("Upgradable Referral Proxy", async () => {
+type FixtureReturnType = {
+  admin: SignerWithAddress;
+  receiver: SignerWithAddress;
+  referrer: SignerWithAddress;
+  referee: SignerWithAddress;
+  proxyContract: UpgradableV1ReferralPaymentProxy;
+  proxyContractAddress: string;
+  adminAddress: string;
+  initialImplementationContractAddress: string;
+  proxyAdminContractAddress: string;
+  upgradedProxyContract: UpgradableV2ReferralPaymentProxy;
+  upgradedImplementationAddress: string;
+};
+
+const INITIAL_CONTRACT = "UpgradableV1ReferralPaymentProxy";
+const CONTRACT = "UpgradableV2ReferralPaymentProxy";
+
+describe("Testing upgradable referral payment proxy contracts", async () => {
   // referral values / conditions (in ether)
   const PAYMENT_AMOUNT = 10;
   const REFERRAL_REWARD = 1;
   const PRICE = PAYMENT_AMOUNT - REFERRAL_REWARD;
 
   // helper function to deploy the referral contract
-  async function deployUpgradableFixture() {
+  async function deployUpgradableFixture(): Promise<FixtureReturnType> {
     const [admin, receiver, referrer, referee] = await ethers.getSigners();
-    console.log("admin.address", admin.address, "");
 
-    // const currentImplAddress = await getImplementationAddress(receiver, proxyAddress);
+    const referralContract = await ethers.getContractFactory(INITIAL_CONTRACT);
 
-    const referralContract = await ethers.getContractFactory(
-      "UpgradableReferralPaymentProxy"
-    );
-
-    // deploy upgrade proxy contract
-    const proxyContract = await upgrades.deployProxy(referralContract, [
-      receiver.address,
-      ethConverter(PAYMENT_AMOUNT),
-      ethConverter(REFERRAL_REWARD),
-    ]);
-
-    // admin of  the upgrade contracts
-    const adminAddress = proxyContract.signer.getAddress();
+    // deploy upgrade proxy contract (typed as the underlying implementation contract)
+    const proxyContract: UpgradableV1ReferralPaymentProxy =
+      (await upgrades.deployProxy(referralContract, [
+        receiver.address,
+        ethConverter(PAYMENT_AMOUNT),
+        ethConverter(REFERRAL_REWARD),
+      ])) as UpgradableV1ReferralPaymentProxy;
 
     // proxy contract address
-    const proxyContractAddress = await proxyContract.address;
+    const proxyContractAddress: string = proxyContract.address;
+
+    // admin of all the upgrades contracts (proxyContract / implementationContract / proxyAdminContract
+    const adminAddress: string = await proxyContract.signer.getAddress();
 
     // current implementation contract address
-    const currentImplementationContractAddress =
+    const initialImplementationContractAddress: string =
       await upgrades.erc1967.getImplementationAddress(proxyContract.address);
 
-    // address of the proxy admin contract
-    const proxyAdminContractAddress = await upgrades.erc1967.getAdminAddress(
-      proxyContract.address
-    );
+    // address of the proxy admin contract  (typed as the underlying implementation contract)
+    const proxyAdminContractAddress: string =
+      await upgrades.erc1967.getAdminAddress(proxyContract.address);
+
+    // contract to upgrade initial contract
+    const upgradedImplementationContract: ContractFactory =
+      await ethers.getContractFactory(CONTRACT);
+    // use proxy to upgrade contract
+    const upgradedProxyContract: UpgradableV2ReferralPaymentProxy =
+      (await upgrades.upgradeProxy(
+        proxyContract,
+        upgradedImplementationContract
+      )) as UpgradableV2ReferralPaymentProxy;
+
+    await upgradedProxyContract.deployed();
+
+    // get implementation address of updated contract
+    // !!! implementation contract only changes if there are changes in the contract !!!
+    const upgradedImplementationAddress: string =
+      await upgrades.erc1967.getImplementationAddress(proxyContract.address);
 
     return {
+      admin,
       receiver,
       referrer,
       referee,
       proxyContract,
-      currentImplementationContractAddress,
+      proxyContractAddress,
+      adminAddress,
+      initialImplementationContractAddress,
+      proxyAdminContractAddress,
+      upgradedProxyContract,
+      upgradedImplementationAddress,
     };
   }
 
-  it("upgrade works", async () => {
+  it("upgradable pattern works", async () => {
     const {
-      receiver,
-      referrer,
-      referee,
       proxyContract,
-      currentImplementationContractAddress,
+      initialImplementationContractAddress,
+      upgradedImplementationAddress,
+      upgradedProxyContract,
     } = await loadFixture(deployUpgradableFixture);
 
-    const upgradedImplementationContract = await ethers.getContractFactory(
-      "V2UpgradableReferralPaymentProxy"
+    // assertions
+    expect(proxyContract.address).to.equal(upgradedProxyContract.address);
+    expect(initialImplementationContractAddress).not.to.equal(
+      upgradedImplementationAddress
     );
-    const Delegate = await ethers.getContractFactory(
-      "V2UpgradableReferralPaymentProxy"
-    );
+  });
 
-    const deployedImplementationContract =
-      await upgradedImplementationContract.deploy();
-    await deployedImplementationContract.deployed();
+  it(`${CONTRACT} should forward the correct amount / prize to the receiver account`, async () => {
+    const { receiver, referrer, referee, upgradedProxyContract } =
+      await loadFixture(deployUpgradableFixture);
 
-    const upgradedProxyContract = await upgrades.upgradeProxy(
-      proxyContract,
-      upgradedImplementationContract
-    );
-    await upgradedProxyContract.deployed();
+    // get initial balances
+    const initialReceiverBalance = await receiver.getBalance();
 
-    const upgradedImplementationAddress =
-      await upgrades.erc1967.getImplementationAddress(proxyContract.address);
-
-    console.log(
-      "currentImplementationContractAddress",
-      currentImplementationContractAddress,
-      ""
-    );
-    // ADDRESS ONLY CHANGES IF THE CONTRACT CHANGES!!!!!!!!!
-
-    console.log("upgradedImplementationAddress", upgradedImplementationAddress);
-
-    // await referral process
-    // await proxyContract
-    //   .connect(referee)
-    //   .forwardReferralPayment(referrer.address, {
-    //     value: ethConverter(PAYMENT_AMOUNT),
-    //   });
-
-    const adder = deployedImplementationContract.attach(
-      proxyContract.address
-    ) as typeof deployedImplementationContract;
-
-    const proxiedImplementation = await deployedImplementationContract.attach(
-      proxyContract.address
-    );
-
-    // typed proxyContract
-    const typedProxyContract =
-      upgradedProxyContract as V2UpgradableReferralPaymentProxy;
-
-    await typedProxyContract
-      .connect(referee)
-      .forwardReferralPayment(referrer.address, {
-        value: ethConverter(PAYMENT_AMOUNT),
-      });
-
-    await proxyContract
-      .connect(referee)
-      .forwardReferralPayment(referrer.address, {
-        value: ethConverter(PAYMENT_AMOUNT),
-      });
-
+    // execute referral process
     await upgradedProxyContract
       .connect(referee)
       .forwardReferralPayment(referrer.address, {
         value: ethConverter(PAYMENT_AMOUNT),
       });
 
+    // results
+    const afterReceiverBalance = await receiver.getBalance();
+    const receiverResult =
+      initialReceiverBalance.toBigInt() + ethConverter(PRICE).toBigInt();
+
+    // assertions
+    expect(afterReceiverBalance.toBigInt()).to.equal(receiverResult);
+  });
+
+  it(`${CONTRACT} should send the reward to the referrer account`, async () => {
+    const { referrer, referee, upgradedProxyContract } = await loadFixture(
+      deployUpgradableFixture
+    );
+
+    // get initial balances
+    const initialReferrerBalance = await referrer.getBalance();
+
     // await referral process
-    await proxiedImplementation
+    await upgradedProxyContract
       .connect(referee)
       .forwardReferralPayment(referrer.address, {
         value: ethConverter(PAYMENT_AMOUNT),
       });
 
-    // FOR TESTING https://ethereum.stackexchange.com/questions/120787/testing-proxies-with-hardhat
-    //
-    // const V1 = await ethers.getContractFactory("V1");
-    // const v1 = await V1.deploy();
-    //
-    // const Proxy = await ethers.getContractFactory("Proxy");
-    // const proxy = await Proxy.deploy(v1.address);
-    //
-    // const proxiedV1 = await V1.attach(proxy.address);
-    //
-    // await proxiedV1.initialize();
-    // await proxiedV1.transfer(addr1, value1);
-    // console.log(await proxiedV1.balanceOf(addr1));
-
-    // // execute referral process
-    // await deployedUpgradableReferralContract
-    //   .connect(referee)
-    //   .forwardReferralPayment(referrer.address, {
-    //     value: ethConverter(PAYMENT_AMOUNT),
-    //   });
-    //
-    // // results
-    // const afterReceiverBalance = await receiver.getBalance();
-    // const receiverResult =
-    //   initialReceiverBalance.toBigInt() + ethConverter(PRICE).toBigInt();
+    // results
+    const afterReferrerBalance = await referrer.getBalance();
+    const referrerResult =
+      initialReferrerBalance.toBigInt() +
+      ethConverter(REFERRAL_REWARD).toBigInt();
 
     // assertions
-    // expect(afterReceiverBalance.toBigInt()).to.equal(receiverResult);
+    expect(afterReferrerBalance.toBigInt()).to.equal(referrerResult);
+  });
+
+  it(`${CONTRACT} should subtract payment amount from referee account`, async () => {
+    const { referrer, referee, upgradedProxyContract } = await loadFixture(
+      deployUpgradableFixture
+    );
+
+    // get initial balances
+    const initialRefereeBalance = await referee.getBalance();
+
+    // await referral process transaction
+    const referralTx = await upgradedProxyContract
+      .connect(referee)
+      .forwardReferralPayment(referrer.address, {
+        value: ethConverter(PAYMENT_AMOUNT),
+      });
+
+    // calculate referral transaction costs
+    const txReceipt = await referralTx.wait();
+
+    // gas used by the transaction
+    const txGasUsed = await txReceipt.gasUsed;
+    // gas price
+    const txEffectiveGasPrice = await txReceipt.effectiveGasPrice;
+    // tx costs
+    const txCost = txGasUsed.mul(txEffectiveGasPrice);
+
+    // results
+    const afterRefereeBalance = await referee.getBalance();
+    const refereeResult =
+      initialRefereeBalance.toBigInt() -
+      txCost.toBigInt() -
+      ethConverter(PAYMENT_AMOUNT).toBigInt();
+
+    // assertions
+    expect(afterRefereeBalance.toBigInt()).to.equal(refereeResult);
   });
 });

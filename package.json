@@ -6,11 +6,15 @@
   "scripts": {
     "lint": "prettier --list-different 'contracts/**/*.sol'",
     "compile": "npx hardhat compile",
-    "test": "npx hardhat test",
-    "deploy": "hardhat run scripts/deploy-contracts.ts --network hardhat",
-    "deploy-upgrades": "hardhat run scripts/deploy-upgrades.ts --network hardhat",
-    "deploy-ganache": "hardhat run scripts/deploy-contracts.ts --network ganache",
-    "deploy-goerli": "hardhat run scripts/deploy-contracts.ts --network goerli"
+    "test": "npx hardhat test --network hardhat",
+    "deploy-UpgradableReferralPaymentProxy": "hardhat run scripts/deploy-UpgradableReferralPaymentProxy.ts --network hardhat",
+    "deploy-UpgradableReferralPaymentProxy-ganache": "hardhat run scripts/deploy-UpgradableReferralPaymentProxy.ts --network ganache",
+    "deploy-UpgradableReferralPaymentProxy-goerli": "hardhat run scripts/deploy-UpgradableReferralPaymentProxy.ts --network goerli",
+    "deploy-all-networks-UpgradableReferralPaymentProxy": "hardhat run scripts/deploy-UpgradableReferralPaymentProxy.ts --network hardhat && hardhat run scripts/deploy-UpgradableReferralPaymentProxy.ts --network ganache && hardhat run scripts/deploy-UpgradableReferralPaymentProxy.ts --network goerli",
+    "deploy-V1ReferralPaymentProxy": "hardhat run scripts/deploy-V1ReferralPaymentProxy.ts --network hardhat",
+    "deploy-V1ReferralPaymentProxy-ganache": "hardhat run scripts/deploy-V1ReferralPaymentProxy.ts --network ganache",
+    "deploy-V1ReferralPaymentProxy-goerli": "hardhat run scripts/deploy-V1ReferralPaymentProxy.ts --network goerli",
+    "deploy-all-networks-V1ReferralPaymentProxy": "hardhat run scripts/deploy-V1ReferralPaymentProxy.ts --network hardhat && hardhat run scripts/deploy-V1ReferralPaymentProxy.ts --network ganache && hardhat run scripts/deploy-V1ReferralPaymentProxy.ts --network goerli"
   },
   "keywords": [],
   "author": "",
@@ -56,6 +60,7 @@
     "@openzeppelin/hardhat-upgrades": "^1.22.1",
     "@openzeppelin/truffle-upgrades": "^1.17.0",
     "chai-as-promised": "^7.1.1",
+    "eth-gas-reporter": "^0.2.25",
     "hardhat-shorthand": "^1.0.0"
   }
 }

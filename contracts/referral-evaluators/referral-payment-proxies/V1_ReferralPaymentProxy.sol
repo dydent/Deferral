@@ -3,7 +3,10 @@
 pragma solidity >=0.8.2 <0.9.0;
 
 
-contract ReferralPaymentProxy {
+import "@openzeppelin/contracts/access/Ownable.sol";
+
+
+contract V1ReferralPaymentProxy is Ownable {
 
     // address of the payment receiver
     address payable public receiver;
@@ -17,12 +20,7 @@ contract ReferralPaymentProxy {
     // owner address that has created the contract
     address public contractOwner;
 
-
-    modifier onlyOwner {
-        require(msg.sender == contractOwner, 'caller must be owner of the contract');
-        _;
-    }
-
+    // modifier to guarantee the exact amount
     modifier exactAmount {
         require(msg.value == paymentAmount, 'transaction must send the exact payment amount');
         _;
