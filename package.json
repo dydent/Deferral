@@ -23,6 +23,8 @@
     "lint:ts": "eslint --ignore-path ./.eslintignore --ext .js,.ts .",
     "prettier:check": "prettier --check \"**/*.{js,json,md,sol,ts}\"",
     "prettier:write": "prettier --write \"**/*.{js,json,md,sol,ts}\"",
+    "postinstall": "DOTENV_CONFIG_PATH=./.env.example yarn typechain",
+    "typechain": "cross-env TS_NODE_TRANSPILE_ONLY=true hardhat typechain",
     "compile": "npx hardhat compile",
     "coverage": "npx hardhat coverage",
     "test": "npx hardhat test --network hardhat",

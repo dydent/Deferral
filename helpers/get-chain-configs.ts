@@ -21,7 +21,7 @@ export const getChainConfig = ({
   hdWalletAccounts?: boolean;
 }): NetworkUserConfig => {
   let jsonRpcUrl: string;
-  let accounts: string[] = METAMASK_ACCOUNTS;
+  let accounts = METAMASK_ACCOUNTS;
   switch (chain) {
     case "ganache":
       jsonRpcUrl = GANACHE_URL;
