@@ -1,7 +1,10 @@
 import * as dotenv from "dotenv";
 import { HardhatUserConfig } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox";
+import "@nomiclabs/hardhat-etherscan";
 import "@typechain/hardhat";
+import "@openzeppelin/hardhat-upgrades";
+import "hardhat-gas-reporter";
 
 dotenv.config();
 
@@ -12,6 +15,7 @@ dotenv.config();
 const GANACHE_URL = "HTTP://127.0.0.1:7545";
 const SEPOLIA_URL = `https://sepolia.infura.io/v3/${process.env.INFURA_API_KEY}`;
 const GOERLI_URL = `https://goerli.infura.io/v3/${process.env.INFURA_API_KEY}`;
+const GAS_PRICE_API = `https://api.etherscan.io/api?module=proxy&action=eth_gasPrice`;
 
 const config: HardhatUserConfig = {
   solidity: {
@@ -66,6 +70,20 @@ const config: HardhatUserConfig = {
         ...(process.env.REFEREE_PK ? [process.env.REFEREE_PK] : []),
       ],
     },
+  },
+  etherscan: {
+    apiKey: process.env.ETHERSCAN_API_KEY,
+  },
+  gasReporter: {
+    enabled: !!process.env.REPORT_GAS,
+    currency: "CHF",
+    // !!! for accurate gas reporter output --> run test files one by one and exclude not needed contracts here !!!
+    // excludeContracts: ["V1ReferralPaymentProxy"],
+    coinmarketcap: process.env.COINMARKETCAP_API_KEY,
+    gasPriceApi: GAS_PRICE_API,
+    // proxyResolver,
+    // gasPrice: 34,
+    // outputFile:
   },
 };
 
