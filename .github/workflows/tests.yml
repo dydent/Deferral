@@ -2,10 +2,12 @@ name: "CI"
 
 env:
   DOTENV_CONFIG_PATH: "./.env.example"
+  MNEMONIC = ${{ secrets.MNEMONIC }}
+  INFURA_API_KEY = ${{ secrets.INFURA_API_KEY }}
 
 on:
   workflow_dispatch:
-  pull_request:
+    pull_request:
   push:
     branches:
       - main
