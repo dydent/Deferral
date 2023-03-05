@@ -19,15 +19,13 @@ const metamaskPk2: string | undefined = process.env.METAMASK_PK2;
 if (!metamaskPk2) {
   throw new Error("Please set the METAMASK_PK2 in a .env file");
 }
-
-// Metamask env variables
-const ganachePk1: string | undefined = process.env.GANACHE_PK1;
-if (!ganachePk1) {
-  throw new Error("Please set the GANACHE_PK1 in a .env file");
+const metamaskPk3: string | undefined = process.env.METAMASK_PK3;
+if (!metamaskPk3) {
+  throw new Error("Please set the METAMASK_PK3 in a .env file");
 }
-const ganachePk2: string | undefined = process.env.GANACHE_PK2;
-if (!ganachePk2) {
-  throw new Error("Please set the GANACHE_PK2 in a .env file");
+const metamaskPk4: string | undefined = process.env.METAMASK_PK4;
+if (!metamaskPk4) {
+  throw new Error("Please set the METAMASK_PK3 in a .env file");
 }
 
 // Generated Accounts by Hardhat with the private keys using a mnemonic phrase of 12 words
@@ -38,7 +36,17 @@ export const HD_WALLET_ACCOUNTS = {
 };
 
 // List of PKs taken from existing Metamask wallets
-export const METAMASK_ACCOUNTS = [metamaskPk1, metamaskPk2];
+export const METAMASK_ACCOUNTS = [
+  metamaskPk1,
+  metamaskPk2,
+  metamaskPk3,
+  metamaskPk4,
+];
 
 // List of PKs taken form local Ganache workspace
-export const GANACHE_ACCOUNTS = [ganachePk1, ganachePk2];
+export const GANACHE_ACCOUNTS = [
+  process.env.GANACHE_PK1,
+  process.env.GANACHE_PK2,
+  process.env.GANACHE_PK3,
+  process.env.GANACHE_PK4,
+];

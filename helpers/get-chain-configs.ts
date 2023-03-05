@@ -25,7 +25,7 @@ export const getChainConfig = ({
   switch (chain) {
     case "ganache":
       jsonRpcUrl = GANACHE_URL;
-      accounts = GANACHE_ACCOUNTS;
+      accounts = GANACHE_ACCOUNTS as string[];
       break;
     case "avalanche":
       jsonRpcUrl = "https://api.avax.network/ext/bc/C/rpc";
