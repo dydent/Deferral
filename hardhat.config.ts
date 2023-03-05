@@ -3,18 +3,25 @@ import { HardhatUserConfig } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox";
 import "@nomiclabs/hardhat-etherscan";
 import "@typechain/hardhat";
+import "solidity-coverage";
 import "@openzeppelin/hardhat-upgrades";
 import "hardhat-gas-reporter";
+import { CHAIN_IDS } from "./helpers/constants/chain-ids";
+import { getChainConfig } from "./helpers/get-chain-configs";
 
 dotenv.config();
 
 // You need to export an object to set up your config
 // Go to https://hardhat.org/config/ to learn more
 
-// chain urls
-const GANACHE_URL = "HTTP://127.0.0.1:7545";
-const SEPOLIA_URL = `https://sepolia.infura.io/v3/${process.env.INFURA_API_KEY}`;
-const GOERLI_URL = `https://goerli.infura.io/v3/${process.env.INFURA_API_KEY}`;
+const mnemonic: string | undefined = process.env.MNEMONIC;
+if (!mnemonic) {
+  throw new Error("Please set the MNEMONIC in a .env file");
+}
+
+const USE_HD_WALLET_ACCOUNTS: boolean = true;
+
+// API for gas prices
 const GAS_PRICE_API = `https://api.etherscan.io/api?module=proxy&action=eth_gasPrice`;
 
 const config: HardhatUserConfig = {
@@ -29,47 +36,48 @@ const config: HardhatUserConfig = {
   },
   defaultNetwork: "hardhat",
   networks: {
-    hardhat: {},
-    ganache: {
-      url: GANACHE_URL,
-      chainId: 1337,
-      accounts: [
-        ...(process.env.GANACHE_PRIVATE_KEY
-          ? [process.env.GANACHE_PRIVATE_KEY]
-          : []),
-        ...(process.env.GANACHE_SECOND_PRIVATE_KEY
-          ? [process.env.GANACHE_SECOND_PRIVATE_KEY]
-          : []),
-      ],
+    hardhat: {
+      accounts: {
+        mnemonic,
+      },
+      chainId: CHAIN_IDS.hardhat,
     },
-    goerli: {
-      url: GOERLI_URL,
-      chainId: 5,
-      accounts: [
-        ...(process.env.DEPLOYER_OWNER_PK
-          ? [process.env.DEPLOYER_OWNER_PK]
-          : []),
-        ...(process.env.RECEIVER_COMPANY_PK
-          ? [process.env.RECEIVER_COMPANY_PK]
-          : []),
-        ...(process.env.REFERRER_PK ? [process.env.REFERRER_PK] : []),
-        ...(process.env.REFEREE_PK ? [process.env.REFEREE_PK] : []),
-      ],
-    },
-    sepolia: {
-      url: SEPOLIA_URL,
-      chainId: 43113,
-      accounts: [
-        ...(process.env.DEPLOYER_OWNER_PK
-          ? [process.env.DEPLOYER_OWNER_PK]
-          : []),
-        ...(process.env.RECEIVER_COMPANY_PK
-          ? [process.env.RECEIVER_COMPANY_PK]
-          : []),
-        ...(process.env.REFERRER_PK ? [process.env.REFERRER_PK] : []),
-        ...(process.env.REFEREE_PK ? [process.env.REFEREE_PK] : []),
-      ],
-    },
+    ganache: getChainConfig({
+      chain: "ganache",
+      hdWalletAccounts: USE_HD_WALLET_ACCOUNTS,
+    }),
+    arbitrum: getChainConfig({
+      chain: "arbitrum-mainnet",
+      hdWalletAccounts: USE_HD_WALLET_ACCOUNTS,
+    }),
+    avalanche: getChainConfig({
+      chain: "avalanche",
+      hdWalletAccounts: USE_HD_WALLET_ACCOUNTS,
+    }),
+    bsc: getChainConfig({
+      chain: "bsc",
+      hdWalletAccounts: USE_HD_WALLET_ACCOUNTS,
+    }),
+    mainnet: getChainConfig({
+      chain: "mainnet",
+      hdWalletAccounts: USE_HD_WALLET_ACCOUNTS,
+    }),
+    optimism: getChainConfig({
+      chain: "optimism-mainnet",
+      hdWalletAccounts: USE_HD_WALLET_ACCOUNTS,
+    }),
+    "polygon-mainnet": getChainConfig({
+      chain: "polygon-mainnet",
+      hdWalletAccounts: USE_HD_WALLET_ACCOUNTS,
+    }),
+    "polygon-mumbai": getChainConfig({
+      chain: "polygon-mumbai",
+      hdWalletAccounts: USE_HD_WALLET_ACCOUNTS,
+    }),
+    sepolia: getChainConfig({
+      chain: "sepolia",
+      hdWalletAccounts: USE_HD_WALLET_ACCOUNTS,
+    }),
   },
   etherscan: {
     apiKey: process.env.ETHERSCAN_API_KEY,
