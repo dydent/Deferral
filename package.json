@@ -18,7 +18,9 @@
     "typechain"
   ],
   "scripts": {
-    "lint": "prettier --list-different 'contracts/**/*.sol'",
+    "lint": "yarn lint:sol && yarn prettier:check",
+    "lint:sol": "solhint --max-warnings 0 \"contracts/**/*.sol\"",
+    "prettier:check": "prettier --check \"**/*.{js,json,md,sol,ts}\"",
     "compile": "npx hardhat compile",
     "coverage": "npx hardhat coverage",
     "test": "npx hardhat test --network hardhat",
