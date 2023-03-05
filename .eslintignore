@@ -1,22 +1,10 @@
 # directories
-.yarn/
-**/.coverage_artifacts
-**/.coverage_cache
-**/.coverage_contracts
-**/.openzeppelin
-**/artifacts
-**/build
-**/cache
-**/coverage
-**/dist
-**/node_modules
-**/logs
+coverage
+artifacts
+
 
 # files
+*.eslintrc.js
 *.env
 *.log
-.pnp.*
-coverage.json
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
+

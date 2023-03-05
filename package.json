@@ -18,9 +18,11 @@
     "typechain"
   ],
   "scripts": {
-    "lint": "yarn lint:sol && yarn prettier:check",
+    "lint": "yarn lint:sol && yarn lint:ts && yarn prettier:check",
     "lint:sol": "solhint --max-warnings 0 \"contracts/**/*.sol\"",
+    "lint:ts": "eslint --ignore-path ./.eslintignore --ext .js,.ts .",
     "prettier:check": "prettier --check \"**/*.{js,json,md,sol,ts}\"",
+    "prettier:write": "prettier --write \"**/*.{js,json,md,sol,ts}\"",
     "compile": "npx hardhat compile",
     "coverage": "npx hardhat coverage",
     "test": "npx hardhat test --network hardhat",
@@ -65,7 +67,7 @@
     "hardhat-gas-reporter": "^1.0.9",
     "prettier": "^2.4.1",
     "prettier-plugin-solidity": "^1.1.1",
-    "solhint": "^3.3.6",
+    "solhint": "^3.4.0",
     "solidity-coverage": "^0.8.2",
     "ts-node": "^10.4.0",
     "typechain": "^8.1.1",
@@ -79,6 +81,7 @@
     "chai-as-promised": "^7.1.1",
     "depcheck": "^1.4.3",
     "eth-gas-reporter": "^0.2.25",
-    "hardhat-shorthand": "^1.0.0"
+    "hardhat-shorthand": "^1.0.0",
+    "solhint-plugin-prettier": "^0.0.5"
   }
 }

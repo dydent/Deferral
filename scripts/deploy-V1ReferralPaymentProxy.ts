@@ -1,7 +1,7 @@
 import { ethers } from "hardhat";
 import { ethConverter } from "../helpers/converters";
 import { getNetworkInfo } from "../helpers/get-network-info";
-import { writeLogFile } from "../helpers/write-files";
+import { LogJsonInputType, writeLogFile } from "../helpers/write-files";
 import { resolveNetworkIds } from "../helpers/resolve-network-ids";
 
 // -----------------------------------------------------
@@ -53,7 +53,7 @@ async function main() {
   const endTime = performance.now();
 
   // create (write & store) log files of deployments for overview
-  const logInput = {
+  const logInput: LogJsonInputType = {
     date: new Date(),
     contract: CONTRACT,
     contractAddress: deployedReferralContract.address,
