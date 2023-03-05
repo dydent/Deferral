@@ -6,6 +6,8 @@
   "scripts": {
     "lint": "prettier --list-different 'contracts/**/*.sol'",
     "compile": "npx hardhat compile",
+    "make-badges-silent": "istanbul-badges-readme --silent",
+    "make-badges-custom-dir": "istanbul-badges-readme --coverageDir='./coverage'",
     "test": "npx hardhat test --network hardhat",
     "test-payment-proxy": "npx hardhat test ./test/v1-referral-payment-proxy.test.ts",
     "test-upgrades-payment-proxy": "npx hardhat test ./test/upgradable-referral-payment-proxy.test.ts",
@@ -64,6 +66,7 @@
     "chai-as-promised": "^7.1.1",
     "depcheck": "^1.4.3",
     "eth-gas-reporter": "^0.2.25",
-    "hardhat-shorthand": "^1.0.0"
+    "hardhat-shorthand": "^1.0.0",
+    "istanbul-badges-readme": "^1.8.5"
   }
 }
