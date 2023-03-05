@@ -1,6 +1,8 @@
-import * as dotenv from "dotenv";
+import { config as dotenvConfig } from "dotenv";
+import { resolve } from "path";
 
-dotenv.config();
+const dotenvConfigPath: string = process.env.DOTENV_CONFIG_PATH || "../../.env";
+dotenvConfig({ path: resolve(__dirname, dotenvConfigPath) });
 
 // Ensure that we have all the environment variables we need.
 const mnemonic: string | undefined = process.env.MNEMONIC;

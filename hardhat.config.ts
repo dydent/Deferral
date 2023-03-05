@@ -1,4 +1,4 @@
-import * as dotenv from "dotenv";
+import { config as dotenvConfig } from "dotenv";
 import { HardhatUserConfig } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox";
 import "@nomiclabs/hardhat-etherscan";
@@ -8,9 +8,10 @@ import "@openzeppelin/hardhat-upgrades";
 import "hardhat-gas-reporter";
 import { CHAIN_IDS } from "./helpers/constants/chain-ids";
 import { getChainConfig } from "./helpers/get-chain-configs";
+import { resolve } from "path";
 
-dotenv.config();
-
+const dotenvConfigPath: string = process.env.DOTENV_CONFIG_PATH || "./.env";
+dotenvConfig({ path: resolve(__dirname, dotenvConfigPath) });
 // You need to export an object to set up your config
 // Go to https://hardhat.org/config/ to learn more
 
@@ -23,6 +24,13 @@ const USE_HD_WALLET_ACCOUNTS: boolean = true;
 
 // API for gas prices
 const GAS_PRICE_API = `https://api.etherscan.io/api?module=proxy&action=eth_gasPrice`;
+
+// Generated Accounts by Hardhat with the private keys using a mnemonic phrase of 12 words
+export const HD_WALLET_ACCOUNTS = {
+  count: 20,
+  mnemonic,
+  path: "m/44'/60'/0'/0",
+};
 
 const config: HardhatUserConfig = {
   solidity: {
