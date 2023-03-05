@@ -1,14 +1,14 @@
-//-----------------------------------------------------------------------------------------------
+// -----------------------------------------------------------------------------------------------
 // UPGRADABLE CONTRACT
-//-----------------------------------------------------------------------------------------------
+// -----------------------------------------------------------------------------------------------
 
 
 // SPDX-License-Identifier: GPL-3.0
 
 pragma solidity >=0.8.2 <0.9.0;
 
-import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import {OwnableUpgradeable} from  "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
 
 contract UpgradableV1ReferralPaymentProxy is Initializable, OwnableUpgradeable {
@@ -21,7 +21,7 @@ contract UpgradableV1ReferralPaymentProxy is Initializable, OwnableUpgradeable {
 
     // value of the referral reward that is a portion of the paymentAmount
     uint256 public referralReward;
-    
+
     // Referral Event to be emitted once a referral process has been completed
     event Referral(address indexed referrer, address indexed referee);
 
@@ -34,7 +34,7 @@ contract UpgradableV1ReferralPaymentProxy is Initializable, OwnableUpgradeable {
     function initialize(address payable _receiver, uint256 _amount, uint256 _referralReward) public initializer {
         // set owner
         __Ownable_init();
-        require(_amount > _referralReward, 'referralReward must be a portion of the paymentAmount');
+        require(_amount > _referralReward, "reward must be portion of paymentAmount");
         receiver = _receiver;
         paymentAmount = _amount;
         referralReward = _referralReward;

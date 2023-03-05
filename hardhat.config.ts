@@ -93,6 +93,10 @@ const config: HardhatUserConfig = {
     // gasPrice: 34,
     // outputFile:
   },
+  typechain: {
+    outDir: "types",
+    target: "ethers-v5",
+  },
 };
 
 export default config;

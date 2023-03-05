@@ -3,7 +3,12 @@ import { ethConverter } from "../helpers/converters";
 import { expect } from "chai";
 import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { V1ReferralPaymentProxy } from "../typechain-types";
+import {
+  EXACT_AMOUNT_ERROR,
+  OWNABLE_ERROR_STRING,
+  REWARD_AMOUNT_PROPORTION_ERROR,
+} from "../helpers/constants/error-strings";
+import { V1ReferralPaymentProxy } from "../types";
 
 type FixtureReturnType = {
   admin: SignerWithAddress;
@@ -46,9 +51,9 @@ describe(`Testing ${CONTRACT} Contract`, async () => {
     };
   }
 
-  //-----------------------------------------------------------------------------------------------
+  // -----------------------------------------------------------------------------------------------
   // Unit tests for updating contract values
-  //-----------------------------------------------------------------------------------------------
+  // -----------------------------------------------------------------------------------------------
 
   describe(`Updating Contract Values`, async () => {
     it(`${CONTRACT} should update payment amount`, async () => {
@@ -110,9 +115,9 @@ describe(`Testing ${CONTRACT} Contract`, async () => {
     });
   });
 
-  //-----------------------------------------------------------------------------------------------
+  // -----------------------------------------------------------------------------------------------
   // Unit tests for function modifiers and conditions
-  //-----------------------------------------------------------------------------------------------
+  // -----------------------------------------------------------------------------------------------
 
   describe(`Function Modifiers`, async () => {
     it(`${CONTRACT} should throw if updated referral reward is bigger than payment`, async () => {
@@ -122,8 +127,7 @@ describe(`Testing ${CONTRACT} Contract`, async () => {
 
       const updatedReferralReward = ethConverter(PAYMENT_AMOUNT + 1);
 
-      const expectedError =
-        "referralReward must be a portion of the paymentAmount";
+      const expectedError = REWARD_AMOUNT_PROPORTION_ERROR;
 
       const referralRewardUpdatePromise = deployedContract
         .connect(admin)
@@ -143,7 +147,7 @@ describe(`Testing ${CONTRACT} Contract`, async () => {
       const updatedReferralReward = ethConverter(3);
       const updatedReceiverAddress = await referrer.getAddress();
 
-      const expectedError = "Ownable: caller is not the owner'";
+      const expectedError = OWNABLE_ERROR_STRING;
 
       const referralRewardUpdatePromise = deployedContract
         .connect(referrer)
@@ -168,9 +172,9 @@ describe(`Testing ${CONTRACT} Contract`, async () => {
     });
   });
 
-  //-----------------------------------------------------------------------------------------------
+  // -----------------------------------------------------------------------------------------------
   // Integration Testing of Referral Process / Unit testing for forwarding function
-  //-----------------------------------------------------------------------------------------------
+  // -----------------------------------------------------------------------------------------------
 
   describe(`Testing Referral Process `, async () => {
     it(`${CONTRACT} should forward the correct amount / prize to the receiver account`, async () => {
@@ -265,7 +269,7 @@ describe(`Testing ${CONTRACT} Contract`, async () => {
         deployReferralContractFixture
       );
 
-      const expectedError = "transaction must send the exact payment amount";
+      const expectedError = EXACT_AMOUNT_ERROR;
       // await referral process
       const referralProcessPromise = deployedContract
         .connect(referee)

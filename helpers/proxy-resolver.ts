@@ -1,4 +1,4 @@
-import {JsonRpcSigner} from "@ethersproject/providers";
+import { JsonRpcSigner } from "@ethersproject/providers";
 
 // proxy resolver functions to be used in gasReporter in hardhat.config.ts
 export const proxyResolver = (provider: JsonRpcSigner) => {
