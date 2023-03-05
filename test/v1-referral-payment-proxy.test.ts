@@ -14,6 +14,7 @@ type FixtureReturnType = {
   admin: SignerWithAddress;
   receiver: SignerWithAddress;
   updatedReceiver: SignerWithAddress;
+
   referrer: SignerWithAddress;
   referee: SignerWithAddress;
   deployedContract: V1ReferralPaymentProxy;

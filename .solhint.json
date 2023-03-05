@@ -1,17 +1,9 @@
 {
   "extends": "solhint:recommended",
-  "plugins": [
-    "prettier"
-  ],
+  "plugins": ["prettier"],
   "rules": {
-    "code-complexity": [
-      "error",
-      8
-    ],
-    "compiler-version": [
-      "error",
-      ">=0.8.4"
-    ],
+    "code-complexity": ["error", 8],
+    "compiler-version": ["error", ">=0.8.4"],
     "reason-string": [
       "warn",
       {
@@ -24,10 +16,7 @@
         "ignoreConstructors": true
       }
     ],
-    "max-line-length": [
-      "error",
-      120
-    ],
+    "max-line-length": ["error", 120],
     "named-parameters-mapping": "warn",
     "no-console": "off",
     "not-rely-on-time": "off",
