@@ -1,12 +1,12 @@
-import {ethers, upgrades} from "hardhat";
-import {ethConverter} from "../helpers/converters";
-import {getNetworkInfo} from "../helpers/get-network-info";
-import {writeLogFile} from "../helpers/write-files";
-import {resolveNetworkIds} from "../helpers/resolve-network-ids";
+import { ethers, upgrades } from "hardhat";
+import { ethConverter } from "../helpers/converters";
+import { getNetworkInfo } from "../helpers/get-network-info";
+import { writeLogFile } from "../helpers/write-files";
+import { resolveNetworkIds } from "../helpers/resolve-network-ids";
 
-//------------------------------------------------------------------
+// ------------------------------------------------------------------
 // deployment script for upgradable referral payment proxy contracts
-//------------------------------------------------------------------
+// ------------------------------------------------------------------
 
 // const INITIAL_CONTRACT = "UpgradableV1ReferralPaymentProxy";
 const CONTRACT = "UpgradableV2ReferralPaymentProxy";

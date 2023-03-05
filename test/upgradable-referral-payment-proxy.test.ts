@@ -4,10 +4,16 @@ import { ethConverter } from "../helpers/converters";
 import { expect } from "chai";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { ContractFactory } from "ethers";
+
+import {
+  EXACT_AMOUNT_ERROR,
+  OWNABLE_ERROR_STRING,
+  REWARD_AMOUNT_PROPORTION_ERROR,
+} from "../helpers/constants/error-strings";
 import {
   UpgradableV1ReferralPaymentProxy,
   UpgradableV2ReferralPaymentProxy,
-} from "../typechain-types";
+} from "../types";
 
 type FixtureReturnType = {
   admin: SignerWithAddress;
@@ -95,9 +101,9 @@ describe("Testing upgradable referral payment proxy contracts", async () => {
     };
   }
 
-  //-----------------------------------------------------------------------------------------------
+  // -----------------------------------------------------------------------------------------------
   // Testing upgrades
-  //-----------------------------------------------------------------------------------------------
+  // -----------------------------------------------------------------------------------------------
 
   describe(`OpenZeppelin Upgrades Pattern`, async () => {
     it(`Upgradable pattern works for ${CONTRACT} and ${INITIAL_CONTRACT}`, async () => {
@@ -116,9 +122,9 @@ describe("Testing upgradable referral payment proxy contracts", async () => {
     });
   });
 
-  //-----------------------------------------------------------------------------------------------
+  // -----------------------------------------------------------------------------------------------
   // Unit tests for updating contract values
-  //-----------------------------------------------------------------------------------------------
+  // -----------------------------------------------------------------------------------------------
 
   describe(`Updating Contract Values`, async () => {
     it(`${CONTRACT} should update payment amount`, async () => {
@@ -180,9 +186,9 @@ describe("Testing upgradable referral payment proxy contracts", async () => {
     });
   });
 
-  //-----------------------------------------------------------------------------------------------
+  // -----------------------------------------------------------------------------------------------
   // Unit tests for function modifiers and conditions
-  //-----------------------------------------------------------------------------------------------
+  // -----------------------------------------------------------------------------------------------
 
   describe(`Function Modifiers`, async () => {
     it(`${CONTRACT} should throw if updated referral reward is bigger than payment`, async () => {
@@ -192,8 +198,7 @@ describe("Testing upgradable referral payment proxy contracts", async () => {
 
       const updatedReferralReward = ethConverter(PAYMENT_AMOUNT + 1);
 
-      const expectedError =
-        "referralReward must be a portion of the paymentAmount";
+      const expectedError = REWARD_AMOUNT_PROPORTION_ERROR;
 
       const referralRewardUpdatePromise = upgradedProxyContract
         .connect(admin)
@@ -213,7 +218,7 @@ describe("Testing upgradable referral payment proxy contracts", async () => {
       const updatedReferralReward = ethConverter(3);
       const updatedReceiverAddress = await referrer.getAddress();
 
-      const expectedError = "Ownable: caller is not the owner'";
+      const expectedError = OWNABLE_ERROR_STRING;
 
       const referralRewardUpdatePromise = upgradedProxyContract
         .connect(referrer)
@@ -238,9 +243,9 @@ describe("Testing upgradable referral payment proxy contracts", async () => {
     });
   });
 
-  //-----------------------------------------------------------------------------------------------
+  // -----------------------------------------------------------------------------------------------
   // Integration Testing of Referral Process / Unit testing for forwarding function
-  //-----------------------------------------------------------------------------------------------
+  // -----------------------------------------------------------------------------------------------
 
   describe(`Testing Referral Process `, async () => {
     it(`${CONTRACT} should forward the correct amount / prize to the receiver account`, async () => {
@@ -335,7 +340,7 @@ describe("Testing upgradable referral payment proxy contracts", async () => {
         deployUpgradableFixture
       );
 
-      const expectedError = "transaction must send the exact payment amount";
+      const expectedError = EXACT_AMOUNT_ERROR;
       // await referral process
       const referralProcessPromise = upgradedProxyContract
         .connect(referee)

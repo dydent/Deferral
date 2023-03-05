@@ -4,6 +4,10 @@ env:
   DOTENV_CONFIG_PATH: "./.env.example"
   MNEMONIC: ${{ secrets.MNEMONIC }}
   INFURA_API_KEY: ${{ secrets.INFURA_API_KEY }}
+  METAMASK_PK1: ${{ secrets.METAMASK_PK1 }}
+  METAMASK_PK2: ${{ secrets.METAMASK_PK2 }}
+  METAMASK_PK3: ${{ secrets.METAMASK_PK3 }}
+  METAMASK_PK4: ${{ secrets.METAMASK_PK4 }}
 
 on:
   workflow_dispatch:

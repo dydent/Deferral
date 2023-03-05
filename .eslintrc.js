@@ -5,25 +5,32 @@ module.exports = {
     mocha: true,
     node: true,
   },
-  plugins: ["@typescript-eslint"],
   extends: [
-    "standard",
-    "plugin:prettier/recommended",
-    "plugin:node/recommended",
+    "eslint:recommended",
+    "plugin:@typescript-eslint/eslint-recommended",
+    "plugin:@typescript-eslint/recommended",
+    "prettier",
   ],
   parser: "@typescript-eslint/parser",
   parserOptions: {
-    ecmaVersion: 12,
+    project: ["./tsconfig.json"],
   },
+  plugins: ["@typescript-eslint"],
+  root: true,
   rules: {
-    "node/no-unsupported-features/es-syntax": [
-      "error",
-      { ignores: ["modules"] },
-    ],
-    "node/no-unpublished-import": [
+    "@typescript-eslint/no-floating-promises": [
       "error",
       {
-        allowModules: ["ethers"],
+        ignoreIIFE: true,
+        ignoreVoid: true,
+      },
+    ],
+    "@typescript-eslint/no-inferrable-types": "off",
+    "@typescript-eslint/no-unused-vars": [
+      "error",
+      {
+        argsIgnorePattern: "_",
+        varsIgnorePattern: "_",
       },
     ],
   },
