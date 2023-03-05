@@ -1,4 +1,10 @@
-node_modules
-artifacts
-cache
+# directories
 coverage
+artifacts
+
+
+# files
+*.eslintrc.js
+*.env
+*.log
+

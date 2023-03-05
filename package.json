@@ -1,11 +1,30 @@
 {
-  "name": "hardhat-clean",
+  "name": "@dydent/deferral",
+  "description": "Decentralized Referral System",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "author": {
+    "name": "dydent",
+    "url": "https://github.com/dydent"
+  },
+  "keywords": [
+    "blockchain",
+    "referral-systems",
+    "ethers",
+    "ethereum",
+    "hardhat",
+    "smart-contracts",
+    "solidity",
+    "typescript",
+    "typechain"
+  ],
   "scripts": {
-    "lint": "prettier --list-different 'contracts/**/*.sol'",
+    "lint": "yarn lint:sol && yarn lint:ts && yarn prettier:check",
+    "lint:sol": "solhint --max-warnings 0 \"contracts/**/*.sol\"",
+    "lint:ts": "eslint --ignore-path ./.eslintignore --ext .js,.ts .",
+    "prettier:check": "prettier --check \"**/*.{js,json,md,sol,ts}\"",
+    "prettier:write": "prettier --write \"**/*.{js,json,md,sol,ts}\"",
     "compile": "npx hardhat compile",
+    "coverage": "npx hardhat coverage",
     "test": "npx hardhat test --network hardhat",
     "test-payment-proxy": "npx hardhat test ./test/v1-referral-payment-proxy.test.ts",
     "test-upgrades-payment-proxy": "npx hardhat test ./test/upgradable-referral-payment-proxy.test.ts",
@@ -18,8 +37,6 @@
     "deploy-V1ReferralPaymentProxy-goerli": "hardhat run scripts/deploy-V1ReferralPaymentProxy.ts --network goerli",
     "deploy-all-networks-V1ReferralPaymentProxy": "hardhat run scripts/deploy-V1ReferralPaymentProxy.ts --network hardhat && hardhat run scripts/deploy-V1ReferralPaymentProxy.ts --network ganache && hardhat run scripts/deploy-V1ReferralPaymentProxy.ts --network goerli"
   },
-  "keywords": [],
-  "author": "",
   "license": "ISC",
   "devDependencies": {
     "@ethersproject/abi": "^5.7.0",
@@ -50,7 +67,7 @@
     "hardhat-gas-reporter": "^1.0.9",
     "prettier": "^2.4.1",
     "prettier-plugin-solidity": "^1.1.1",
-    "solhint": "^3.3.6",
+    "solhint": "^3.4.0",
     "solidity-coverage": "^0.8.2",
     "ts-node": "^10.4.0",
     "typechain": "^8.1.1",
@@ -64,6 +81,7 @@
     "chai-as-promised": "^7.1.1",
     "depcheck": "^1.4.3",
     "eth-gas-reporter": "^0.2.25",
-    "hardhat-shorthand": "^1.0.0"
+    "hardhat-shorthand": "^1.0.0",
+    "solhint-plugin-prettier": "^0.0.5"
   }
 }

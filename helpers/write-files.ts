@@ -1,6 +1,14 @@
 import fs from "fs";
 import path from "path";
 
+export type LogJsonInputType = {
+  date: Date;
+  contract: string;
+  contractAddress: string;
+  signer: string;
+  durationInMs: number;
+};
+
 function ensureDirectoryExistence(filePath: string) {
   const dirname = path.dirname(filePath);
   if (fs.existsSync(dirname)) {
@@ -18,7 +26,7 @@ export const writeLogFile = ({
   chainName,
 }: {
   filePath: string;
-  jsonInput: Object;
+  jsonInput: LogJsonInputType;
   chainID: number | undefined;
   chainName: string | undefined;
 }): void => {
