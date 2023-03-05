@@ -7,6 +7,8 @@
     "lint": "prettier --list-different 'contracts/**/*.sol'",
     "compile": "npx hardhat compile",
     "test": "npx hardhat test --network hardhat",
+    "test-payment-proxy": "npx hardhat test ./test/v1-referral-payment-proxy.test.ts",
+    "test-upgrades-payment-proxy": "npx hardhat test ./test/upgradable-referral-payment-proxy.test.ts",
     "deploy-UpgradableReferralPaymentProxy": "hardhat run scripts/deploy-UpgradableReferralPaymentProxy.ts --network hardhat",
     "deploy-UpgradableReferralPaymentProxy-ganache": "hardhat run scripts/deploy-UpgradableReferralPaymentProxy.ts --network ganache",
     "deploy-UpgradableReferralPaymentProxy-goerli": "hardhat run scripts/deploy-UpgradableReferralPaymentProxy.ts --network goerli",
@@ -60,6 +62,7 @@
     "@openzeppelin/hardhat-upgrades": "^1.22.1",
     "@openzeppelin/truffle-upgrades": "^1.17.0",
     "chai-as-promised": "^7.1.1",
+    "depcheck": "^1.4.3",
     "eth-gas-reporter": "^0.2.25",
     "hardhat-shorthand": "^1.0.0"
   }

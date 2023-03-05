@@ -15,6 +15,7 @@ dotenv.config();
 const GANACHE_URL = "HTTP://127.0.0.1:7545";
 const SEPOLIA_URL = `https://sepolia.infura.io/v3/${process.env.INFURA_API_KEY}`;
 const GOERLI_URL = `https://goerli.infura.io/v3/${process.env.INFURA_API_KEY}`;
+const GAS_PRICE_API = `https://api.etherscan.io/api?module=proxy&action=eth_gasPrice`;
 
 const config: HardhatUserConfig = {
   solidity: {
@@ -75,13 +76,14 @@ const config: HardhatUserConfig = {
   },
   gasReporter: {
     enabled: !!process.env.REPORT_GAS,
-    currency: "USD",
-    // proxyResolver: "EtherRouter",
+    currency: "CHF",
+    // !!! for accurate gas reporter output --> run test files one by one and exclude not needed contracts here !!!
+    // excludeContracts: ["V1ReferralPaymentProxy"],
+    coinmarketcap: process.env.COINMARKETCAP_API_KEY,
+    gasPriceApi: GAS_PRICE_API,
+    // proxyResolver,
     // gasPrice: 34,
     // outputFile:
-    coinmarketcap: process.env.COINMARKETCAP_API_KEY,
-    gasPriceApi:
-      "https://api.etherscan.io/api?module=proxy&action=eth_gasPrice",
   },
 };
 

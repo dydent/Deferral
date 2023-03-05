@@ -9,7 +9,6 @@ pragma solidity >=0.8.2 <0.9.0;
 
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol";
 
 contract UpgradableV2ReferralPaymentProxy is Initializable, OwnableUpgradeable {
 

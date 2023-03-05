@@ -22,12 +22,6 @@ contract UpgradableV1ReferralPaymentProxy is Initializable, OwnableUpgradeable {
     // value of the referral reward that is a portion of the paymentAmount
     uint256 public referralReward;
     
-
-    modifier exactAmount {
-        require(msg.value == paymentAmount, 'transaction must send the exact payment amount');
-        _;
-    }
-
     // Referral Event to be emitted once a referral process has been completed
     event Referral(address indexed referrer, address indexed referee);
 
@@ -45,19 +39,4 @@ contract UpgradableV1ReferralPaymentProxy is Initializable, OwnableUpgradeable {
         paymentAmount = _amount;
         referralReward = _referralReward;
     }
-
-
-
-    // forward paymentAmount to the receiver and send referralReward to the referrerAddress
-    function forwardReferralPayment(address payable _referrerAddress) exactAmount external payable {
-        uint256 receiverAmount = msg.value - referralReward;
-        uint256 referrerRewardAmount = msg.value - receiverAmount;
-        // forward payment to receiver
-        receiver.transfer(receiverAmount);
-        // send referral rewards to referrer
-        _referrerAddress.transfer(referrerRewardAmount);
-        emit Referral(_referrerAddress, msg.sender);
-    }
-
-
 }
