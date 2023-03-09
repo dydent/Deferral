@@ -81,7 +81,7 @@ contract UpgradableV2ReferralPaymentProxy is Initializable, OwnableUpgradeable {
     // function to update the referral payment amount
     function updatePaymentAmount(uint256 _newPaymentAmount) public onlyOwner {
         require(
-            paymentAmount > _newPaymentAmount,
+            _newPaymentAmount > referralReward,
             "reward must be portion of paymentAmount"
         );
         uint256 oldPaymentAmount = paymentAmount;
