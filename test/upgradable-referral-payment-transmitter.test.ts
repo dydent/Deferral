@@ -1,118 +1,36 @@
-import { ethers, upgrades } from "hardhat";
 import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 import { ethConverter } from "../helpers/converters";
 import { expect } from "chai";
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { ContractFactory } from "ethers";
-
 import {
   EXACT_AMOUNT_ERROR,
   OWNABLE_ERROR_STRING,
   REWARD_AMOUNT_PROPORTION_ERROR,
 } from "../helpers/constants/error-strings";
 import {
-  UpgradableV1ReferralPaymentProxy,
-  UpgradableV2ReferralPaymentProxy,
-} from "../types";
+  deployAndUpgradeUpgradablePaymentTransmitterFixture,
+  UPGRADABLE_REFERRAL_REWARD,
+  UPGRADABLE_PAYMENT_AMOUNT,
+  UPGRADABLE_PAYMENT_TRANSMITTER,
+  UPGRADABLE_PRIZE,
+  INITIAL_UPGRADABLE_PAYMENT_TRANSMITTER,
+} from "../helpers/test-helpers/upgradable-payment-transmitter-fixtures";
 
-type FixtureReturnType = {
-  admin: SignerWithAddress;
-  receiver: SignerWithAddress;
-  updatedReceiver: SignerWithAddress;
-  referrer: SignerWithAddress;
-  referee: SignerWithAddress;
-  proxyContract: UpgradableV1ReferralPaymentProxy;
-  proxyContractAddress: string;
-  adminAddress: string;
-  initialImplementationContractAddress: string;
-  proxyAdminContractAddress: string;
-  upgradedProxyContract: UpgradableV2ReferralPaymentProxy;
-  upgradedImplementationAddress: string;
-};
-
-const INITIAL_CONTRACT = "UpgradableV1ReferralPaymentProxy";
-const CONTRACT = "UpgradableV2ReferralPaymentProxy";
-
-describe("Testing upgradable referral payment proxy contracts", async () => {
-  // referral values / conditions (in ether)
-  const PAYMENT_AMOUNT = 10;
-  const REFERRAL_REWARD = 1;
-  const PRICE = PAYMENT_AMOUNT - REFERRAL_REWARD;
-
+describe("Testing upgradable referral payment transmitter contracts", async () => {
   // helper function to deploy the referral contract
-  async function deployUpgradableFixture(): Promise<FixtureReturnType> {
-    const [admin, receiver, updatedReceiver, referrer, referee] =
-      await ethers.getSigners();
-
-    const referralContract = await ethers.getContractFactory(INITIAL_CONTRACT);
-
-    // deploy upgrade proxy contract (typed as the underlying implementation contract)
-    const proxyContract: UpgradableV1ReferralPaymentProxy =
-      (await upgrades.deployProxy(referralContract, [
-        receiver.address,
-        ethConverter(PAYMENT_AMOUNT),
-        ethConverter(REFERRAL_REWARD),
-      ])) as UpgradableV1ReferralPaymentProxy;
-
-    // proxy contract address
-    const proxyContractAddress: string = proxyContract.address;
-
-    // admin of all the upgrades contracts (proxyContract / implementationContract / proxyAdminContract
-    const adminAddress: string = await proxyContract.signer.getAddress();
-
-    // current implementation contract address
-    const initialImplementationContractAddress: string =
-      await upgrades.erc1967.getImplementationAddress(proxyContract.address);
-
-    // address of the proxy admin contract  (typed as the underlying implementation contract)
-    const proxyAdminContractAddress: string =
-      await upgrades.erc1967.getAdminAddress(proxyContract.address);
-
-    // contract to upgrade initial contract
-    const upgradedImplementationContract: ContractFactory =
-      await ethers.getContractFactory(CONTRACT);
-    // use proxy to upgrade contract
-    const upgradedProxyContract: UpgradableV2ReferralPaymentProxy =
-      (await upgrades.upgradeProxy(
-        proxyContract,
-        upgradedImplementationContract
-      )) as UpgradableV2ReferralPaymentProxy;
-
-    await upgradedProxyContract.deployed();
-
-    // get implementation address of updated contract
-    // !!! implementation contract only changes if there are changes in the contract !!!
-    const upgradedImplementationAddress: string =
-      await upgrades.erc1967.getImplementationAddress(proxyContract.address);
-
-    return {
-      admin,
-      receiver,
-      updatedReceiver,
-      referrer,
-      referee,
-      proxyContract,
-      proxyContractAddress,
-      adminAddress,
-      initialImplementationContractAddress,
-      proxyAdminContractAddress,
-      upgradedProxyContract,
-      upgradedImplementationAddress,
-    };
-  }
+  const deployFixture = deployAndUpgradeUpgradablePaymentTransmitterFixture;
 
   // -----------------------------------------------------------------------------------------------
   // Testing upgrades
   // -----------------------------------------------------------------------------------------------
 
   describe(`OpenZeppelin Upgrades Pattern`, async () => {
-    it(`Upgradable pattern works for ${CONTRACT} and ${INITIAL_CONTRACT}`, async () => {
+    it(`Upgradable pattern works for ${UPGRADABLE_PAYMENT_TRANSMITTER} and ${INITIAL_UPGRADABLE_PAYMENT_TRANSMITTER}`, async () => {
       const {
         proxyContract,
         initialImplementationContractAddress,
         upgradedImplementationAddress,
         upgradedProxyContract,
-      } = await loadFixture(deployUpgradableFixture);
+      } = await loadFixture(deployFixture);
 
       // assertions
       expect(proxyContract.address).to.equal(upgradedProxyContract.address);
@@ -127,10 +45,8 @@ describe("Testing upgradable referral payment proxy contracts", async () => {
   // -----------------------------------------------------------------------------------------------
 
   describe(`Updating Contract Values`, async () => {
-    it(`${CONTRACT} should update payment amount`, async () => {
-      const { admin, upgradedProxyContract } = await loadFixture(
-        deployUpgradableFixture
-      );
+    it(`${UPGRADABLE_PAYMENT_TRANSMITTER} should update payment amount`, async () => {
+      const { admin, upgradedProxyContract } = await loadFixture(deployFixture);
 
       const updatedPaymentAmount = ethConverter(5);
 
@@ -147,9 +63,9 @@ describe("Testing upgradable referral payment proxy contracts", async () => {
       );
     });
 
-    it(`${CONTRACT} should update receiver address`, async () => {
+    it(`${UPGRADABLE_PAYMENT_TRANSMITTER} should update receiver address`, async () => {
       const { admin, updatedReceiver, upgradedProxyContract } =
-        await loadFixture(deployUpgradableFixture);
+        await loadFixture(deployFixture);
 
       const updatedReceiverAddress = await updatedReceiver.getAddress();
 
@@ -164,10 +80,8 @@ describe("Testing upgradable referral payment proxy contracts", async () => {
       expect(updatedReceiverAddress).to.equal(contractReceiverAddress);
     });
 
-    it(`${CONTRACT} should update referral reward`, async () => {
-      const { admin, upgradedProxyContract } = await loadFixture(
-        deployUpgradableFixture
-      );
+    it(`${UPGRADABLE_PAYMENT_TRANSMITTER} should update referral reward`, async () => {
+      const { admin, upgradedProxyContract } = await loadFixture(deployFixture);
 
       const updatedReferralReward = ethConverter(3);
 
@@ -191,12 +105,10 @@ describe("Testing upgradable referral payment proxy contracts", async () => {
   // -----------------------------------------------------------------------------------------------
 
   describe(`Function Modifiers`, async () => {
-    it(`${CONTRACT} should throw if updated referral reward is bigger than payment`, async () => {
-      const { admin, upgradedProxyContract } = await loadFixture(
-        deployUpgradableFixture
-      );
+    it(`${UPGRADABLE_PAYMENT_TRANSMITTER} should throw if updated referral reward is bigger than payment`, async () => {
+      const { admin, upgradedProxyContract } = await loadFixture(deployFixture);
 
-      const updatedReferralReward = ethConverter(PAYMENT_AMOUNT + 1);
+      const updatedReferralReward = ethConverter(UPGRADABLE_PAYMENT_AMOUNT + 1);
 
       const expectedError = REWARD_AMOUNT_PROPORTION_ERROR;
 
@@ -210,9 +122,9 @@ describe("Testing upgradable referral payment proxy contracts", async () => {
       );
     });
 
-    it(`${CONTRACT} should throw if non-admin tries to update contract`, async () => {
+    it(`${UPGRADABLE_PAYMENT_TRANSMITTER} should throw if non-admin tries to update contract`, async () => {
       const { referrer, upgradedProxyContract } = await loadFixture(
-        deployUpgradableFixture
+        deployFixture
       );
 
       const updatedReferralReward = ethConverter(3);
@@ -248,9 +160,9 @@ describe("Testing upgradable referral payment proxy contracts", async () => {
   // -----------------------------------------------------------------------------------------------
 
   describe(`Testing Referral Process `, async () => {
-    it(`${CONTRACT} should forward the correct amount / prize to the receiver account`, async () => {
+    it(`${UPGRADABLE_PAYMENT_TRANSMITTER} should forward the correct amount / prize to the receiver account`, async () => {
       const { receiver, referrer, referee, upgradedProxyContract } =
-        await loadFixture(deployUpgradableFixture);
+        await loadFixture(deployFixture);
 
       // get initial balances
       const initialReceiverBalance = await receiver.getBalance();
@@ -259,21 +171,22 @@ describe("Testing upgradable referral payment proxy contracts", async () => {
       await upgradedProxyContract
         .connect(referee)
         .forwardReferralPayment(referrer.address, {
-          value: ethConverter(PAYMENT_AMOUNT),
+          value: ethConverter(UPGRADABLE_PAYMENT_AMOUNT),
         });
 
       // results
       const afterReceiverBalance = await receiver.getBalance();
       const receiverResult =
-        initialReceiverBalance.toBigInt() + ethConverter(PRICE).toBigInt();
+        initialReceiverBalance.toBigInt() +
+        ethConverter(UPGRADABLE_PRIZE).toBigInt();
 
       // assertions
       expect(afterReceiverBalance.toBigInt()).to.equal(receiverResult);
     });
 
-    it(`${CONTRACT} should send the reward to the referrer account`, async () => {
+    it(`${UPGRADABLE_PAYMENT_TRANSMITTER} should send the reward to the referrer account`, async () => {
       const { referrer, referee, upgradedProxyContract } = await loadFixture(
-        deployUpgradableFixture
+        deployFixture
       );
 
       // get initial balances
@@ -283,22 +196,22 @@ describe("Testing upgradable referral payment proxy contracts", async () => {
       await upgradedProxyContract
         .connect(referee)
         .forwardReferralPayment(referrer.address, {
-          value: ethConverter(PAYMENT_AMOUNT),
+          value: ethConverter(UPGRADABLE_PAYMENT_AMOUNT),
         });
 
       // results
       const afterReferrerBalance = await referrer.getBalance();
       const referrerResult =
         initialReferrerBalance.toBigInt() +
-        ethConverter(REFERRAL_REWARD).toBigInt();
+        ethConverter(UPGRADABLE_REFERRAL_REWARD).toBigInt();
 
       // assertions
       expect(afterReferrerBalance.toBigInt()).to.equal(referrerResult);
     });
 
-    it(`${CONTRACT} should subtract payment amount from referee account`, async () => {
+    it(`${UPGRADABLE_PAYMENT_TRANSMITTER} should subtract payment amount from referee account`, async () => {
       const { referrer, referee, upgradedProxyContract } = await loadFixture(
-        deployUpgradableFixture
+        deployFixture
       );
 
       // get initial balances
@@ -308,7 +221,7 @@ describe("Testing upgradable referral payment proxy contracts", async () => {
       const referralTx = await upgradedProxyContract
         .connect(referee)
         .forwardReferralPayment(referrer.address, {
-          value: ethConverter(PAYMENT_AMOUNT),
+          value: ethConverter(UPGRADABLE_PAYMENT_AMOUNT),
         });
 
       // calculate referral transaction costs
@@ -329,15 +242,15 @@ describe("Testing upgradable referral payment proxy contracts", async () => {
       const refereeResult =
         initialRefereeBalance.toBigInt() -
         txCost.toBigInt() -
-        ethConverter(PAYMENT_AMOUNT).toBigInt();
+        ethConverter(UPGRADABLE_PAYMENT_AMOUNT).toBigInt();
 
       // assertions
       expect(afterRefereeBalance.toBigInt()).to.equal(refereeResult);
     });
 
-    it(`${CONTRACT} should throw if payment value is not exact`, async () => {
+    it(`${UPGRADABLE_PAYMENT_TRANSMITTER} should throw if payment value is not exact`, async () => {
       const { referrer, referee, upgradedProxyContract } = await loadFixture(
-        deployUpgradableFixture
+        deployFixture
       );
 
       const expectedError = EXACT_AMOUNT_ERROR;
@@ -345,7 +258,7 @@ describe("Testing upgradable referral payment proxy contracts", async () => {
       const referralProcessPromise = upgradedProxyContract
         .connect(referee)
         .forwardReferralPayment(referrer.address, {
-          value: ethConverter(PAYMENT_AMOUNT / 2),
+          value: ethConverter(UPGRADABLE_PAYMENT_AMOUNT / 2),
         });
 
       // await calls to be rejected since they are not owner of the contract

@@ -1,10 +1,18 @@
+// -----------------------------------------------------------------------------------------------
+// UPGRADABLE CONTRACT
+// -----------------------------------------------------------------------------------------------
+
 // SPDX-License-Identifier: GPL-3.0
 
 pragma solidity 0.8.9;
 
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
-contract V1ReferralPaymentProxy is Ownable {
+contract UpgradableV2ReferralPaymentTransmitter is
+    Initializable,
+    OwnableUpgradeable
+{
     // address of the payment receiver
     address payable public receiver;
 
@@ -14,10 +22,6 @@ contract V1ReferralPaymentProxy is Ownable {
     // value of the referral reward that is a portion of the paymentAmount
     uint256 public referralReward;
 
-    // owner address that has created the contract
-    address public contractOwner;
-
-    // modifier to guarantee the exact amount
     modifier exactAmount() {
         require(
             msg.value == paymentAmount,
@@ -37,12 +41,15 @@ contract V1ReferralPaymentProxy is Ownable {
     event PaymentAmountUpdated(uint256 oldPrice, uint256 newPrice);
     event ReferralRewardUpdated(uint256 oldReward, uint256 newReward);
 
-    // constructor function to initialize receiver address and the referral amounts --> i.e. referral conditions
-    constructor(
+    // upgradable-contracts initializer --> set receiver address and referral conditions
+    function initialize(
         address payable _receiver,
         uint256 _amount,
         uint256 _referralReward
-    ) {
+    ) public initializer {
+        // TODO test this in remix
+        // set owner
+        __Ownable_init();
         require(
             _amount > _referralReward,
             "reward must be portion of paymentAmount"
@@ -50,7 +57,6 @@ contract V1ReferralPaymentProxy is Ownable {
         receiver = _receiver;
         paymentAmount = _amount;
         referralReward = _referralReward;
-        contractOwner = msg.sender;
     }
 
     // forward paymentAmount to the receiver and send referralReward to the referrerAddress
@@ -78,7 +84,7 @@ contract V1ReferralPaymentProxy is Ownable {
     // function to update the referral payment amount
     function updatePaymentAmount(uint256 _newPaymentAmount) public onlyOwner {
         require(
-            paymentAmount > _newPaymentAmount,
+            _newPaymentAmount > referralReward,
             "reward must be portion of paymentAmount"
         );
         uint256 oldPaymentAmount = paymentAmount;

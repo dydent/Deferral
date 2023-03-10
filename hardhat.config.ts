@@ -50,38 +50,47 @@ const config: HardhatUserConfig = {
       },
       chainId: CHAIN_IDS.hardhat,
     },
+    // LOCAL GANACHE NETWORK
     ganache: getChainConfig({
       chain: "ganache",
       hdWalletAccounts: USE_HD_WALLET_ACCOUNTS,
     }),
+    // !!! ARBITRUM MAINNET !!!
     arbitrum: getChainConfig({
       chain: "arbitrum-mainnet",
       hdWalletAccounts: USE_HD_WALLET_ACCOUNTS,
     }),
+    // !!! AVALANCHE MAINNET !!!
     avalanche: getChainConfig({
       chain: "avalanche",
       hdWalletAccounts: USE_HD_WALLET_ACCOUNTS,
     }),
+    // !!! BINANCE SMART CHAIN (BSC) MAINNET !!!
     bsc: getChainConfig({
       chain: "bsc",
       hdWalletAccounts: USE_HD_WALLET_ACCOUNTS,
     }),
+    // !!! ETHEREUM MAINNET !!!
     mainnet: getChainConfig({
       chain: "mainnet",
       hdWalletAccounts: USE_HD_WALLET_ACCOUNTS,
     }),
+    // !!! OPTIMISM MAINNET !!!
     optimism: getChainConfig({
       chain: "optimism-mainnet",
       hdWalletAccounts: USE_HD_WALLET_ACCOUNTS,
     }),
+    // !!! POLYGON MAINNET !!!
     "polygon-mainnet": getChainConfig({
       chain: "polygon-mainnet",
       hdWalletAccounts: USE_HD_WALLET_ACCOUNTS,
     }),
+    // POLYGON TESTNET
     "polygon-mumbai": getChainConfig({
       chain: "polygon-mumbai",
       hdWalletAccounts: USE_HD_WALLET_ACCOUNTS,
     }),
+    //
     sepolia: getChainConfig({
       chain: "sepolia",
       hdWalletAccounts: USE_HD_WALLET_ACCOUNTS,
@@ -92,7 +101,7 @@ const config: HardhatUserConfig = {
   },
   gasReporter: {
     enabled: !!process.env.REPORT_GAS,
-    currency: "CHF",
+    currency: "USD",
     // !!! for accurate gas reporter output --> run test files one by one and exclude not needed contracts here !!!
     // excludeContracts: ["V1ReferralPaymentProxy"],
     coinmarketcap: process.env.COINMARKETCAP_API_KEY,
@@ -101,10 +110,10 @@ const config: HardhatUserConfig = {
     // gasPrice: 34,
     // outputFile:
   },
-  typechain: {
-    outDir: "types",
-    target: "ethers-v5",
-  },
+  // typechain: {
+  //   outDir: "types",
+  //   target: "ethers-v5",
+  // },
 };
 
 export default config;

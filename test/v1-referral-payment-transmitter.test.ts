@@ -1,66 +1,30 @@
-import { ethers } from "hardhat";
 import { ethConverter } from "../helpers/converters";
 import { expect } from "chai";
 import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import {
   EXACT_AMOUNT_ERROR,
   OWNABLE_ERROR_STRING,
   REWARD_AMOUNT_PROPORTION_ERROR,
 } from "../helpers/constants/error-strings";
-import { V1ReferralPaymentProxy } from "../types";
+import {
+  deployV1ReferralPaymentTransmitterFixture,
+  PAYMENT_AMOUNT,
+  PAYMENT_TRANSMITTER_CONTRACT,
+  PRICE,
+  REFERRAL_REWARD,
+} from "../helpers/test-helpers/payment-transmitter-fixtures";
 
-type FixtureReturnType = {
-  admin: SignerWithAddress;
-  receiver: SignerWithAddress;
-  updatedReceiver: SignerWithAddress;
-
-  referrer: SignerWithAddress;
-  referee: SignerWithAddress;
-  deployedContract: V1ReferralPaymentProxy;
-};
-
-const CONTRACT = "V1ReferralPaymentProxy";
-
-describe(`Testing ${CONTRACT} Contract`, async () => {
-  // referral values / conditions (in ether)
-  const PAYMENT_AMOUNT = 10;
-  const REFERRAL_REWARD = 1;
-  const PRICE = PAYMENT_AMOUNT - REFERRAL_REWARD;
-
-  // helper function to deploy the referral contract
-  async function deployReferralContractFixture(): Promise<FixtureReturnType> {
-    const [admin, receiver, updatedReceiver, referrer, referee] =
-      await ethers.getSigners();
-
-    const referralContract = await ethers.getContractFactory(CONTRACT);
-
-    const deployedContract = (await referralContract.deploy(
-      receiver.address,
-      ethConverter(PAYMENT_AMOUNT),
-      ethConverter(REFERRAL_REWARD)
-    )) as V1ReferralPaymentProxy;
-    await deployedContract.deployed();
-
-    return {
-      admin,
-      receiver,
-      updatedReceiver,
-      referrer,
-      referee,
-      deployedContract,
-    };
-  }
+describe(`Testing ${PAYMENT_TRANSMITTER_CONTRACT} Contract`, async () => {
+  // helper fixture function to deploy the referral contract
+  const deployFixture = deployV1ReferralPaymentTransmitterFixture;
 
   // -----------------------------------------------------------------------------------------------
   // Unit tests for updating contract values
   // -----------------------------------------------------------------------------------------------
 
   describe(`Updating Contract Values`, async () => {
-    it(`${CONTRACT} should update payment amount`, async () => {
-      const { admin, deployedContract } = await loadFixture(
-        deployReferralContractFixture
-      );
+    it(`${PAYMENT_TRANSMITTER_CONTRACT} should update payment amount`, async () => {
+      const { admin, deployedContract } = await loadFixture(deployFixture);
 
       const updatedPaymentAmount = ethConverter(5);
 
@@ -77,9 +41,9 @@ describe(`Testing ${CONTRACT} Contract`, async () => {
       );
     });
 
-    it(`${CONTRACT} should update receiver address`, async () => {
+    it(`${PAYMENT_TRANSMITTER_CONTRACT} should update receiver address`, async () => {
       const { admin, updatedReceiver, deployedContract } = await loadFixture(
-        deployReferralContractFixture
+        deployFixture
       );
 
       const updatedReceiverAddress = await updatedReceiver.getAddress();
@@ -95,10 +59,8 @@ describe(`Testing ${CONTRACT} Contract`, async () => {
       expect(updatedReceiverAddress).to.equal(contractReceiverAddress);
     });
 
-    it(`${CONTRACT} should update referral reward`, async () => {
-      const { admin, deployedContract } = await loadFixture(
-        deployReferralContractFixture
-      );
+    it(`${PAYMENT_TRANSMITTER_CONTRACT} should update referral reward`, async () => {
+      const { admin, deployedContract } = await loadFixture(deployFixture);
 
       const updatedReferralReward = ethConverter(3);
 
@@ -121,10 +83,8 @@ describe(`Testing ${CONTRACT} Contract`, async () => {
   // -----------------------------------------------------------------------------------------------
 
   describe(`Function Modifiers`, async () => {
-    it(`${CONTRACT} should throw if updated referral reward is bigger than payment`, async () => {
-      const { admin, deployedContract } = await loadFixture(
-        deployReferralContractFixture
-      );
+    it(`${PAYMENT_TRANSMITTER_CONTRACT} should throw if updated referral reward is bigger than payment`, async () => {
+      const { admin, deployedContract } = await loadFixture(deployFixture);
 
       const updatedReferralReward = ethConverter(PAYMENT_AMOUNT + 1);
 
@@ -140,10 +100,8 @@ describe(`Testing ${CONTRACT} Contract`, async () => {
       );
     });
 
-    it(`${CONTRACT} should throw if non-admin tries to update contract`, async () => {
-      const { referrer, deployedContract } = await loadFixture(
-        deployReferralContractFixture
-      );
+    it(`${PAYMENT_TRANSMITTER_CONTRACT} should throw if non-admin tries to update contract`, async () => {
+      const { referrer, deployedContract } = await loadFixture(deployFixture);
 
       const updatedReferralReward = ethConverter(3);
       const updatedReceiverAddress = await referrer.getAddress();
@@ -178,9 +136,9 @@ describe(`Testing ${CONTRACT} Contract`, async () => {
   // -----------------------------------------------------------------------------------------------
 
   describe(`Testing Referral Process `, async () => {
-    it(`${CONTRACT} should forward the correct amount / prize to the receiver account`, async () => {
+    it(`${PAYMENT_TRANSMITTER_CONTRACT} should forward the correct amount / prize to the receiver account`, async () => {
       const { receiver, referrer, referee, deployedContract } =
-        await loadFixture(deployReferralContractFixture);
+        await loadFixture(deployFixture);
 
       // get initial balances
       const initialReceiverBalance = await receiver.getBalance();
@@ -201,9 +159,9 @@ describe(`Testing ${CONTRACT} Contract`, async () => {
       expect(afterReceiverBalance.toBigInt()).to.equal(receiverResult);
     });
 
-    it(`${CONTRACT} should send the reward to the referrer account`, async () => {
+    it(`${PAYMENT_TRANSMITTER_CONTRACT} should send the reward to the referrer account`, async () => {
       const { referrer, referee, deployedContract } = await loadFixture(
-        deployReferralContractFixture
+        deployFixture
       );
 
       // get initial balances
@@ -226,9 +184,9 @@ describe(`Testing ${CONTRACT} Contract`, async () => {
       expect(afterReferrerBalance.toBigInt()).to.equal(referrerResult);
     });
 
-    it(`${CONTRACT} should subtract payment amount from referee account`, async () => {
+    it(`${PAYMENT_TRANSMITTER_CONTRACT} should subtract payment amount from referee account`, async () => {
       const { referrer, referee, deployedContract } = await loadFixture(
-        deployReferralContractFixture
+        deployFixture
       );
 
       // get initial balances
@@ -265,9 +223,9 @@ describe(`Testing ${CONTRACT} Contract`, async () => {
       expect(afterRefereeBalance.toBigInt()).to.equal(refereeResult);
     });
 
-    it(`${CONTRACT} should throw if payment value is not exact`, async () => {
+    it(`${PAYMENT_TRANSMITTER_CONTRACT} should throw if payment value is not exact`, async () => {
       const { referrer, referee, deployedContract } = await loadFixture(
-        deployReferralContractFixture
+        deployFixture
       );
 
       const expectedError = EXACT_AMOUNT_ERROR;
