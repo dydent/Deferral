@@ -4,24 +4,24 @@ import { deployUpgradableContractHelper } from "../deployer-functions/deploy-upg
 import { V1ReferralQuantityPaymentUpgradable } from "../../typechain-types";
 import { PaymentQuantityFixtureReturnType } from "../../types/fixture-types/PaymentQuantityFixtureTypes";
 
-export const PAYMENT_QUANTITY_AMOUNT_CONTRACT =
-  "V1ReferralQuantityPaymentUpgradable";
+type PaymentQuantityFixtureInputType = {
+  contractName: string;
+  referralPercentage: number;
+  quantityThreshold: number;
+};
 
-export const QUANTITY_PAYMENT_AMOUNT = 10;
-export const REFERRAL_PERCENTAGE = 50;
-export const QUANTITY_PAYMENT_AMOUNT_PRIZE =
-  (QUANTITY_PAYMENT_AMOUNT / 100) * REFERRAL_PERCENTAGE;
-
-export const QUANTITY_THRESHOLD = 2;
-
-export async function deployPaymentQuantityUpgradableFixture(): Promise<PaymentQuantityFixtureReturnType> {
+export async function deployPaymentQuantityUpgradableFixture({
+  contractName,
+  referralPercentage,
+  quantityThreshold,
+}: PaymentQuantityFixtureInputType): Promise<PaymentQuantityFixtureReturnType> {
   const [admin, receiver, referrer, referee] = await ethers.getSigners();
 
   // deploy proxy contract
   const proxyContract =
     await deployUpgradableContractHelper<V1ReferralQuantityPaymentUpgradable>({
-      contractName: PAYMENT_QUANTITY_AMOUNT_CONTRACT,
-      initArgs: [receiver.address, REFERRAL_PERCENTAGE, QUANTITY_THRESHOLD],
+      contractName: contractName,
+      initArgs: [receiver.address, referralPercentage, quantityThreshold],
     });
 
   return {

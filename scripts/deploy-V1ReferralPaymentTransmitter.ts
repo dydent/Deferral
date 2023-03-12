@@ -8,7 +8,9 @@ import { resolveNetworkIds } from "../helpers/resolve-network-ids";
 // deployment script for V1ReferralPaymentProxy Contract
 // -----------------------------------------------------
 
-const CONTRACT = "V1ReferralPaymentProxy";
+const LOG_FILE_NAME = "payment-transmitter-contract-deployments.json";
+
+const CONTRACT = "V1ReferralPaymentTransmitter";
 
 const PAYMENT_AMOUNT = ethConverter(10);
 const REFERRAL_REWARD = ethConverter(1);
@@ -31,9 +33,6 @@ async function main() {
   // deploy contract --> deployer account signs this transaction
   const referralContract = await ethers.getContractFactory(CONTRACT);
 
-  // get deployer / signer address that deploys the contract
-  const contractSignerAddress = await referralContract.signer.getAddress();
-
   // deploy contract
   const deployedReferralContract = await referralContract.deploy(
     receiver.address,
@@ -44,26 +43,46 @@ async function main() {
   // wait for contract to be deployed
   await deployedReferralContract.deployed();
 
-  // log message
-  console.log(
-    ` ${contractSignerAddress} deployed ${CONTRACT} contract to ${deployedReferralContract.address}\n`
-  );
+  // calculate deployment transaction costs
+  const deploymentTxReceipt =
+    await deployedReferralContract.deployTransaction.wait();
+  const txGasUsed = await deploymentTxReceipt.gasUsed;
+  const txEffectiveGasPrice = await deploymentTxReceipt.effectiveGasPrice;
+  const txCost = txGasUsed.mul(txEffectiveGasPrice);
+
+  // get deployer / signer address that deploys the contract
+  const adminAddress = await deployedReferralContract.signer.getAddress();
+
+  // wait for contract to be deployed
+  const deployedProxyContract = await deployedReferralContract.deployed();
 
   // time measuring
   const endTime = performance.now();
+
+  const deploymentDuration = endTime - startTime;
+
+  // log message
+  console.log(
+    ` ${adminAddress} deployed ${CONTRACT} contract to ${deployedProxyContract.address}`
+  );
+  console.log(` Gas Used: ${txGasUsed}`);
+  console.log(` Tx Cost: ${txCost} (gas used * gas price)`);
+  console.log(` Duration: ${deploymentDuration} ms`);
+  console.log("\n");
 
   // create (write & store) log files of deployments for overview
   const logInput: LogJsonInputType = {
     date: new Date(),
     contract: CONTRACT,
-    contractAddress: deployedReferralContract.address,
-    signer: contractSignerAddress,
-    durationInMs: endTime - startTime,
+    contractAddress: deployedProxyContract.address,
+    signer: adminAddress,
+    gasUsed: txGasUsed.toString(),
+    effectiveGasPrice: txEffectiveGasPrice.toString(),
+    cost: txCost.toString(),
+    durationInMs: deploymentDuration,
   };
-  const logInputFile: string = "contract-deployments.json";
-
   writeLogFile({
-    filePath: logInputFile,
+    filePath: LOG_FILE_NAME,
     jsonInput: logInput,
     chainID: networkId,
     chainName: networkName,

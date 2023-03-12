@@ -11,10 +11,10 @@ import { deployPaymentQuantityUpgradableFixture } from "../helpers/test-helpers/
 import { V1ReferralQuantityPaymentUpgradable } from "../typechain-types";
 
 // TEST CONSTANTS
-const PAYMENT_QUANTITY_CONTRACT = "V1ReferralQuantityPaymentUpgradable";
+const PAYMENT_QUANTITY_CONTRACT = "V2ReferralQuantityPaymentUpgradable";
 // must be between 0 and 100!
-const REFERRAL_PERCENTAGE = 40;
-const PAYMENT_AMOUNT = 10;
+const REFERRAL_PERCENTAGE = 50;
+const PAYMENT_AMOUNT = 1000;
 const REFERRAL_REWARD = (PAYMENT_AMOUNT / 100) * REFERRAL_PERCENTAGE;
 const PRIZE = PAYMENT_AMOUNT - REFERRAL_REWARD;
 // number of payment transactions for a referral process to be complete = threshold +1

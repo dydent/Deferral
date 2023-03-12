@@ -6,25 +6,35 @@ import {
   OWNABLE_ERROR_STRING,
   REWARD_AMOUNT_PROPORTION_ERROR,
 } from "../helpers/constants/error-strings";
-import {
-  deployAndUpgradeUpgradablePaymentTransmitterFixture,
-  UPGRADABLE_REFERRAL_REWARD,
-  UPGRADABLE_PAYMENT_AMOUNT,
-  UPGRADABLE_PAYMENT_TRANSMITTER,
-  UPGRADABLE_PRIZE,
-  INITIAL_UPGRADABLE_PAYMENT_TRANSMITTER,
-} from "../helpers/test-helpers/upgradable-payment-transmitter-fixtures";
+import { deployAndUpgradeUpgradablePaymentTransmitterFixture } from "../helpers/test-helpers/payment-transmitter-fixtures";
+
+// TEST CONSTANTS
+const INITIAL_UPGRADABLE_PAYMENT_TRANSMITTER_CONTRACT =
+  "UpgradableV1ReferralPaymentTransmitter";
+const UPGRADABLE_PAYMENT_TRANSMITTER_CONTRACT =
+  "UpgradableV2ReferralPaymentTransmitter";
+const PAYMENT_AMOUNT: number = 10;
+// must be smaller than payment amount
+const REFERRAL_REWARD = 1;
+const PRIZE = PAYMENT_AMOUNT - REFERRAL_REWARD;
 
 describe("Testing upgradable referral payment transmitter contracts", async () => {
   // helper function to deploy the referral contract
-  const deployFixture = deployAndUpgradeUpgradablePaymentTransmitterFixture;
+  const deployFixture = async () => {
+    return deployAndUpgradeUpgradablePaymentTransmitterFixture({
+      contractName: INITIAL_UPGRADABLE_PAYMENT_TRANSMITTER_CONTRACT,
+      upgradedContractName: UPGRADABLE_PAYMENT_TRANSMITTER_CONTRACT,
+      paymentAmount: PAYMENT_AMOUNT,
+      referralReward: REFERRAL_REWARD,
+    });
+  };
 
   // -----------------------------------------------------------------------------------------------
   // Testing upgrades
   // -----------------------------------------------------------------------------------------------
 
   describe(`OpenZeppelin Upgrades Pattern`, async () => {
-    it(`Upgradable pattern works for ${UPGRADABLE_PAYMENT_TRANSMITTER} and ${INITIAL_UPGRADABLE_PAYMENT_TRANSMITTER}`, async () => {
+    it(`Upgradable pattern works for ${UPGRADABLE_PAYMENT_TRANSMITTER_CONTRACT} and ${INITIAL_UPGRADABLE_PAYMENT_TRANSMITTER_CONTRACT}`, async () => {
       const {
         proxyContract,
         initialImplementationContractAddress,
@@ -45,7 +55,7 @@ describe("Testing upgradable referral payment transmitter contracts", async () =
   // -----------------------------------------------------------------------------------------------
 
   describe(`Updating Contract Values`, async () => {
-    it(`${UPGRADABLE_PAYMENT_TRANSMITTER} should update payment amount`, async () => {
+    it(`${UPGRADABLE_PAYMENT_TRANSMITTER_CONTRACT} should update payment amount`, async () => {
       const { admin, upgradedProxyContract } = await loadFixture(deployFixture);
 
       const updatedPaymentAmount = ethConverter(5);
@@ -63,7 +73,7 @@ describe("Testing upgradable referral payment transmitter contracts", async () =
       );
     });
 
-    it(`${UPGRADABLE_PAYMENT_TRANSMITTER} should update receiver address`, async () => {
+    it(`${UPGRADABLE_PAYMENT_TRANSMITTER_CONTRACT} should update receiver address`, async () => {
       const { admin, updatedReceiver, upgradedProxyContract } =
         await loadFixture(deployFixture);
 
@@ -80,7 +90,7 @@ describe("Testing upgradable referral payment transmitter contracts", async () =
       expect(updatedReceiverAddress).to.equal(contractReceiverAddress);
     });
 
-    it(`${UPGRADABLE_PAYMENT_TRANSMITTER} should update referral reward`, async () => {
+    it(`${UPGRADABLE_PAYMENT_TRANSMITTER_CONTRACT} should update referral reward`, async () => {
       const { admin, upgradedProxyContract } = await loadFixture(deployFixture);
 
       const updatedReferralReward = ethConverter(3);
@@ -105,10 +115,10 @@ describe("Testing upgradable referral payment transmitter contracts", async () =
   // -----------------------------------------------------------------------------------------------
 
   describe(`Function Modifiers`, async () => {
-    it(`${UPGRADABLE_PAYMENT_TRANSMITTER} should throw if updated referral reward is bigger than payment`, async () => {
+    it(`${UPGRADABLE_PAYMENT_TRANSMITTER_CONTRACT} should throw if updated referral reward is bigger than payment`, async () => {
       const { admin, upgradedProxyContract } = await loadFixture(deployFixture);
 
-      const updatedReferralReward = ethConverter(UPGRADABLE_PAYMENT_AMOUNT + 1);
+      const updatedReferralReward = ethConverter(PAYMENT_AMOUNT + 1);
 
       const expectedError = REWARD_AMOUNT_PROPORTION_ERROR;
 
@@ -122,7 +132,7 @@ describe("Testing upgradable referral payment transmitter contracts", async () =
       );
     });
 
-    it(`${UPGRADABLE_PAYMENT_TRANSMITTER} should throw if non-admin tries to update contract`, async () => {
+    it(`${UPGRADABLE_PAYMENT_TRANSMITTER_CONTRACT} should throw if non-admin tries to update contract`, async () => {
       const { referrer, upgradedProxyContract } = await loadFixture(
         deployFixture
       );
@@ -160,7 +170,7 @@ describe("Testing upgradable referral payment transmitter contracts", async () =
   // -----------------------------------------------------------------------------------------------
 
   describe(`Testing Referral Process `, async () => {
-    it(`${UPGRADABLE_PAYMENT_TRANSMITTER} should forward the correct amount / prize to the receiver account`, async () => {
+    it(`${UPGRADABLE_PAYMENT_TRANSMITTER_CONTRACT} should forward the correct amount / prize to the receiver account`, async () => {
       const { receiver, referrer, referee, upgradedProxyContract } =
         await loadFixture(deployFixture);
 
@@ -171,20 +181,19 @@ describe("Testing upgradable referral payment transmitter contracts", async () =
       await upgradedProxyContract
         .connect(referee)
         .forwardReferralPayment(referrer.address, {
-          value: ethConverter(UPGRADABLE_PAYMENT_AMOUNT),
+          value: ethConverter(PAYMENT_AMOUNT),
         });
 
       // results
       const afterReceiverBalance = await receiver.getBalance();
       const receiverResult =
-        initialReceiverBalance.toBigInt() +
-        ethConverter(UPGRADABLE_PRIZE).toBigInt();
+        initialReceiverBalance.toBigInt() + ethConverter(PRIZE).toBigInt();
 
       // assertions
       expect(afterReceiverBalance.toBigInt()).to.equal(receiverResult);
     });
 
-    it(`${UPGRADABLE_PAYMENT_TRANSMITTER} should send the reward to the referrer account`, async () => {
+    it(`${UPGRADABLE_PAYMENT_TRANSMITTER_CONTRACT} should send the reward to the referrer account`, async () => {
       const { referrer, referee, upgradedProxyContract } = await loadFixture(
         deployFixture
       );
@@ -196,20 +205,20 @@ describe("Testing upgradable referral payment transmitter contracts", async () =
       await upgradedProxyContract
         .connect(referee)
         .forwardReferralPayment(referrer.address, {
-          value: ethConverter(UPGRADABLE_PAYMENT_AMOUNT),
+          value: ethConverter(PAYMENT_AMOUNT),
         });
 
       // results
       const afterReferrerBalance = await referrer.getBalance();
       const referrerResult =
         initialReferrerBalance.toBigInt() +
-        ethConverter(UPGRADABLE_REFERRAL_REWARD).toBigInt();
+        ethConverter(REFERRAL_REWARD).toBigInt();
 
       // assertions
       expect(afterReferrerBalance.toBigInt()).to.equal(referrerResult);
     });
 
-    it(`${UPGRADABLE_PAYMENT_TRANSMITTER} should subtract payment amount from referee account`, async () => {
+    it(`${UPGRADABLE_PAYMENT_TRANSMITTER_CONTRACT} should subtract payment amount from referee account`, async () => {
       const { referrer, referee, upgradedProxyContract } = await loadFixture(
         deployFixture
       );
@@ -221,7 +230,7 @@ describe("Testing upgradable referral payment transmitter contracts", async () =
       const referralTx = await upgradedProxyContract
         .connect(referee)
         .forwardReferralPayment(referrer.address, {
-          value: ethConverter(UPGRADABLE_PAYMENT_AMOUNT),
+          value: ethConverter(PAYMENT_AMOUNT),
         });
 
       // calculate referral transaction costs
@@ -242,13 +251,13 @@ describe("Testing upgradable referral payment transmitter contracts", async () =
       const refereeResult =
         initialRefereeBalance.toBigInt() -
         txCost.toBigInt() -
-        ethConverter(UPGRADABLE_PAYMENT_AMOUNT).toBigInt();
+        ethConverter(PAYMENT_AMOUNT).toBigInt();
 
       // assertions
       expect(afterRefereeBalance.toBigInt()).to.equal(refereeResult);
     });
 
-    it(`${UPGRADABLE_PAYMENT_TRANSMITTER} should throw if payment value is not exact`, async () => {
+    it(`${UPGRADABLE_PAYMENT_TRANSMITTER_CONTRACT} should throw if payment value is not exact`, async () => {
       const { referrer, referee, upgradedProxyContract } = await loadFixture(
         deployFixture
       );
@@ -258,7 +267,7 @@ describe("Testing upgradable referral payment transmitter contracts", async () =
       const referralProcessPromise = upgradedProxyContract
         .connect(referee)
         .forwardReferralPayment(referrer.address, {
-          value: ethConverter(UPGRADABLE_PAYMENT_AMOUNT / 2),
+          value: ethConverter(PAYMENT_AMOUNT / 2),
         });
 
       // await calls to be rejected since they are not owner of the contract

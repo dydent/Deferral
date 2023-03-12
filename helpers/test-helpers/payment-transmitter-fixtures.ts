@@ -1,17 +1,30 @@
-import { ethers } from "hardhat";
+import { ethers, upgrades } from "hardhat";
 import { deployContractHelper } from "../deployer-functions/deploy-contract-helper";
 import { ethConverter } from "../converters";
-import { V1ReferralPaymentTransmitter } from "../../typechain-types";
+import {
+  UpgradableV1ReferralPaymentTransmitter,
+  UpgradableV2ReferralPaymentTransmitter,
+  V1ReferralPaymentTransmitter,
+} from "../../typechain-types";
 import { PaymentTransmitterFixtureReturnType } from "../../types/fixture-types/PaymentTransmitterFixtureTypes";
+import {
+  deployUpgradableContractHelper,
+  upgradeUpgradableContractHelper,
+} from "../deployer-functions/deploy-upgradable-contract-helper";
+import { DeployAndUpgradePaymentTransmitterFixtureReturnType } from "../../types/fixture-types/UpgradablePaymentTransmitterFixtureTypes";
 
-export const PAYMENT_TRANSMITTER_CONTRACT = "V1ReferralPaymentTransmitter";
+type PaymentTransmitterFixtureInputType = {
+  contractName: string;
+  paymentAmount: number;
+  referralReward: number;
+};
 
-export const PAYMENT_AMOUNT = 10;
-export const REFERRAL_REWARD = 1;
-export const PRICE = PAYMENT_AMOUNT - REFERRAL_REWARD;
-
-// Fixture for testing Payment Proxy
-export async function deployV1ReferralPaymentTransmitterFixture(): Promise<
+// Fixture for testing V1 Payment Transmitter
+export async function deployV1ReferralPaymentTransmitterFixture({
+  contractName,
+  paymentAmount,
+  referralReward,
+}: PaymentTransmitterFixtureInputType): Promise<
   PaymentTransmitterFixtureReturnType<V1ReferralPaymentTransmitter>
 > {
   const [admin, receiver, updatedReceiver, referrer, referee] =
@@ -19,11 +32,11 @@ export async function deployV1ReferralPaymentTransmitterFixture(): Promise<
 
   const deployedContract =
     await deployContractHelper<V1ReferralPaymentTransmitter>({
-      contractName: PAYMENT_TRANSMITTER_CONTRACT,
+      contractName: contractName,
       constructorParams: [
         receiver.address,
-        ethConverter(PAYMENT_AMOUNT),
-        ethConverter(REFERRAL_REWARD),
+        ethConverter(paymentAmount),
+        ethConverter(referralReward),
       ],
     });
 
@@ -34,5 +47,77 @@ export async function deployV1ReferralPaymentTransmitterFixture(): Promise<
     referrer,
     referee,
     deployedContract,
+  };
+}
+
+// Fixture for testing V1 & V2 Upgradable Payment Transmitters
+export async function deployAndUpgradeUpgradablePaymentTransmitterFixture({
+  contractName,
+  upgradedContractName,
+  paymentAmount,
+  referralReward,
+}: PaymentTransmitterFixtureInputType & {
+  upgradedContractName: string;
+}): Promise<
+  DeployAndUpgradePaymentTransmitterFixtureReturnType<
+    UpgradableV1ReferralPaymentTransmitter,
+    UpgradableV2ReferralPaymentTransmitter
+  >
+> {
+  const [admin, receiver, updatedReceiver, referrer, referee] =
+    await ethers.getSigners();
+
+  // deploy proxy contract
+  const proxyContract =
+    await deployUpgradableContractHelper<UpgradableV1ReferralPaymentTransmitter>(
+      {
+        contractName: contractName,
+        initArgs: [
+          receiver.address,
+          ethConverter(paymentAmount),
+          ethConverter(referralReward),
+        ],
+      }
+    );
+
+  // get contract related data
+  // proxy contract address
+  const proxyContractAddress: string = proxyContract.address;
+  // admin of all the upgrades contracts (proxyContract / implementationContract / proxyAdminContract
+  const adminAddress: string = await proxyContract.signer.getAddress();
+  // current implementation contract address
+  const initialImplementationContractAddress: string =
+    await upgrades.erc1967.getImplementationAddress(proxyContract.address);
+  // address of the proxy admin contract  (typed as the underlying implementation contract)
+  const proxyAdminContractAddress: string =
+    await upgrades.erc1967.getAdminAddress(proxyContract.address);
+
+  // upgrade proxy contract
+  const upgradedProxyContract: UpgradableV2ReferralPaymentTransmitter =
+    await upgradeUpgradableContractHelper<UpgradableV2ReferralPaymentTransmitter>(
+      {
+        proxyContract,
+        upgradedImplementationContractName: upgradedContractName,
+      }
+    );
+
+  // get implementation address of updated contract
+  // !!! implementation contract only changes if there are changes in the contract !!!
+  const upgradedImplementationAddress: string =
+    await upgrades.erc1967.getImplementationAddress(proxyContract.address);
+
+  return {
+    admin,
+    receiver,
+    updatedReceiver,
+    referrer,
+    referee,
+    proxyContract,
+    proxyContractAddress,
+    adminAddress,
+    initialImplementationContractAddress,
+    proxyAdminContractAddress,
+    upgradedProxyContract,
+    upgradedImplementationAddress,
   };
 }

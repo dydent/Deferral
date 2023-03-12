@@ -6,17 +6,24 @@ import {
   OWNABLE_ERROR_STRING,
   REWARD_AMOUNT_PROPORTION_ERROR,
 } from "../helpers/constants/error-strings";
-import {
-  deployV1ReferralPaymentTransmitterFixture,
-  PAYMENT_AMOUNT,
-  PAYMENT_TRANSMITTER_CONTRACT,
-  PRICE,
-  REFERRAL_REWARD,
-} from "../helpers/test-helpers/payment-transmitter-fixtures";
+import { deployV1ReferralPaymentTransmitterFixture } from "../helpers/test-helpers/payment-transmitter-fixtures";
 
-describe(`Testing ${PAYMENT_TRANSMITTER_CONTRACT} Contract`, async () => {
+// TEST CONSTANTS
+const PAYMENT_TRANSMITTER_CONTRACT = "V1ReferralPaymentTransmitter";
+const PAYMENT_AMOUNT = 10;
+// must be smaller than payment amount
+const REFERRAL_REWARD = 1;
+const PRICE = PAYMENT_AMOUNT - REFERRAL_REWARD;
+
+describe(`Testing ${PAYMENT_TRANSMITTER_CONTRACT} referral contract`, async () => {
   // helper fixture function to deploy the referral contract
-  const deployFixture = deployV1ReferralPaymentTransmitterFixture;
+  const deployFixture = async () => {
+    return deployV1ReferralPaymentTransmitterFixture({
+      contractName: PAYMENT_TRANSMITTER_CONTRACT,
+      paymentAmount: PAYMENT_AMOUNT,
+      referralReward: REFERRAL_REWARD,
+    });
+  };
 
   // -----------------------------------------------------------------------------------------------
   // Unit tests for updating contract values

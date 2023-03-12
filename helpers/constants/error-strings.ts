@@ -11,3 +11,6 @@ export const OWNABLE_ERROR_STRING = "Ownable: caller is not the owner";
 
 export const REWARD_PERCENTAGE_OUT_OF_BOUNDS =
   "reward percentage must be between 0 and 100";
+
+export const REFERRAL_PROCESS_MUST_NOT_BE_COMPLETED =
+  "Referral process has been completed for this address";

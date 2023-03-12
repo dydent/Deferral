@@ -1,6 +1,6 @@
 // -----------------------------------------------------------------------------------------------
 // UPGRADABLE CONTRACT
-// Uses internal functions to split up code to make it more readable --> observe & analyze effect on gas costs
+// Uses no internal functions to split up code --> observe & analyze effect on gas costs
 // -----------------------------------------------------------------------------------------------
 
 // SPDX-License-Identifier: GPL-3.0
@@ -10,9 +10,9 @@ pragma solidity 0.8.9;
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
-contract V1ReferralQuantityPaymentUpgradable is
-    Initializable,
-    OwnableUpgradeable
+contract V2ReferralQuantityPaymentUpgradable is
+Initializable,
+OwnableUpgradeable
 {
     // -----------------------------------------------------------------------------------------------
     // VARS, STRUCTS & MAPPINGS
@@ -54,27 +54,51 @@ contract V1ReferralQuantityPaymentUpgradable is
     // EXTERNAL FUNCTIONS
     // -----------------------------------------------------------------------------------------------
 
-    // register & forward payment and update referral process data
+    // forward paymentAmount to the receiver and send referralReward to the referrerAddress
     function registerReferralPayment(
         address payable _referrerAddress
     ) external payable {
         // get current referee process data
         ReferralProcess storage currentProcess = refereeProcessMapping[
-            msg.sender
+        msg.sender
         ];
-
         // referral process must not be completed
         require(
             !currentProcess.referralProcessCompleted,
             "Referral process has been completed for this address"
         );
-        // update progress
-        update(msg.sender, _referrerAddress, msg.value);
+        // referral reward must be smaller than msg value
+        require(
+            (msg.value / 100) * rewardPercentage < msg.value,
+            "reward must be portion of paymentAmount"
+        );
+        //  set referrer address first time
+        if (!currentProcess.referrerAddressHasBeenSet) {
+            // update values
+            currentProcess.referrerAddress = _referrerAddress;
+            currentProcess.referrerAddressHasBeenSet = true;
+        }
+        // set and update values
+        currentProcess.paidValue += msg.value;
+        currentProcess.paymentQuantity += 1;
+        emit ReferralConditionsUpdated(msg.sender);
+        // evaluate referral process and progress
+        if (currentProcess.paymentQuantity > requiredAmountOfPayments) {
+            uint256 calculatedReward = (currentProcess.paidValue / 100) *
+            rewardPercentage;
+            if (currentProcess.referrerAddressHasBeenSet) {
+                require(
+                    address(this).balance >= calculatedReward,
+                    "Contract has not enough funds to pay rewards"
+                );
+                currentProcess.referrerAddress.transfer(calculatedReward);
+                currentProcess.referralProcessCompleted = true;
+                emit ReferralCompleted(msg.sender, _referrerAddress);
+            }
+        }
         // calculate reward and payment prices
         uint256 reward = (msg.value / 100) * rewardPercentage;
         uint256 receiverAmount = msg.value - reward;
-        // evaluate referral progress and if complete payout rewards
-        evaluateProcess(msg.sender);
         // forward payment to receiver
         receiverAddress.transfer(receiverAmount);
     }
@@ -123,67 +147,5 @@ contract V1ReferralQuantityPaymentUpgradable is
     // view functions do only read and not update any data of a contract
     function getBalance() public view returns (uint) {
         return address(this).balance;
-    }
-
-    // -----------------------------------------------------------------------------------------------
-    // INTERNAL FUNCTIONS
-    // -----------------------------------------------------------------------------------------------
-
-    function setReferrerAddress(
-        address _refereeAddress,
-        address payable _referrerAddress
-    ) internal {
-        ReferralProcess storage process = refereeProcessMapping[
-            _refereeAddress
-        ];
-        if (!process.referrerAddressHasBeenSet) {
-            // update values
-            process.referrerAddress = _referrerAddress;
-            process.referrerAddressHasBeenSet = true;
-        }
-    }
-
-    function evaluateProcess(address _referee) internal {
-        ReferralProcess storage currentProcess = refereeProcessMapping[
-            _referee
-        ];
-        // require referrer address has been set
-        require(
-            currentProcess.referrerAddressHasBeenSet,
-            "Referrer Address has not been set for this referee"
-        );
-
-        if (currentProcess.paymentQuantity > requiredAmountOfPayments) {
-            uint256 calculatedReward = (currentProcess.paidValue / 100) *
-                rewardPercentage;
-            require(
-                address(this).balance >= calculatedReward,
-                "Contract has not enough funds to pay rewards"
-            );
-            currentProcess.referrerAddress.transfer(calculatedReward);
-            currentProcess.referralProcessCompleted = true;
-            emit ReferralCompleted(_referee, currentProcess.referrerAddress);
-        }
-    }
-
-    // update the process data
-    function update(
-        address _referee,
-        address payable _referrer,
-        uint _amount
-    ) internal {
-        ReferralProcess storage processToUpdate = refereeProcessMapping[
-            _referee
-        ];
-        // referral process must not be completed
-        require(
-            !processToUpdate.referralProcessCompleted,
-            "Referral process has been completed for this address"
-        );
-        // set and update values
-        setReferrerAddress(_referee, _referrer);
-        processToUpdate.paidValue += _amount;
-        processToUpdate.paymentQuantity += 1;
-        emit ReferralConditionsUpdated(_referee);
     }
 }
