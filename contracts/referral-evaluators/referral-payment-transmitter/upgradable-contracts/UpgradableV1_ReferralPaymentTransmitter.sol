@@ -9,7 +9,10 @@ pragma solidity 0.8.9;
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
-contract UpgradableV1ReferralPaymentProxy is Initializable, OwnableUpgradeable {
+contract UpgradableV1ReferralPaymentTransmitter is
+    Initializable,
+    OwnableUpgradeable
+{
     // address of the payment receiver
     address payable public receiver;
 

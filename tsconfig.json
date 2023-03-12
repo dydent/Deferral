@@ -17,6 +17,12 @@
     "target": "es6"
   },
   "exclude": ["node_modules"],
-  "include": ["./scripts", "./test", "./types", "./helpers"],
+  "include": [
+    "./scripts",
+    "./test",
+    "./types",
+    "./typechain-types",
+    "./helpers"
+  ],
   "files": ["./hardhat.config.ts"]
 }

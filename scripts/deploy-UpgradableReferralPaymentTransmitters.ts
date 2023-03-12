@@ -1,15 +1,18 @@
 import { ethers, upgrades } from "hardhat";
 import { ethConverter } from "../helpers/converters";
 import { getNetworkInfo } from "../helpers/get-network-info";
-import { writeLogFile } from "../helpers/write-files";
+import { LogJsonInputType, writeLogFile } from "../helpers/write-files";
 import { resolveNetworkIds } from "../helpers/resolve-network-ids";
 
 // ------------------------------------------------------------------
 // deployment script for upgradable referral payment proxy contracts
 // ------------------------------------------------------------------
 
+const LOG_FILE_NAME =
+  "upgradable-payment-transmitter-contract-deployments.json";
+
 // const INITIAL_CONTRACT = "UpgradableV1ReferralPaymentProxy";
-const CONTRACT = "UpgradableV2ReferralPaymentProxy";
+const CONTRACT = "UpgradableV2ReferralPaymentTransmitter";
 
 const PAYMENT_AMOUNT = ethConverter(10);
 const REFERRAL_REWARD = ethConverter(1);
@@ -40,31 +43,45 @@ async function main() {
     REFERRAL_REWARD,
   ]);
 
+  // calculate deployment transaction costs
+  const deploymentTxReceipt = await proxyContract.deployTransaction.wait();
+  const txGasUsed = await deploymentTxReceipt.gasUsed;
+  const txEffectiveGasPrice = await deploymentTxReceipt.effectiveGasPrice;
+  const txCost = txGasUsed.mul(txEffectiveGasPrice);
+
   // get deployer / signer address that deploys the contract
   const adminAddress = await proxyContract.signer.getAddress();
 
   // wait for contract to be deployed
   const deployedProxyContract = await proxyContract.deployed();
 
-  // log message
-  console.log(
-    ` ${adminAddress} deployed ${CONTRACT} contract to ${deployedProxyContract.address}\n`
-  );
-
   // time measuring
   const endTime = performance.now();
 
+  const deploymentDuration = endTime - startTime;
+
+  // log message
+  console.log(
+    ` ${adminAddress} deployed ${CONTRACT} contract to ${deployedProxyContract.address}`
+  );
+  console.log(` Gas Used: ${txGasUsed}`);
+  console.log(` Tx Cost: ${txCost} (gas used * gas price)`);
+  console.log(` Duration: ${deploymentDuration} ms`);
+  console.log("\n");
+
   // create (write & store) log files of deployments for overview
-  const logInput = {
+  const logInput: LogJsonInputType = {
     date: new Date(),
     contract: CONTRACT,
     contractAddress: deployedProxyContract.address,
     signer: adminAddress,
-    durationInMs: endTime - startTime,
+    gasUsed: txGasUsed.toString(),
+    effectiveGasPrice: txEffectiveGasPrice.toString(),
+    cost: txCost.toString(),
+    durationInMs: deploymentDuration,
   };
-  const logInputFile: string = "upgradable-contract-deployments.json";
   writeLogFile({
-    filePath: logInputFile,
+    filePath: LOG_FILE_NAME,
     jsonInput: logInput,
     chainID: networkId,
     chainName: networkName,

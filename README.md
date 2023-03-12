@@ -40,7 +40,7 @@ After a successful setup, you start deploying the contracts yourself.
 To deploy all smart contracts related to Uniswap functionalities, you can run the following command:
 
 ```
-hardhat run scripts/deploy-V1ReferralPaymentProxy.ts --network ...
+hardhat run scripts/deploy-V1ReferralPaymentTransmitter.ts --network ...
 ```
 
 ## Logging

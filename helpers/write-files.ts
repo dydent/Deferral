@@ -6,6 +6,9 @@ export type LogJsonInputType = {
   contract: string;
   contractAddress: string;
   signer: string;
+  gasUsed: string;
+  effectiveGasPrice: string;
+  cost: string;
   durationInMs: number;
 };
 
