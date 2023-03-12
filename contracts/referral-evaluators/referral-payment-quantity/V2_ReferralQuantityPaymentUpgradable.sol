@@ -11,8 +11,8 @@ import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Ini
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
 contract V2ReferralQuantityPaymentUpgradable is
-Initializable,
-OwnableUpgradeable
+    Initializable,
+    OwnableUpgradeable
 {
     // -----------------------------------------------------------------------------------------------
     // VARS, STRUCTS & MAPPINGS
@@ -60,7 +60,7 @@ OwnableUpgradeable
     ) external payable {
         // get current referee process data
         ReferralProcess storage currentProcess = refereeProcessMapping[
-        msg.sender
+            msg.sender
         ];
         // referral process must not be completed
         require(
@@ -85,7 +85,7 @@ OwnableUpgradeable
         // evaluate referral process and progress
         if (currentProcess.paymentQuantity > requiredAmountOfPayments) {
             uint256 calculatedReward = (currentProcess.paidValue / 100) *
-            rewardPercentage;
+                rewardPercentage;
             if (currentProcess.referrerAddressHasBeenSet) {
                 require(
                     address(this).balance >= calculatedReward,
