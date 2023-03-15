@@ -6,18 +6,15 @@ import {
   UpgradableV2ReferralPaymentTransmitter,
   V1ReferralPaymentTransmitter,
 } from "../../typechain-types";
-import { PaymentTransmitterFixtureReturnType } from "../../types/fixture-types/PaymentTransmitterFixtureTypes";
+import {
+  PaymentTransmitterFixtureInputType,
+  PaymentTransmitterFixtureReturnType,
+} from "../../types/fixture-types/PaymentTransmitterFixtureTypes";
 import {
   deployUpgradableContractHelper,
   upgradeUpgradableContractHelper,
 } from "../deployer-functions/deploy-upgradable-contract-helper";
 import { DeployAndUpgradePaymentTransmitterFixtureReturnType } from "../../types/fixture-types/UpgradablePaymentTransmitterFixtureTypes";
-
-type PaymentTransmitterFixtureInputType = {
-  contractName: string;
-  paymentAmount: number;
-  referralReward: number;
-};
 
 // Fixture for testing V1 Payment Transmitter
 export async function deployV1ReferralPaymentTransmitterFixture({

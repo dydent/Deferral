@@ -2,20 +2,18 @@
 import { ethers } from "hardhat";
 import { deployUpgradableContractHelper } from "../deployer-functions/deploy-upgradable-contract-helper";
 import { V1ReferralQuantityPaymentUpgradable } from "../../typechain-types";
-import { PaymentQuantityFixtureReturnType } from "../../types/fixture-types/PaymentQuantityFixtureTypes";
-
-type PaymentQuantityFixtureInputType = {
-  contractName: string;
-  referralPercentage: number;
-  quantityThreshold: number;
-};
+import {
+  PaymentQuantityFixtureInputType,
+  PaymentQuantityFixtureReturnType,
+} from "../../types/fixture-types/PaymentQuantityFixtureTypes";
 
 export async function deployPaymentQuantityUpgradableFixture({
   contractName,
   referralPercentage,
   quantityThreshold,
 }: PaymentQuantityFixtureInputType): Promise<PaymentQuantityFixtureReturnType> {
-  const [admin, receiver, referrer, referee] = await ethers.getSigners();
+  const [admin, receiver, updatedReceiver, referrer, referee] =
+    await ethers.getSigners();
 
   // deploy proxy contract
   const proxyContract =
@@ -27,6 +25,7 @@ export async function deployPaymentQuantityUpgradableFixture({
   return {
     admin,
     receiver,
+    updatedReceiver,
     referrer,
     referee,
     proxyContract,

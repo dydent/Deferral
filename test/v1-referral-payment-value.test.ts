@@ -6,29 +6,28 @@ import {
   REFERRAL_PROCESS_MUST_NOT_BE_COMPLETED,
   REWARD_PERCENTAGE_OUT_OF_BOUNDS,
 } from "../helpers/constants/error-strings";
-import { deployPaymentQuantityUpgradableFixture } from "../helpers/test-helpers/payment-quantity-fixtures";
+import { deployPaymentValueUpgradableFixture } from "../helpers/test-helpers/payment-value-fixtures";
 import { executeReferralPayment } from "../helpers/test-helpers/execute-referral-payments";
 
 // -----------------------------------------------------------------------------------------------
 // TEST VALUES
 // -----------------------------------------------------------------------------------------------
-const PAYMENT_QUANTITY_CONTRACT = "V2ReferralQuantityPaymentUpgradable";
+const PAYMENT_VALUE_CONTRACT = "V1ReferralPaymentValueUpgradable";
 // must be between 0 and 100!
-const REFERRAL_PERCENTAGE = 15;
-const PAYMENT_AMOUNT = 100;
+const REFERRAL_PERCENTAGE = 30;
+const PAYMENT_AMOUNT = 10;
 const REFERRAL_REWARD = (PAYMENT_AMOUNT / 100) * REFERRAL_PERCENTAGE;
-const PRIZE = PAYMENT_AMOUNT - REFERRAL_REWARD;
-// number of payment transactions for a referral process to be complete = threshold + 1
-const QUANTITY_THRESHOLD = 2;
+// amount of accumulated payments that have to be excecuted in payment txs for completing referral process
+const VAlUE_THRESHOLD = 50;
 
 // noinspection DuplicatedCode
-describe(`"Testing ${PAYMENT_QUANTITY_CONTRACT} referral contract`, async () => {
+describe(`"Testing ${PAYMENT_VALUE_CONTRACT} referral contract`, async () => {
   // get fixture function for testing
   const deployUpgradableFixture = async () => {
-    return deployPaymentQuantityUpgradableFixture({
-      contractName: PAYMENT_QUANTITY_CONTRACT,
+    return deployPaymentValueUpgradableFixture({
+      contractName: PAYMENT_VALUE_CONTRACT,
       referralPercentage: REFERRAL_PERCENTAGE,
-      quantityThreshold: QUANTITY_THRESHOLD,
+      valueThreshold: VAlUE_THRESHOLD,
     });
   };
 
@@ -37,7 +36,7 @@ describe(`"Testing ${PAYMENT_QUANTITY_CONTRACT} referral contract`, async () => 
   // -----------------------------------------------------------------------------------------------
 
   describe(`Updating Contract Values`, async () => {
-    it(`${PAYMENT_QUANTITY_CONTRACT} should update receiver address`, async () => {
+    it(`${PAYMENT_VALUE_CONTRACT} should update receiver address`, async () => {
       const { admin, updatedReceiver, proxyContract } = await loadFixture(
         deployUpgradableFixture
       );
@@ -51,8 +50,7 @@ describe(`"Testing ${PAYMENT_QUANTITY_CONTRACT} referral contract`, async () => 
       // assert address is updated
       expect(updateAddress).to.equal(contractReceiverAddress);
     });
-
-    it(`${PAYMENT_QUANTITY_CONTRACT} should update referral reward percentage`, async () => {
+    it(`${PAYMENT_VALUE_CONTRACT} should update referral reward percentage`, async () => {
       const { admin, proxyContract } = await loadFixture(
         deployUpgradableFixture
       );
@@ -65,7 +63,7 @@ describe(`"Testing ${PAYMENT_QUANTITY_CONTRACT} referral contract`, async () => 
         expect(contractValue).to.equal(updatedValue);
       }
     });
-    it(`${PAYMENT_QUANTITY_CONTRACT} should throw if updated referral reward percentage is not between 0 and 100`, async () => {
+    it(`${PAYMENT_VALUE_CONTRACT} should throw if updated referral reward percentage is not between 0 and 100`, async () => {
       const { admin, proxyContract } = await loadFixture(
         deployUpgradableFixture
       );
@@ -81,7 +79,7 @@ describe(`"Testing ${PAYMENT_QUANTITY_CONTRACT} referral contract`, async () => 
         );
       }
     });
-    it(`${PAYMENT_QUANTITY_CONTRACT} should update requiredAmountOfPayments`, async () => {
+    it(`${PAYMENT_VALUE_CONTRACT} should update valueThreshold`, async () => {
       const { admin, proxyContract } = await loadFixture(
         deployUpgradableFixture
       );
@@ -91,9 +89,9 @@ describe(`"Testing ${PAYMENT_QUANTITY_CONTRACT} referral contract`, async () => 
       for (const updatedValue of validUpdateValues) {
         await proxyContract
           .connect(admin)
-          .updateRequiredAmountOfPayments(updatedValue);
-        const contractValue = await proxyContract.requiredAmountOfPayments();
-        expect(contractValue).to.equal(updatedValue);
+          .updateValueThreshold(ethConverter(updatedValue));
+        const contractValue = await proxyContract.valueThreshold();
+        expect(contractValue.toBigInt()).to.equal(ethConverter(updatedValue));
       }
     });
   });
@@ -103,14 +101,14 @@ describe(`"Testing ${PAYMENT_QUANTITY_CONTRACT} referral contract`, async () => 
   // -----------------------------------------------------------------------------------------------
 
   describe(`Function Modifiers`, async () => {
-    it(`${PAYMENT_QUANTITY_CONTRACT} should throw if non-admin tries to update contract`, async () => {
+    it(`${PAYMENT_VALUE_CONTRACT} should throw if non-admin tries to update contract`, async () => {
       const { referrer, updatedReceiver, proxyContract } = await loadFixture(
         deployUpgradableFixture
       );
       const nonAdminSigner = referrer;
       const validReferralReward = ethConverter(3);
       const validReceiverAddress = await updatedReceiver.getAddress();
-      const validRequiredAmountOfPayments = 9;
+      const validValueThreshold = ethConverter(65);
       const expectedError = OWNABLE_ERROR_STRING;
 
       // execute tx with valid values and non-admin signer
@@ -122,7 +120,7 @@ describe(`"Testing ${PAYMENT_QUANTITY_CONTRACT} referral contract`, async () => 
         .updateReceiverAddress(validReceiverAddress);
       const requiredAmountOfPaymentsUpdatePromise = proxyContract
         .connect(nonAdminSigner)
-        .updateRequiredAmountOfPayments(validRequiredAmountOfPayments);
+        .updateValueThreshold(validValueThreshold);
       // await tx calls to be rejected since they are not owner of the contract
       await expect(referralRewardUpdatePromise).to.be.rejectedWith(
         expectedError
@@ -141,7 +139,7 @@ describe(`"Testing ${PAYMENT_QUANTITY_CONTRACT} referral contract`, async () => 
   // -----------------------------------------------------------------------------------------------
 
   describe(`Testing Referral Process `, async () => {
-    it(`${PAYMENT_QUANTITY_CONTRACT} should subtract payment amount from referee account`, async () => {
+    it(`${PAYMENT_VALUE_CONTRACT} should subtract payment amount from referee account`, async () => {
       const { referrer, referee, proxyContract } = await loadFixture(
         deployUpgradableFixture
       );
@@ -164,18 +162,25 @@ describe(`"Testing ${PAYMENT_QUANTITY_CONTRACT} referral contract`, async () => 
         initialBalance.toBigInt() -
         txCost.toBigInt() -
         ethConverter(PAYMENT_AMOUNT).toBigInt();
+
       // assert balances are correct afterwards
       expect(afterBalance.toBigInt()).to.equal(resultBalance);
-      expect(contractBalance.toBigInt()).to.equal(
-        ethConverter(REFERRAL_REWARD).toBigInt()
-      );
+      // if referral completed the contract balance should be 0
+      if (PAYMENT_AMOUNT > VAlUE_THRESHOLD) expect(contractBalance).to.equal(0);
+      else {
+        expect(contractBalance.toBigInt()).to.equal(
+          ethConverter(REFERRAL_REWARD).toBigInt()
+        );
+      }
     });
-    it(`${PAYMENT_QUANTITY_CONTRACT} should forward the correct amount / prize to the receiver account`, async () => {
+    it(`${PAYMENT_VALUE_CONTRACT} should forward the correct amount / prize to the receiver account`, async () => {
       const { receiver, referrer, referee, proxyContract } = await loadFixture(
         deployUpgradableFixture
       );
       const initialBalance = await receiver.getBalance();
-      const numberOfPayments = QUANTITY_THRESHOLD + 1;
+      const numberOfPayments = 2;
+      const paymentValue = VAlUE_THRESHOLD / numberOfPayments;
+
       // check that forwarded amount is correct for every iteration while the referral process is ongoing
       for (const iteration of Array.from(
         { length: numberOfPayments },
@@ -186,30 +191,35 @@ describe(`"Testing ${PAYMENT_QUANTITY_CONTRACT} referral contract`, async () => 
           referee,
           referrer,
           proxyContract,
-          paymentValue: PAYMENT_AMOUNT,
+          paymentValue: paymentValue,
         });
         // calculate result values
         const afterBalance = await receiver.getBalance();
         const receiverResult =
           initialBalance.toBigInt() +
-          ethConverter(PRIZE * iteration).toBigInt();
+          ethConverter(
+            (paymentValue - (paymentValue / 100) * REFERRAL_PERCENTAGE) *
+              iteration
+          ).toBigInt();
         // assert balances are correct afterwards
         expect(afterBalance.toBigInt()).to.equal(receiverResult);
       }
     });
 
-    it(`${PAYMENT_QUANTITY_CONTRACT} should update the referral process data correctly during the uncompleted referral process`, async () => {
+    it(`${PAYMENT_VALUE_CONTRACT} should update the referral process data correctly during the uncompleted referral process`, async () => {
       const { referrer, referee, proxyContract } = await loadFixture(
         deployUpgradableFixture
       );
       const initialBalance = await referrer.getBalance();
+      const numberOfPaymentTxs = 4;
+      const paymentValue = VAlUE_THRESHOLD / numberOfPaymentTxs;
       // execute n payments in order for the referral process to NOT be completed
       await executeReferralPayment({
-        executions: QUANTITY_THRESHOLD,
+        executions: numberOfPaymentTxs,
         referee,
         referrer,
         proxyContract,
-        paymentValue: PAYMENT_AMOUNT,
+        paymentValue: paymentValue,
       });
       const referralProcessMapping = await proxyContract.refereeProcessMapping(
         referee.address
@@ -218,40 +228,41 @@ describe(`"Testing ${PAYMENT_QUANTITY_CONTRACT} referral contract`, async () => 
       expect(referralProcessMapping.referralProcessCompleted).to.equal(false);
       expect(referralProcessMapping.referrerAddressHasBeenSet).to.equal(true);
       expect(referralProcessMapping.referrerAddress).to.equal(referrer.address);
-      expect(referralProcessMapping.paidValue).to.equal(
-        ethConverter(PAYMENT_AMOUNT * QUANTITY_THRESHOLD).toBigInt()
+      expect(referralProcessMapping.paidValue.toBigInt()).to.equal(
+        ethConverter(paymentValue * numberOfPaymentTxs).toBigInt()
       );
       expect(referralProcessMapping.paymentQuantity).to.equal(
-        QUANTITY_THRESHOLD
+        numberOfPaymentTxs
       );
       // assert reward has not been paid out
       const afterReferrerBalance = await referrer.getBalance();
       const contractBalance = await proxyContract.getBalance();
+      // assert balances are correct afterwards
       expect(afterReferrerBalance.toBigInt()).to.equal(
         initialBalance.toBigInt()
       );
-      // assert balances are correct afterwards
       expect(contractBalance.toBigInt()).to.equal(
         ethConverter(
-          (PAYMENT_AMOUNT / 100) * REFERRAL_PERCENTAGE * QUANTITY_THRESHOLD
+          ((numberOfPaymentTxs * paymentValue) / 100) * REFERRAL_PERCENTAGE
         ).toBigInt()
       );
     });
 
-    it(`${PAYMENT_QUANTITY_CONTRACT} should send the reward to the referrer account if referral process is completed`, async () => {
+    it(`${PAYMENT_VALUE_CONTRACT} should send the reward to the referrer account if referral process is completed`, async () => {
       const { referrer, referee, proxyContract } = await loadFixture(
         deployUpgradableFixture
       );
       const initialBalance = await referrer.getBalance();
       // number of payments in order for the referral process to be completed
-      const numberOfPaymentTransactions = QUANTITY_THRESHOLD + 1;
+      const numberOfPaymentTransactions = 2;
+      const paymentValue = VAlUE_THRESHOLD;
       // complete referral process
       await executeReferralPayment({
         executions: numberOfPaymentTransactions,
         referee,
         referrer,
         proxyContract,
-        paymentValue: PAYMENT_AMOUNT,
+        paymentValue: paymentValue,
       });
       const referralProcessMapping = await proxyContract.refereeProcessMapping(
         referee.address
@@ -261,7 +272,7 @@ describe(`"Testing ${PAYMENT_QUANTITY_CONTRACT} referral contract`, async () => 
       expect(referralProcessMapping.referrerAddressHasBeenSet).to.equal(true);
       expect(referralProcessMapping.referrerAddress).to.equal(referrer.address);
       expect(referralProcessMapping.paidValue).to.equal(
-        ethConverter(PAYMENT_AMOUNT * numberOfPaymentTransactions).toBigInt()
+        ethConverter(paymentValue * numberOfPaymentTransactions).toBigInt()
       );
       expect(referralProcessMapping.paymentQuantity).to.equal(
         numberOfPaymentTransactions
@@ -270,7 +281,9 @@ describe(`"Testing ${PAYMENT_QUANTITY_CONTRACT} referral contract`, async () => 
       const afterReferrerBalance = await referrer.getBalance();
       const contractBalance = await proxyContract.getBalance();
       const expectedPaidOutReward =
-        REFERRAL_REWARD * numberOfPaymentTransactions;
+        (paymentValue / 100) *
+        REFERRAL_PERCENTAGE *
+        numberOfPaymentTransactions;
       const referrerResult =
         initialBalance.toBigInt() +
         ethConverter(expectedPaidOutReward).toBigInt();
@@ -279,26 +292,27 @@ describe(`"Testing ${PAYMENT_QUANTITY_CONTRACT} referral contract`, async () => 
       expect(contractBalance.toBigInt()).to.equal(0);
     });
 
-    it(`${PAYMENT_QUANTITY_CONTRACT} should throw if referee with completed referral tries to do a payment transaction`, async () => {
+    it(`${PAYMENT_VALUE_CONTRACT} should throw if referee with completed referral tries to do a payment transaction`, async () => {
       const { referrer, referee, proxyContract } = await loadFixture(
         deployUpgradableFixture
       );
       // number of payments in order for the referral process to be completed
-      const numberOfPaymentTransactions = QUANTITY_THRESHOLD + 1;
+      const numberOfPaymentTransactions = 2;
+      const paymentValue = VAlUE_THRESHOLD;
       // complete referral process
       await executeReferralPayment({
         executions: numberOfPaymentTransactions,
         referee,
         referrer,
         proxyContract,
-        paymentValue: PAYMENT_AMOUNT,
+        paymentValue: paymentValue,
       });
       const expectedError = REFERRAL_PROCESS_MUST_NOT_BE_COMPLETED;
       // await another referral process transaction after the referral has been completed
       const referralTxPromise = proxyContract
         .connect(referee)
         .registerReferralPayment(referrer.address, {
-          value: ethConverter(PAYMENT_AMOUNT),
+          value: ethConverter(paymentValue),
         });
       // await calls to be rejected since referral has been completed
       await expect(referralTxPromise).to.be.rejectedWith(expectedError);
