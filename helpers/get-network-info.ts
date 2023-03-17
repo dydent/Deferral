@@ -1,5 +1,9 @@
 import { Signer } from "ethers";
 
+// -----------------------------------------------------------------------------------------------
+// helper functions to get info about the current network
+// -----------------------------------------------------------------------------------------------
+
 export const getNetworkInfo = async (
   deployer: Signer
 ): Promise<{

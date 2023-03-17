@@ -1,6 +1,7 @@
 // -----------------------------------------------------------------------------------------------
 // UPGRADABLE CONTRACT
-// combines referral conditions for payments quantity and payments accumulated value conditions when evaluating the referral process
+// combines referral conditions for payments quantity and payments accumulated value
+// conditions when evaluating the referral process
 // -----------------------------------------------------------------------------------------------
 
 // SPDX-License-Identifier: GPL-3.0
@@ -10,7 +11,7 @@ pragma solidity 0.8.9;
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
-contract ReferralPaymentEvaluatorUpgradable is
+contract V1ReferralPaymentEvaluatorUpgradable is
     Initializable,
     OwnableUpgradeable
 {
@@ -58,8 +59,8 @@ contract ReferralPaymentEvaluatorUpgradable is
     // events when owner is updating contracts variables
     event ReceiverAddressChanged(address indexed newReceiver);
     event RewardPercentageChanged(uint256 newReward);
-    event paymentsValueThresholdChanged(uint256 newValueThreshold);
-    event paymentsQuantityThresholdChanged(uint256 newQuantityThreshold);
+    event PaymentsValueThresholdChanged(uint256 newValueThreshold);
+    event PaymentsQuantityThresholdChanged(uint256 newQuantityThreshold);
 
     // -----------------------------------------------------------------------------------------------
     // INTERNAL FUNCTIONS
@@ -206,13 +207,13 @@ contract ReferralPaymentEvaluatorUpgradable is
         uint256 _newPaymentsQuantityThreshold
     ) public onlyOwner {
         paymentsQuantityThreshold = _newPaymentsQuantityThreshold;
-        emit paymentsQuantityThresholdChanged(_newPaymentsQuantityThreshold);
+        emit PaymentsQuantityThresholdChanged(_newPaymentsQuantityThreshold);
     }
 
     function updatePaymentsValueThreshold(
         uint256 _newPaymentsValueThreshold
     ) public onlyOwner {
         paymentsValueThreshold = _newPaymentsValueThreshold;
-        emit paymentsValueThresholdChanged(_newPaymentsValueThreshold);
+        emit PaymentsValueThresholdChanged(_newPaymentsValueThreshold);
     }
 }

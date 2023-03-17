@@ -10,14 +10,14 @@ import { deployPaymentValueUpgradableFixture } from "../helpers/test-helpers/pay
 import { executeReferralPayment } from "../helpers/test-helpers/execute-referral-payments";
 
 // -----------------------------------------------------------------------------------------------
-// TEST VALUES
+// TEST DEFAULT VALUES
 // -----------------------------------------------------------------------------------------------
 const PAYMENT_VALUE_CONTRACT = "V1ReferralPaymentValueUpgradable";
 // must be between 0 and 100!
 const REFERRAL_PERCENTAGE = 30;
 const PAYMENT_AMOUNT = 10;
 const REFERRAL_REWARD = (PAYMENT_AMOUNT / 100) * REFERRAL_PERCENTAGE;
-// amount of accumulated payments that have to be excecuted in payment txs for completing referral process
+// amount of accumulated payments that have to be executed in payment txs for completing referral process
 const VAlUE_THRESHOLD = 50;
 
 // noinspection DuplicatedCode

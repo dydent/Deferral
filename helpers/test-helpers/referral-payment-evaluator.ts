@@ -1,13 +1,17 @@
 // helper function to deploy the referral contract
 import { ethers } from "hardhat";
 import { deployUpgradableContractHelper } from "../deployer-functions/deploy-upgradable-contract-helper";
-import { ReferralPaymentEvaluatorUpgradable } from "../../typechain-types";
+import { V1ReferralPaymentEvaluatorUpgradable } from "../../typechain-types";
 
 import {
   ReferralPaymentEvaluatorFixtureInputType,
   ReferralPaymentEvaluatorFixtureReturnType,
 } from "../../types/fixture-types/ReferralPaymentEvaluatorTypes";
 import { ethConverter } from "../converters";
+
+// -----------------------------------------------------------------------------------------------
+// Fixture helper functions for testing referral payment evaluator contracts
+// -----------------------------------------------------------------------------------------------
 
 export async function deployReferralPaymentEvaluatorFixture({
   contractName,
@@ -20,7 +24,7 @@ export async function deployReferralPaymentEvaluatorFixture({
 
   // deploy proxy contract
   const proxyContract =
-    await deployUpgradableContractHelper<ReferralPaymentEvaluatorUpgradable>({
+    await deployUpgradableContractHelper<V1ReferralPaymentEvaluatorUpgradable>({
       contractName: contractName,
       initArgs: [
         receiver.address,

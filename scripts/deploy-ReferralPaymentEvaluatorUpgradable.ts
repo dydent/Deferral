@@ -14,6 +14,8 @@ const CONTRACT = "ReferralPaymentEvaluatorUpgradable";
 
 // percentage of payments that will be distributed as referral rewards after successful referral process
 const REFERRAL_PERCENTAGE = 5;
+
+// threshold values for payments quantity and payment values
 const QUANTITY_THRESHOLD = 5;
 const VALUE_THRESHOLD = 100;
 

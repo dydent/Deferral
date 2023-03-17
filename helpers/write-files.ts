@@ -1,6 +1,10 @@
 import fs from "fs";
 import path from "path";
 
+// -----------------------------------------------------------------------------------------------
+// helper function for writing logs of the contract deployment scripts
+// -----------------------------------------------------------------------------------------------
+
 export type LogJsonInputType = {
   date: Date;
   contract: string;

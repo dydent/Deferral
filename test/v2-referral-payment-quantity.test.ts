@@ -10,7 +10,7 @@ import { deployPaymentQuantityUpgradableFixture } from "../helpers/test-helpers/
 import { executeReferralPayment } from "../helpers/test-helpers/execute-referral-payments";
 
 // -----------------------------------------------------------------------------------------------
-// TEST VALUES
+// TEST DEFAULT VALUES
 // -----------------------------------------------------------------------------------------------
 const PAYMENT_QUANTITY_CONTRACT = "V2ReferralQuantityPaymentUpgradable";
 // must be between 0 and 100!

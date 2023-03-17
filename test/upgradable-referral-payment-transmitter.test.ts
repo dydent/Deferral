@@ -8,7 +8,9 @@ import {
 } from "../helpers/constants/error-strings";
 import { deployAndUpgradeUpgradablePaymentTransmitterFixture } from "../helpers/test-helpers/payment-transmitter-fixtures";
 
-// TEST CONSTANTS
+// -----------------------------------------------------------------------------------------------
+// TEST DEFAULT VALUES
+// -----------------------------------------------------------------------------------------------
 const INITIAL_UPGRADABLE_PAYMENT_TRANSMITTER_CONTRACT =
   "UpgradableV1ReferralPaymentTransmitter";
 const UPGRADABLE_PAYMENT_TRANSMITTER_CONTRACT =
@@ -72,7 +74,6 @@ describe("Testing upgradable referral payment transmitter contracts", async () =
         updatedPaymentAmount.toBigInt()
       );
     });
-
     it(`${UPGRADABLE_PAYMENT_TRANSMITTER_CONTRACT} should update receiver address`, async () => {
       const { admin, updatedReceiver, upgradedProxyContract } =
         await loadFixture(deployFixture);
@@ -89,7 +90,6 @@ describe("Testing upgradable referral payment transmitter contracts", async () =
       // assertions
       expect(updatedReceiverAddress).to.equal(contractReceiverAddress);
     });
-
     it(`${UPGRADABLE_PAYMENT_TRANSMITTER_CONTRACT} should update referral reward`, async () => {
       const { admin, upgradedProxyContract } = await loadFixture(deployFixture);
 

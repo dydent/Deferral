@@ -1,4 +1,3 @@
-// helper function to deploy the referral contract
 import { ethers } from "hardhat";
 import { deployUpgradableContractHelper } from "../deployer-functions/deploy-upgradable-contract-helper";
 import { V1ReferralQuantityPaymentUpgradable } from "../../typechain-types";
@@ -7,6 +6,10 @@ import {
   PaymentQuantityFixtureReturnType,
 } from "../../types/fixture-types/PaymentQuantityFixtureTypes";
 
+// -----------------------------------------------------------------------------------------------
+// Fixture helper functions for testing referral payment quantity contracts
+// -----------------------------------------------------------------------------------------------
+
 export async function deployPaymentQuantityUpgradableFixture({
   contractName,
   referralPercentage,
@@ -14,8 +17,7 @@ export async function deployPaymentQuantityUpgradableFixture({
 }: PaymentQuantityFixtureInputType): Promise<PaymentQuantityFixtureReturnType> {
   const [admin, receiver, updatedReceiver, referrer, referee] =
     await ethers.getSigners();
-
-  // deploy proxy contract
+  // deploy upgradable contracts
   const proxyContract =
     await deployUpgradableContractHelper<V1ReferralQuantityPaymentUpgradable>({
       contractName: contractName,

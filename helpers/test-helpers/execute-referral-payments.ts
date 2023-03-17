@@ -2,7 +2,7 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { ethConverter } from "../converters";
 import {
-  ReferralPaymentEvaluatorUpgradable,
+  V1ReferralPaymentEvaluatorUpgradable,
   V1ReferralPaymentValueUpgradable,
   V1ReferralQuantityPaymentUpgradable,
   V2ReferralQuantityPaymentUpgradable,
@@ -12,9 +12,9 @@ type ValidContractType =
   | V1ReferralPaymentValueUpgradable
   | V2ReferralQuantityPaymentUpgradable
   | V1ReferralQuantityPaymentUpgradable
-  | ReferralPaymentEvaluatorUpgradable;
+  | V1ReferralPaymentEvaluatorUpgradable;
 
-// helper functions for executing N payment transactions to referral contracts
+// helper functions for executing N payment transactions to different referral contracts
 export async function executeReferralPayment({
   executions,
   referee,

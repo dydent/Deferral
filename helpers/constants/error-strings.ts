@@ -1,5 +1,6 @@
 // -----------------------------------------------------------------------------------------------
-// SMART CONTRACT ERROR STRINGS
+// test helper constants with error strings that are returned by the implemented contracts
+// have to be adjusted to the error messages that are specified in the smart contracts
 // -----------------------------------------------------------------------------------------------
 
 export const EXACT_AMOUNT_ERROR = "tx must send exact payment amount";

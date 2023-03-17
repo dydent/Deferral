@@ -13,7 +13,7 @@ import { deployReferralPaymentEvaluatorFixture } from "../helpers/test-helpers/r
 // TEST DEFAULT VALUES
 // -----------------------------------------------------------------------------------------------
 const REFERRAL_PAYMENT_EVALUATOR_CONTRACT =
-  "ReferralPaymentEvaluatorUpgradable";
+  "V1ReferralPaymentEvaluatorUpgradable";
 // must be between 0 and 100!
 const REFERRAL_PERCENTAGE = 30;
 const PAYMENT_AMOUNT = 10;

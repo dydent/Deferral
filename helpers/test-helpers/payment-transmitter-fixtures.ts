@@ -16,6 +16,10 @@ import {
 } from "../deployer-functions/deploy-upgradable-contract-helper";
 import { DeployAndUpgradePaymentTransmitterFixtureReturnType } from "../../types/fixture-types/UpgradablePaymentTransmitterFixtureTypes";
 
+// -----------------------------------------------------------------------------------------------
+// Fixture helper functions for testing referral payment transmitter contracts
+// -----------------------------------------------------------------------------------------------
+
 // Fixture for testing V1 Payment Transmitter
 export async function deployV1ReferralPaymentTransmitterFixture({
   contractName,
@@ -26,7 +30,7 @@ export async function deployV1ReferralPaymentTransmitterFixture({
 > {
   const [admin, receiver, updatedReceiver, referrer, referee] =
     await ethers.getSigners();
-
+  // deploy regular contract
   const deployedContract =
     await deployContractHelper<V1ReferralPaymentTransmitter>({
       contractName: contractName,
@@ -63,8 +67,7 @@ export async function deployAndUpgradeUpgradablePaymentTransmitterFixture({
 > {
   const [admin, receiver, updatedReceiver, referrer, referee] =
     await ethers.getSigners();
-
-  // deploy proxy contract
+  // deploy upgradable contracts
   const proxyContract =
     await deployUpgradableContractHelper<UpgradableV1ReferralPaymentTransmitter>(
       {

@@ -1,6 +1,10 @@
 import { BigNumber, BigNumberish, utils } from "ethers";
 
-export const weiConverter = (weiInputValue: BigNumberish): string => {
+// -----------------------------------------------------------------------------------------------
+// helper functions for converting numbers to wei and ether units
+// -----------------------------------------------------------------------------------------------
+
+export const ethToWeiConverter = (weiInputValue: BigNumberish): string => {
   return utils.formatEther(weiInputValue);
 };
 

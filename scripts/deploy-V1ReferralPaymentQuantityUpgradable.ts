@@ -12,8 +12,9 @@ const LOG_FILE_NAME = "payment-quantity-contract-deployments.json";
 // const INITIAL_CONTRACT = "UpgradableV1ReferralPaymentProxy";
 const CONTRACT = "V1ReferralQuantityPaymentUpgradable";
 
-// percentage of payments that will be distributed as referral rewards after successfull referral process
+// percentage of payments that will be distributed as referral rewards after successful referral process
 const REFERRAL_PERCENTAGE = 50;
+// threshold value for quantity of required payments
 const REQUIRED_AMOUNT_OF_PAYMENTS = 3;
 
 async function main() {

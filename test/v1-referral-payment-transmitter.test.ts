@@ -8,7 +8,9 @@ import {
 } from "../helpers/constants/error-strings";
 import { deployV1ReferralPaymentTransmitterFixture } from "../helpers/test-helpers/payment-transmitter-fixtures";
 
-// TEST CONSTANTS
+// -----------------------------------------------------------------------------------------------
+// TEST DEFAULT VALUES
+// -----------------------------------------------------------------------------------------------
 const PAYMENT_TRANSMITTER_CONTRACT = "V1ReferralPaymentTransmitter";
 const PAYMENT_AMOUNT = 10;
 // must be smaller than payment amount
@@ -208,10 +210,6 @@ describe(`Testing ${PAYMENT_TRANSMITTER_CONTRACT} referral contract`, async () =
 
       // calculate referral transaction costs
       const txReceipt = await referralTx.wait();
-
-      // gas used by the transaction plus gas used by the transactions executed before the current one and in the same block
-      // const txCumulativeGasUsed = await txReceipt.cumulativeGasUsed;
-
       // gas used by the transaction
       const txGasUsed = await txReceipt.gasUsed;
       // gas price

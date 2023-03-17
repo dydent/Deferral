@@ -8,6 +8,10 @@ import {
 } from "../../types/fixture-types/PaymentValueFixtureTypes";
 import { ethConverter } from "../converters";
 
+// -----------------------------------------------------------------------------------------------
+// Fixture helper functions for testing referral payment value contracts
+// -----------------------------------------------------------------------------------------------
+
 export async function deployPaymentValueUpgradableFixture({
   contractName,
   referralPercentage,
@@ -15,8 +19,7 @@ export async function deployPaymentValueUpgradableFixture({
 }: PaymentValueFixtureInputType): Promise<PaymentValueFixtureReturnType> {
   const [admin, receiver, updatedReceiver, referrer, referee] =
     await ethers.getSigners();
-
-  // deploy proxy contract
+  // deploy upgradable contracts
   const proxyContract =
     await deployUpgradableContractHelper<V1ReferralPaymentValueUpgradable>({
       contractName: contractName,
