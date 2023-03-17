@@ -50,6 +50,11 @@ const config: HardhatUserConfig = {
       },
       chainId: CHAIN_IDS.hardhat,
     },
+    // GOERLI TESTNET
+    goerli: getChainConfig({
+      chain: "goerli",
+      hdWalletAccounts: USE_HD_WALLET_ACCOUNTS,
+    }),
     // LOCAL GANACHE NETWORK
     ganache: getChainConfig({
       chain: "ganache",
