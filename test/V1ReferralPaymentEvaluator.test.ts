@@ -7,7 +7,7 @@ import {
   REWARD_PERCENTAGE_OUT_OF_BOUNDS,
 } from "../helpers/constants/error-strings";
 import { executeReferralPayment } from "../helpers/test-helpers/execute-referral-payments";
-import { deployReferralPaymentEvaluatorFixture } from "../helpers/test-helpers/referral-payment-evaluator";
+import { deployReferralPaymentEvaluatorFixture } from "../helpers/test-helpers/referral-payment-evaluator-fixtures";
 
 // -----------------------------------------------------------------------------------------------
 // TEST DEFAULT VALUES

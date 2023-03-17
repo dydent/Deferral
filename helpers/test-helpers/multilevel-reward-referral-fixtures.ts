@@ -1,30 +1,29 @@
 // helper function to deploy the referral contract
 import { ethers } from "hardhat";
 import { deployUpgradableContractHelper } from "../deployer-functions/deploy-upgradable-contract-helper";
-import { V1ReferralPaymentEvaluatorUpgradable } from "../../typechain-types";
-
-import {
-  ReferralPaymentEvaluatorFixtureInputType,
-  ReferralPaymentEvaluatorFixtureReturnType,
-} from "../../types/fixture-types/ReferralPaymentEvaluatorTypes";
 import { ethConverter } from "../converters";
+import {
+  MultilevelRewardReferralFixtureInputType,
+  MultilevelRewardReferralFixtureReturnType,
+} from "../../types/fixture-types/MultilevelRewardReferralFixtureTypes";
+import { V1MultilevelRewardReferralUpgradable } from "../../typechain-types/contracts/referral-evaluators/referral-payment-multilevel-rewards/V1MultilevelRewardReferralUpgradable";
 
 // -----------------------------------------------------------------------------------------------
-// Fixture helper functions for testing referral payment evaluator contracts
+// Fixture helper functions for testing multilevel reward referral contracts
 // -----------------------------------------------------------------------------------------------
 
-export async function deployReferralPaymentEvaluatorFixture({
+export async function deployMultilevelReferralRewardFixture({
   contractName,
   referralPercentage,
   paymentQuantityThreshold,
   paymentValueThreshold,
-}: ReferralPaymentEvaluatorFixtureInputType): Promise<ReferralPaymentEvaluatorFixtureReturnType> {
+}: MultilevelRewardReferralFixtureInputType): Promise<MultilevelRewardReferralFixtureReturnType> {
   const [admin, receiver, updatedReceiver, referrer, referee] =
     await ethers.getSigners();
 
   // deploy proxy contract
   const proxyContract =
-    await deployUpgradableContractHelper<V1ReferralPaymentEvaluatorUpgradable>({
+    await deployUpgradableContractHelper<V1MultilevelRewardReferralUpgradable>({
       contractName: contractName,
       initArgs: [
         receiver.address,
