@@ -18,8 +18,18 @@ export async function deployMultilevelReferralRewardFixture({
   paymentQuantityThreshold,
   paymentValueThreshold,
 }: MultilevelRewardReferralFixtureInputType): Promise<MultilevelRewardReferralFixtureReturnType> {
-  const [admin, receiver, updatedReceiver, referrer, referee] =
-    await ethers.getSigners();
+  const [
+    admin,
+    receiver,
+    updatedReceiver,
+    rootReferrer,
+    rootReferrer2,
+    referee,
+    referee2,
+    referee3,
+    referee4,
+    finalReferee,
+  ] = await ethers.getSigners();
 
   // deploy proxy contract
   const proxyContract =
@@ -37,8 +47,13 @@ export async function deployMultilevelReferralRewardFixture({
     admin,
     receiver,
     updatedReceiver,
-    referrer,
+    rootReferrer,
+    rootReferrer2,
     referee,
+    referee2,
+    referee3,
+    referee4,
+    finalReferee,
     proxyContract,
   };
 }

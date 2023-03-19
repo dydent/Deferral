@@ -11,6 +11,8 @@ pragma solidity 0.8.9;
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
+import "hardhat/console.sol";
+
 contract V1MultilevelRewardReferralUpgradable is
     Initializable,
     OwnableUpgradeable
@@ -108,26 +110,72 @@ contract V1MultilevelRewardReferralUpgradable is
             refereeProcess.paymentsValue > paymentsValueThreshold &&
             refereeProcess.paymentsQuantity > paymentsQuantityThreshold
         ) {
-            // calculate the reward for the referrer
-            uint256 calculatedReferrerReward = (refereeProcess.paymentsValue /
-                100) * rewardPercentage;
-            // TODO if two-sided rewards, calculate the referee reward that can be claimed
-            // TODO check and implement multiple ways where and how the rewards are stored and distributed
-            require(
-                address(this).balance >= calculatedReferrerReward,
-                "Contract has not enough funds to pay rewards"
-            );
-            // distribute and allocate rewards
-            refereeProcess.parentReferrerAddress.transfer(
-                calculatedReferrerReward
-            );
-            emit ReferralRewardsDistributed(
-                refereeProcess.parentReferrerAddress
-            );
+            distributeRewards(_referee);
             // referral process is completed
             refereeProcess.referralProcessCompleted = true;
             emit ReferralCompleted(_referee);
         }
+    }
+
+    function distributeRewards(address _referee) internal {
+        ReferralProcess storage completedProcess = refereeProcessMapping[
+            _referee
+        ];
+        console.log("distributing rewards");
+        // calculate the reward for the referrer
+        uint256 calculatedReferrerReward = (completedProcess.paymentsValue /
+            100) * rewardPercentage;
+        console.log("calculated referral reward", calculatedReferrerReward);
+        // get all address that are eligible for rewards
+        // TODO if two-sided rewards, calculate the referee reward that can be claimed
+        // TODO check and implement multiple ways where and how the rewards are stored and distributed
+        require(
+            address(this).balance >= calculatedReferrerReward,
+            "Contract has not enough funds to pay rewards"
+        );
+        // get all eligible referral addresses
+        address payable[]
+            memory rewardAddresses = getAllParentReferrerAddresses(_referee);
+        // calculate reward per referrer
+        uint256 numberOfRewardAddresses = rewardAddresses.length;
+        console.log("number of reward addresses", numberOfRewardAddresses);
+        uint256 rewardProportion = calculatedReferrerReward /
+            numberOfRewardAddresses;
+        console.log("reward per address", rewardProportion);
+        uint256 i = 0;
+        // distribute rewards to all referrers
+        while (i < numberOfRewardAddresses) {
+            rewardAddresses[i].transfer(rewardProportion);
+            emit ReferralRewardsDistributed(rewardAddresses[i]);
+            i++;
+        }
+    }
+
+    function getAllParentReferrerAddresses(
+        address _referee
+    ) public view returns (address payable[] memory) {
+        uint256 length = 0;
+        address currentRefereeAddress = _referee;
+        //        loop until get to root address
+        while (refereeProcessMapping[currentRefereeAddress].isRoot != true) {
+            length++;
+            currentRefereeAddress = refereeProcessMapping[currentRefereeAddress]
+                .parentReferrerAddress;
+        }
+        console.log("length", length);
+
+        address payable[]
+            memory parentReferrerAddresses = new address payable[](length);
+
+        currentRefereeAddress = _referee;
+        for (uint256 i = 0; i < length; i++) {
+            parentReferrerAddresses[i] = refereeProcessMapping[
+                currentRefereeAddress
+            ].parentReferrerAddress;
+            currentRefereeAddress = parentReferrerAddresses[i];
+        }
+
+        return parentReferrerAddresses;
     }
 
     function forwardPayment(uint256 _paymentValue) internal {
@@ -143,30 +191,39 @@ contract V1MultilevelRewardReferralUpgradable is
 
     // overload function for referral payments without a referrer address
     function registerReferralPayment() external payable {
-        //        require(
-        //            refereeProcessMapping[msg.sender] == address(0),
-        //            "Invalid Root Address"
-        //        );
-
         ReferralProcess storage refereeProcess = refereeProcessMapping[
             msg.sender
         ];
-
-        // referral process must not be completed
-        require(
-            !refereeProcess.referralProcessCompleted,
-            "Referral process has been completed for this address"
-        );
-
-        require(
-            !refereeProcess.referrerAddressHasBeenSet,
-            "Root cannot have a referrer address"
-        );
-        refereeProcess.isRoot = true;
-        refereeProcess.paymentsValue += msg.value;
-        refereeProcess.paymentsQuantity += 1;
-        emit RootReferrerRegistered(msg.sender);
-        forwardPayment(msg.value);
+        // if msg sender address has not been registered at all --> set as root address
+        if (
+            !refereeProcess.referrerAddressHasBeenSet && !refereeProcess.isRoot
+        ) {
+            // register address as new root address
+            refereeProcess.isRoot = true;
+            refereeProcess.paymentsValue += msg.value;
+            refereeProcess.paymentsQuantity += 1;
+            emit RootReferrerRegistered(msg.sender);
+            forwardPayment(msg.value);
+        }
+        // else if msg sender address has been registered as a referee --> update referral process
+        else if (
+            !refereeProcess.isRoot && refereeProcess.referrerAddressHasBeenSet
+        ) {
+            // update referral process with payment
+            updateReferralProcess(
+                msg.sender,
+                refereeProcess.parentReferrerAddress,
+                msg.value
+            );
+            // evaluate updated referral process
+            evaluateReferralProcess(msg.sender);
+            // forward value to the receiver address
+            forwardPayment(msg.value - (msg.value / 100) * rewardPercentage);
+        }
+        // if root referrer makes payment forward it
+        else {
+            forwardPayment(msg.value);
+        }
     }
 
     // register & forward payment and update referral process data
@@ -178,7 +235,8 @@ contract V1MultilevelRewardReferralUpgradable is
             msg.sender
         ];
 
-        // referral process must not be completed
+        // address cannot be root & referral process must not be completed
+        require(!currentProcess.isRoot, "Root address cannot be a referee!");
         require(
             !currentProcess.referralProcessCompleted,
             "Referral process has been completed for this address"
