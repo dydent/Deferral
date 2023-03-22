@@ -15,3 +15,12 @@ export const REWARD_PERCENTAGE_OUT_OF_BOUNDS =
 
 export const REFERRAL_PROCESS_MUST_NOT_BE_COMPLETED =
   "Referral process has been completed for this address";
+
+export const SENDER_CANNOT_BE_REFERRER =
+  "Sender address cannot be used as referrer address";
+
+export const REFERRER_IS_NOT_REGISTERED =
+  "Referrer must be a registered address";
+
+export const ROOT_ADDRESS_CANNOT_BE_REFEREE =
+  "Root address cannot be a referee";

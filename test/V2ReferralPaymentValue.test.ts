@@ -6,13 +6,13 @@ import {
   REFERRAL_PROCESS_MUST_NOT_BE_COMPLETED,
   REWARD_PERCENTAGE_OUT_OF_BOUNDS,
 } from "../helpers/constants/error-strings";
-import { deployV1PaymentValueUpgradableFixture } from "../helpers/test-helpers/payment-value-fixtures";
+import { deployV2PaymentValueUpgradableFixture } from "../helpers/test-helpers/payment-value-fixtures";
 import { executeReferralPayment } from "../helpers/test-helpers/execute-referral-payments";
 
 // -----------------------------------------------------------------------------------------------
 // TEST DEFAULT VALUES
 // -----------------------------------------------------------------------------------------------
-const PAYMENT_VALUE_CONTRACT = "V1ReferralPaymentValueUpgradable";
+const PAYMENT_VALUE_CONTRACT = "V2ReferralPaymentValueUpgradable";
 // must be between 0 and 100!
 const REFERRAL_PERCENTAGE = 30;
 const PAYMENT_AMOUNT = 10;
@@ -24,7 +24,7 @@ const VAlUE_THRESHOLD = 50;
 describe(`"Testing ${PAYMENT_VALUE_CONTRACT} referral contract`, async () => {
   // get fixture function for testing
   const deployUpgradableFixture = async () => {
-    return deployV1PaymentValueUpgradableFixture({
+    return deployV2PaymentValueUpgradableFixture({
       contractName: PAYMENT_VALUE_CONTRACT,
       referralPercentage: REFERRAL_PERCENTAGE,
       valueThreshold: VAlUE_THRESHOLD,
@@ -205,7 +205,6 @@ describe(`"Testing ${PAYMENT_VALUE_CONTRACT} referral contract`, async () => {
         expect(afterBalance.toBigInt()).to.equal(receiverResult);
       }
     });
-
     it(`${PAYMENT_VALUE_CONTRACT} should update the referral process data correctly during the uncompleted referral process`, async () => {
       const { referrer, referee, proxyContract } = await loadFixture(
         deployUpgradableFixture
@@ -248,7 +247,7 @@ describe(`"Testing ${PAYMENT_VALUE_CONTRACT} referral contract`, async () => {
       );
     });
 
-    it(`${PAYMENT_VALUE_CONTRACT} should send the reward to the referrer account if referral process is completed`, async () => {
+    it(`${PAYMENT_VALUE_CONTRACT} should allocate the reward to the referrer and make it claimable if referral process is completed`, async () => {
       const { referrer, referee, proxyContract } = await loadFixture(
         deployUpgradableFixture
       );
@@ -277,16 +276,39 @@ describe(`"Testing ${PAYMENT_VALUE_CONTRACT} referral contract`, async () => {
       expect(referralProcessMapping.paymentQuantity).to.equal(
         numberOfPaymentTransactions
       );
-      // calculate result values
-      const afterReferrerBalance = await referrer.getBalance();
-      const contractBalance = await proxyContract.getBalance();
+
+      // calculate reward values
       const expectedPaidOutReward =
         (paymentValue / 100) *
         REFERRAL_PERCENTAGE *
         numberOfPaymentTransactions;
+
+      // assert correct reward amount is claimable for referrer
+      const claimableReferrerReward =
+        await proxyContract.claimableRewardMapping(referrer.address);
+      expect(claimableReferrerReward.toBigInt()).to.equal(
+        ethConverter(expectedPaidOutReward).toBigInt()
+      );
+
+      // claim rewards with referrer
+      const claimReferrerRewardTx = await proxyContract
+        .connect(referrer)
+        .claimRewards();
+      const txReceipt = await claimReferrerRewardTx.wait();
+      const txGasUsed = await txReceipt.gasUsed;
+      const txEffectiveGasPrice = await txReceipt.effectiveGasPrice;
+      const txCost = txGasUsed.mul(txEffectiveGasPrice);
+
+      // calculate result values
+      const afterReferrerBalance = await referrer.getBalance();
+      const contractBalance = await proxyContract.getBalance();
+
+      // initial balance + claimed reward - claim tx cost
       const referrerResult =
         initialBalance.toBigInt() +
-        ethConverter(expectedPaidOutReward).toBigInt();
+        ethConverter(expectedPaidOutReward).toBigInt() -
+        txCost.toBigInt();
+
       // assert reward has been paid out after completion
       expect(afterReferrerBalance.toBigInt()).to.equal(referrerResult);
       expect(contractBalance.toBigInt()).to.equal(0);

@@ -9,16 +9,18 @@ import {
   ROOT_ADDRESS_CANNOT_BE_REFEREE,
   SENDER_CANNOT_BE_REFERRER,
 } from "../helpers/constants/error-strings";
-import { deployV1MultilevelReferralRewardFixture } from "../helpers/test-helpers/multilevel-reward-referral-fixtures";
+import { deployV2MultilevelReferralRewardFixture } from "../helpers/test-helpers/multilevel-reward-referral-fixtures";
 import { ethers } from "hardhat";
 import { createReferralChain } from "../helpers/test-helpers/create-referral-chain";
 
 // -----------------------------------------------------------------------------------------------
 // TEST DEFAULT VALUES
 // -----------------------------------------------------------------------------------------------
-const MULTILEVEL_REWARDS_CONTRACT = "V1MultilevelRewardReferralUpgradable";
+const MULTILEVEL_REWARDS_CONTRACT = "V2MultilevelRewardReferralUpgradable";
 // must be between 0 and 100!
 const REFERRAL_PERCENTAGE = 30;
+// must be between 0 and 100!
+const REFEREE_REWARD_ALLOCATION_PERCENTAGE = 50;
 // number of payment transactions for a referral process to be complete = thresholds + 1
 const QUANTITY_THRESHOLD = 1;
 const VALUE_THRESHOLD = 1;
@@ -27,9 +29,10 @@ const VALUE_THRESHOLD = 1;
 describe(`"Testing ${MULTILEVEL_REWARDS_CONTRACT} referral contract`, async () => {
   // get fixture function for testing
   const deployUpgradableFixture = async () => {
-    return deployV1MultilevelReferralRewardFixture({
+    return deployV2MultilevelReferralRewardFixture({
       contractName: MULTILEVEL_REWARDS_CONTRACT,
       referralPercentage: REFERRAL_PERCENTAGE,
+      refereeRewardAllocationPercentage: REFEREE_REWARD_ALLOCATION_PERCENTAGE,
       paymentQuantityThreshold: QUANTITY_THRESHOLD,
       paymentValueThreshold: VALUE_THRESHOLD,
     });
@@ -79,6 +82,39 @@ describe(`"Testing ${MULTILEVEL_REWARDS_CONTRACT} referral contract`, async () =
           .connect(admin)
           .updateReferralReward(updatedValue);
         await expect(referralRewardUpdatePromise).to.be.rejectedWith(
+          REWARD_PERCENTAGE_OUT_OF_BOUNDS
+        );
+      }
+    });
+
+    it(`${MULTILEVEL_REWARDS_CONTRACT} should update referee reward allocation percentage`, async () => {
+      const { admin, proxyContract } = await loadFixture(
+        deployUpgradableFixture
+      );
+      // test with regular and inbound boundary values
+      const validUpdateValues = [0, 20, 100];
+      // update values and assert they are updated
+      for (const updatedValue of validUpdateValues) {
+        await proxyContract
+          .connect(admin)
+          .updateRefereeRewardAllocation(updatedValue);
+        const contractValue =
+          await proxyContract.refereeRewardAllocationPercentage();
+        expect(contractValue).to.equal(updatedValue);
+      }
+    });
+    it(`${MULTILEVEL_REWARDS_CONTRACT} should throw if updated referee reward allocation percentage is not between 0 and 100`, async () => {
+      const { admin, proxyContract } = await loadFixture(
+        deployUpgradableFixture
+      );
+      // test with invalid and outbound boundary values
+      const invalidUpdateValues = [101, 500];
+      // update values and assert update fails
+      for (const updatedValue of invalidUpdateValues) {
+        const updatePromise = proxyContract
+          .connect(admin)
+          .updateRefereeRewardAllocation(updatedValue);
+        await expect(updatePromise).to.be.rejectedWith(
           REWARD_PERCENTAGE_OUT_OF_BOUNDS
         );
       }
@@ -170,9 +206,10 @@ describe(`"Testing ${MULTILEVEL_REWARDS_CONTRACT} referral contract`, async () =
 
     // get fixture function for testing
     const deployFunctionTestingFixture = async () => {
-      return deployV1MultilevelReferralRewardFixture({
+      return deployV2MultilevelReferralRewardFixture({
         contractName: MULTILEVEL_REWARDS_CONTRACT,
         referralPercentage: REFERRAL_PERCENTAGE,
+        refereeRewardAllocationPercentage: REFEREE_REWARD_ALLOCATION_PERCENTAGE,
         paymentQuantityThreshold: paymentsQuantityThreshold,
         paymentValueThreshold: paymentsValueThreshold,
       });
@@ -432,6 +469,7 @@ describe(`"Testing ${MULTILEVEL_REWARDS_CONTRACT} referral contract`, async () =
       const txCost = txGasUsed.mul(txEffectiveGasPrice);
 
       // calculate result values
+
       const finalContractBalance = await proxyContract.getBalance();
       const afterReceiverBalance = await receiver.getBalance();
       const afterRootReferrerBalance = await rootReferrer.getBalance();
@@ -620,9 +658,11 @@ describe(`"Testing ${MULTILEVEL_REWARDS_CONTRACT} referral contract`, async () =
 
     // get fixture function for testing
     const deployReferralRewardsPayoutFixture = async () => {
-      return deployV1MultilevelReferralRewardFixture({
+      return deployV2MultilevelReferralRewardFixture({
         contractName: MULTILEVEL_REWARDS_CONTRACT,
         referralPercentage: REFERRAL_PERCENTAGE,
+        refereeRewardAllocationPercentage: REFEREE_REWARD_ALLOCATION_PERCENTAGE,
+
         paymentQuantityThreshold: paymentsQuantityThreshold,
         paymentValueThreshold: paymentsValueThreshold,
       });
@@ -642,7 +682,6 @@ describe(`"Testing ${MULTILEVEL_REWARDS_CONTRACT} referral contract`, async () =
         finalReferee,
         proxyContract,
       } = await loadFixture(deployReferralRewardsPayoutFixture);
-
       // create referral chain payments
       const chain = await createReferralChain({
         rootReferrer,
