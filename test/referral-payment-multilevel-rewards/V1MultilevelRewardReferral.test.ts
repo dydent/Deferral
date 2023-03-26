@@ -1,5 +1,5 @@
 import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
-import { ethConverter } from "../helpers/converters";
+import { ethConverter } from "../../helpers/converters";
 import { expect } from "chai";
 import {
   OWNABLE_ERROR_STRING,
@@ -8,41 +8,73 @@ import {
   REWARD_PERCENTAGE_OUT_OF_BOUNDS,
   ROOT_ADDRESS_CANNOT_BE_REFEREE,
   SENDER_CANNOT_BE_REFERRER,
-} from "../helpers/constants/error-strings";
-import { deployV1MultilevelReferralRewardFixture } from "../helpers/test-helpers/multilevel-reward-referral-fixtures";
-import { ethers } from "hardhat";
-import { createReferralChain } from "../helpers/test-helpers/create-referral-chain";
+} from "../../helpers/constants/error-strings";
+import { deployMultilevelReferralRewardFixture } from "../../helpers/test-helpers/multilevel-reward-referral-fixtures";
+import { ethers, upgrades } from "hardhat";
+import { createReferralChain } from "../../helpers/test-helpers/create-referral-chain";
+import { V1ReferralMultilevelRewardsUpgradable } from "../../typechain-types/contracts/referral-evaluators/referral-payment-multilevel-rewards/V1ReferralMultilevelRewardsUpgradable";
+
+const CONTRACT_NAME = "V1ReferralMultilevelRewardsUpgradable";
 
 // -----------------------------------------------------------------------------------------------
 // TEST DEFAULT VALUES
 // -----------------------------------------------------------------------------------------------
-const MULTILEVEL_REWARDS_CONTRACT = "V1MultilevelRewardReferralUpgradable";
+
 // must be between 0 and 100!
-const REFERRAL_PERCENTAGE = 30;
+const DEFAULT_REFERRAL_PERCENTAGE = 30;
 // number of payment transactions for a referral process to be complete = thresholds + 1
-const QUANTITY_THRESHOLD = 1;
-const VALUE_THRESHOLD = 1;
+const DEFAULT_QUANTITY_THRESHOLD = 1;
+const DEFAULT_VALUE_THRESHOLD = 1;
 
 // noinspection DuplicatedCode
-describe(`"Testing ${MULTILEVEL_REWARDS_CONTRACT} referral contract`, async () => {
+describe(`Testing ${CONTRACT_NAME} Referral Contract`, async () => {
   // get fixture function for testing
-  const deployUpgradableFixture = async () => {
-    return deployV1MultilevelReferralRewardFixture({
-      contractName: MULTILEVEL_REWARDS_CONTRACT,
-      referralPercentage: REFERRAL_PERCENTAGE,
-      paymentQuantityThreshold: QUANTITY_THRESHOLD,
-      paymentValueThreshold: VALUE_THRESHOLD,
-    });
+  const defaultFixture = async () => {
+    return deployMultilevelReferralRewardFixture<V1ReferralMultilevelRewardsUpgradable>(
+      {
+        contractName: CONTRACT_NAME,
+        referralPercentage: DEFAULT_REFERRAL_PERCENTAGE,
+        paymentQuantityThreshold: DEFAULT_QUANTITY_THRESHOLD,
+        paymentValueThreshold: DEFAULT_VALUE_THRESHOLD,
+      }
+    );
   };
 
   // -----------------------------------------------------------------------------------------------
-  // Unit tests for updating contract values
+  // Testing Contract Deployment
+  // -----------------------------------------------------------------------------------------------
+
+  describe(`Testing Contract Deployment`, async () => {
+    it(`${CONTRACT_NAME} should throw if deployed with incorrect params`, async () => {
+      const [receiver] = await ethers.getSigners();
+
+      const incorrectRewardPercentage = 105;
+
+      const referralContract = await ethers.getContractFactory(CONTRACT_NAME);
+
+      const deployedProxyContractPromise = upgrades.deployProxy(
+        referralContract,
+        [
+          receiver.address,
+          incorrectRewardPercentage,
+          DEFAULT_QUANTITY_THRESHOLD,
+          DEFAULT_VALUE_THRESHOLD,
+        ]
+      );
+      await expect(deployedProxyContractPromise).to.be.rejectedWith(
+        REWARD_PERCENTAGE_OUT_OF_BOUNDS
+      );
+    });
+  });
+
+  // -----------------------------------------------------------------------------------------------
+  // Testing Updating Contract Values
   // -----------------------------------------------------------------------------------------------
 
   describe(`Testing Updating Contract Values`, async () => {
-    it(`${MULTILEVEL_REWARDS_CONTRACT} should update receiver address`, async () => {
+    it(`${CONTRACT_NAME} should update receiver address`, async () => {
       const { admin, updatedReceiver, proxyContract } = await loadFixture(
-        deployUpgradableFixture
+        defaultFixture
       );
       // assert address are not the same at the start
       const initialAddress = await proxyContract.receiverAddress();
@@ -54,10 +86,8 @@ describe(`"Testing ${MULTILEVEL_REWARDS_CONTRACT} referral contract`, async () =
       // assert address is updated
       expect(updateAddress).to.equal(contractReceiverAddress);
     });
-    it(`${MULTILEVEL_REWARDS_CONTRACT} should update referral reward percentage`, async () => {
-      const { admin, proxyContract } = await loadFixture(
-        deployUpgradableFixture
-      );
+    it(`${CONTRACT_NAME} should update referral reward percentage`, async () => {
+      const { admin, proxyContract } = await loadFixture(defaultFixture);
       // test with regular and inbound boundary values
       const validUpdateValues = [0, 20, 100];
       // update values and assert they are updated
@@ -67,10 +97,8 @@ describe(`"Testing ${MULTILEVEL_REWARDS_CONTRACT} referral contract`, async () =
         expect(contractValue).to.equal(updatedValue);
       }
     });
-    it(`${MULTILEVEL_REWARDS_CONTRACT} should throw if updated referral reward percentage is not between 0 and 100`, async () => {
-      const { admin, proxyContract } = await loadFixture(
-        deployUpgradableFixture
-      );
+    it(`${CONTRACT_NAME} should throw if updated referral reward percentage is not between 0 and 100`, async () => {
+      const { admin, proxyContract } = await loadFixture(defaultFixture);
       // test with invalid and outbound boundary values
       const invalidUpdateValues = [101, 500];
       // update values and assert update fails
@@ -83,10 +111,8 @@ describe(`"Testing ${MULTILEVEL_REWARDS_CONTRACT} referral contract`, async () =
         );
       }
     });
-    it(`${MULTILEVEL_REWARDS_CONTRACT} should update payments quantity threshold`, async () => {
-      const { admin, proxyContract } = await loadFixture(
-        deployUpgradableFixture
-      );
+    it(`${CONTRACT_NAME} should update payments quantity threshold`, async () => {
+      const { admin, proxyContract } = await loadFixture(defaultFixture);
       // test with regular and inbound boundary values
       const validUpdateValues = [0, 6, 10];
       // update values and assert they are updated
@@ -98,10 +124,8 @@ describe(`"Testing ${MULTILEVEL_REWARDS_CONTRACT} referral contract`, async () =
         expect(contractValue).to.equal(updatedValue);
       }
     });
-    it(`${MULTILEVEL_REWARDS_CONTRACT} should update payments value threshold`, async () => {
-      const { admin, proxyContract } = await loadFixture(
-        deployUpgradableFixture
-      );
+    it(`${CONTRACT_NAME} should update payments value threshold`, async () => {
+      const { admin, proxyContract } = await loadFixture(defaultFixture);
       // test with regular and inbound boundary values
       const validUpdateValues = [0, 50, 100];
       // update values and assert they are updated
@@ -116,13 +140,13 @@ describe(`"Testing ${MULTILEVEL_REWARDS_CONTRACT} referral contract`, async () =
   });
 
   // -----------------------------------------------------------------------------------------------
-  // Unit tests for function modifiers and conditions
+  // Testing Function Modifiers
   // -----------------------------------------------------------------------------------------------
 
   describe(`Testing Function Modifiers`, async () => {
-    it(`${MULTILEVEL_REWARDS_CONTRACT} should throw if non-admin tries to update contract`, async () => {
+    it(`${CONTRACT_NAME} should throw if non-admin tries to update contract`, async () => {
       const { rootReferrer, updatedReceiver, proxyContract } =
-        await loadFixture(deployUpgradableFixture);
+        await loadFixture(defaultFixture);
       const nonAdminSigner = rootReferrer;
       const validReferralReward = ethConverter(3);
       const validReceiverAddress = await updatedReceiver.getAddress();
@@ -160,32 +184,52 @@ describe(`"Testing ${MULTILEVEL_REWARDS_CONTRACT} referral contract`, async () =
   });
 
   // -----------------------------------------------------------------------------------------------
-  // Function Testing
+  // Testing Referral Process Functionality
   // -----------------------------------------------------------------------------------------------
 
-  describe(`Testing Registering & Forwarding Payment Functionality`, async () => {
-    const paymentsValueThreshold = 100;
-    const paymentsQuantityThreshold = 5;
-    const paymentValue = 10;
+  describe(`Testing Referral Process Functionality`, async () => {
+    const ptPaymentsValueThreshold = 100;
+    const ptPaymentsQuantityThreshold = 5;
+    const ptPaymentAmount = 10;
 
     // get fixture function for testing
-    const deployFunctionTestingFixture = async () => {
-      return deployV1MultilevelReferralRewardFixture({
-        contractName: MULTILEVEL_REWARDS_CONTRACT,
-        referralPercentage: REFERRAL_PERCENTAGE,
-        paymentQuantityThreshold: paymentsQuantityThreshold,
-        paymentValueThreshold: paymentsValueThreshold,
-      });
+    const processTestingFixture = async () => {
+      return deployMultilevelReferralRewardFixture<V1ReferralMultilevelRewardsUpgradable>(
+        {
+          contractName: CONTRACT_NAME,
+          referralPercentage: DEFAULT_REFERRAL_PERCENTAGE,
+          paymentQuantityThreshold: ptPaymentsQuantityThreshold,
+          paymentValueThreshold: ptPaymentsValueThreshold,
+        }
+      );
     };
-    it(`${MULTILEVEL_REWARDS_CONTRACT} should register payment of new address with no referrer as root referrer`, async () => {
+
+    it(`${CONTRACT_NAME} should throw if sender/referee is referrer`, async () => {
+      const { referee, proxyContract } = await loadFixture(
+        processTestingFixture
+      );
+
+      // register referee with root referrer as referee
+      const refereePaymentTxPromise = proxyContract
+        .connect(referee)
+        ["registerReferralPayment(address)"](referee.address, {
+          value: ethConverter(ptPaymentAmount),
+        });
+
+      // await calls to be rejected since referral has been completed
+      await expect(refereePaymentTxPromise).to.be.rejectedWith(
+        SENDER_CANNOT_BE_REFERRER
+      );
+    });
+    it(`${CONTRACT_NAME} should register payment of new address with no referrer as root referrer`, async () => {
       const { rootReferrer, proxyContract } = await loadFixture(
-        deployFunctionTestingFixture
+        processTestingFixture
       );
 
       // execute root referrer payment with no referrer param --> registers address as root
       await proxyContract
         .connect(rootReferrer)
-        ["registerReferralPayment()"]({ value: ethConverter(paymentValue) });
+        ["registerReferralPayment()"]({ value: ethConverter(ptPaymentAmount) });
       const rootReferrerMapping = await proxyContract.refereeProcessMapping(
         rootReferrer.address
       );
@@ -197,23 +241,23 @@ describe(`"Testing ${MULTILEVEL_REWARDS_CONTRACT} referral contract`, async () =
         ethers.constants.AddressZero
       );
       expect(rootReferrerMapping.paymentsValue).to.equal(
-        ethConverter(paymentValue).toBigInt()
+        ethConverter(ptPaymentAmount).toBigInt()
       );
       expect(rootReferrerMapping.paymentsQuantity).to.equal(1);
     });
-    it(`${MULTILEVEL_REWARDS_CONTRACT} should register payment of registered referee with empty referrer param correctly`, async () => {
+    it(`${CONTRACT_NAME} should register payment of registered referee with empty referrer param correctly`, async () => {
       const { rootReferrer, referee, proxyContract } = await loadFixture(
-        deployFunctionTestingFixture
+        processTestingFixture
       );
       // register root referrer
       await proxyContract
         .connect(rootReferrer)
-        ["registerReferralPayment()"]({ value: ethConverter(paymentValue) });
+        ["registerReferralPayment()"]({ value: ethConverter(ptPaymentAmount) });
       // register referee with root referrer as referee
       await proxyContract
         .connect(referee)
         ["registerReferralPayment(address)"](rootReferrer.address, {
-          value: ethConverter(paymentValue),
+          value: ethConverter(ptPaymentAmount),
         });
       const refereeProcessMapping = await proxyContract.refereeProcessMapping(
         referee.address
@@ -225,7 +269,7 @@ describe(`"Testing ${MULTILEVEL_REWARDS_CONTRACT} referral contract`, async () =
         rootReferrer.address
       );
       expect(refereeProcessMapping.paymentsValue).to.equal(
-        ethConverter(paymentValue).toBigInt()
+        ethConverter(ptPaymentAmount).toBigInt()
       );
       expect(refereeProcessMapping.paymentsQuantity).to.equal(1);
 
@@ -233,7 +277,7 @@ describe(`"Testing ${MULTILEVEL_REWARDS_CONTRACT} referral contract`, async () =
       await proxyContract
         .connect(referee)
         ["registerReferralPayment(address)"](rootReferrer.address, {
-          value: ethConverter(paymentValue),
+          value: ethConverter(ptPaymentAmount),
         });
       const updatedRefereeProcessMapping =
         await proxyContract.refereeProcessMapping(referee.address);
@@ -248,25 +292,25 @@ describe(`"Testing ${MULTILEVEL_REWARDS_CONTRACT} referral contract`, async () =
         rootReferrer.address
       );
       expect(updatedRefereeProcessMapping.paymentsValue).to.equal(
-        ethConverter(paymentValue * 2).toBigInt()
+        ethConverter(ptPaymentAmount * 2).toBigInt()
       );
       expect(updatedRefereeProcessMapping.paymentsQuantity).to.equal(2);
     });
-    it(`${MULTILEVEL_REWARDS_CONTRACT} should register payment of registered referee with different registered referrer correctly (referrer address cannot be changed)`, async () => {
+    it(`${CONTRACT_NAME} should register payment of registered referee with different registered referrer correctly (referrer address cannot be changed)`, async () => {
       const { rootReferrer, rootReferrer2, referee, proxyContract } =
-        await loadFixture(deployFunctionTestingFixture);
+        await loadFixture(processTestingFixture);
       // register root referrer
       await proxyContract
         .connect(rootReferrer)
-        ["registerReferralPayment()"]({ value: ethConverter(paymentValue) });
+        ["registerReferralPayment()"]({ value: ethConverter(ptPaymentAmount) });
       await proxyContract
         .connect(rootReferrer2)
-        ["registerReferralPayment()"]({ value: ethConverter(paymentValue) });
+        ["registerReferralPayment()"]({ value: ethConverter(ptPaymentAmount) });
       // register referee with root referrer as referee
       await proxyContract
         .connect(referee)
         ["registerReferralPayment(address)"](rootReferrer.address, {
-          value: ethConverter(paymentValue),
+          value: ethConverter(ptPaymentAmount),
         });
       const refereeProcessMapping = await proxyContract.refereeProcessMapping(
         referee.address
@@ -278,7 +322,7 @@ describe(`"Testing ${MULTILEVEL_REWARDS_CONTRACT} referral contract`, async () =
         rootReferrer.address
       );
       expect(refereeProcessMapping.paymentsValue).to.equal(
-        ethConverter(paymentValue).toBigInt()
+        ethConverter(ptPaymentAmount).toBigInt()
       );
       expect(refereeProcessMapping.paymentsQuantity).to.equal(1);
 
@@ -286,7 +330,7 @@ describe(`"Testing ${MULTILEVEL_REWARDS_CONTRACT} referral contract`, async () =
       await proxyContract
         .connect(referee)
         ["registerReferralPayment(address)"](rootReferrer2.address, {
-          value: ethConverter(paymentValue),
+          value: ethConverter(ptPaymentAmount),
         });
       const updatedRefereeProcessMapping =
         await proxyContract.refereeProcessMapping(referee.address);
@@ -301,22 +345,22 @@ describe(`"Testing ${MULTILEVEL_REWARDS_CONTRACT} referral contract`, async () =
         rootReferrer.address
       );
       expect(updatedRefereeProcessMapping.paymentsValue).to.equal(
-        ethConverter(paymentValue * 2).toBigInt()
+        ethConverter(ptPaymentAmount * 2).toBigInt()
       );
       expect(updatedRefereeProcessMapping.paymentsQuantity).to.equal(2);
     });
-    it(`${MULTILEVEL_REWARDS_CONTRACT} should register payment of referee with higher level referee and update data correctly`, async () => {
+    it(`${CONTRACT_NAME} should register payment of referee with higher level referee and update data correctly`, async () => {
       const { rootReferrer, referee, referee2, proxyContract } =
-        await loadFixture(deployFunctionTestingFixture);
+        await loadFixture(processTestingFixture);
       // register root referrer
       await proxyContract
         .connect(rootReferrer)
-        ["registerReferralPayment()"]({ value: ethConverter(paymentValue) });
+        ["registerReferralPayment()"]({ value: ethConverter(ptPaymentAmount) });
       // register referee with root referrer as referee
       await proxyContract
         .connect(referee)
         ["registerReferralPayment(address)"](rootReferrer.address, {
-          value: ethConverter(paymentValue),
+          value: ethConverter(ptPaymentAmount),
         });
       const refereeProcessMapping = await proxyContract.refereeProcessMapping(
         referee.address
@@ -328,7 +372,7 @@ describe(`"Testing ${MULTILEVEL_REWARDS_CONTRACT} referral contract`, async () =
         rootReferrer.address
       );
       expect(refereeProcessMapping.paymentsValue).to.equal(
-        ethConverter(paymentValue).toBigInt()
+        ethConverter(ptPaymentAmount).toBigInt()
       );
       expect(refereeProcessMapping.paymentsQuantity).to.equal(1);
 
@@ -336,7 +380,7 @@ describe(`"Testing ${MULTILEVEL_REWARDS_CONTRACT} referral contract`, async () =
       await proxyContract
         .connect(referee2)
         ["registerReferralPayment(address)"](referee.address, {
-          value: ethConverter(paymentValue),
+          value: ethConverter(ptPaymentAmount),
         });
       const referee2ProcessMapping = await proxyContract.refereeProcessMapping(
         referee2.address
@@ -348,31 +392,13 @@ describe(`"Testing ${MULTILEVEL_REWARDS_CONTRACT} referral contract`, async () =
         referee.address
       );
       expect(referee2ProcessMapping.paymentsValue).to.equal(
-        ethConverter(paymentValue).toBigInt()
+        ethConverter(ptPaymentAmount).toBigInt()
       );
       expect(referee2ProcessMapping.paymentsQuantity).to.equal(1);
     });
-
-    it(`${MULTILEVEL_REWARDS_CONTRACT} should throw if referee uses its own address as referrer`, async () => {
-      const { referee, proxyContract } = await loadFixture(
-        deployFunctionTestingFixture
-      );
-
-      // register referee with root referrer as referee
-      const refereePaymentTxPromise = proxyContract
-        .connect(referee)
-        ["registerReferralPayment(address)"](referee.address, {
-          value: ethConverter(paymentValue),
-        });
-
-      // await calls to be rejected since referral has been completed
-      await expect(refereePaymentTxPromise).to.be.rejectedWith(
-        SENDER_CANNOT_BE_REFERRER
-      );
-    });
-    it(`${MULTILEVEL_REWARDS_CONTRACT} should throw if referrer address is not registered as referee or root referrer`, async () => {
+    it(`${CONTRACT_NAME} should throw if referrer address is not registered as referee or root referrer`, async () => {
       const { rootReferrer, referee, proxyContract } = await loadFixture(
-        deployFunctionTestingFixture
+        processTestingFixture
       );
       // register root referrer
 
@@ -380,7 +406,7 @@ describe(`"Testing ${MULTILEVEL_REWARDS_CONTRACT} referral contract`, async () =
       const refereePaymentTxPromise = proxyContract
         .connect(referee)
         ["registerReferralPayment(address)"](rootReferrer.address, {
-          value: ethConverter(paymentValue),
+          value: ethConverter(ptPaymentAmount),
         });
 
       // await calls to be rejected since referral has been completed
@@ -388,24 +414,24 @@ describe(`"Testing ${MULTILEVEL_REWARDS_CONTRACT} referral contract`, async () =
         REFERRER_IS_NOT_REGISTERED
       );
     });
-    it(`${MULTILEVEL_REWARDS_CONTRACT} should throw if registered root referrer tries to register as referee `, async () => {
+    it(`${CONTRACT_NAME} should throw if registered root referrer tries to register as referee `, async () => {
       const { rootReferrer, rootReferrer2, proxyContract } = await loadFixture(
-        deployFunctionTestingFixture
+        processTestingFixture
       );
 
       // register root referrers
       await proxyContract
         .connect(rootReferrer)
-        ["registerReferralPayment()"]({ value: ethConverter(paymentValue) });
+        ["registerReferralPayment()"]({ value: ethConverter(ptPaymentAmount) });
       await proxyContract
         .connect(rootReferrer2)
-        ["registerReferralPayment()"]({ value: ethConverter(paymentValue) });
+        ["registerReferralPayment()"]({ value: ethConverter(ptPaymentAmount) });
 
       // try register root referrer with other referrer address
       const rootAsRefereePaymentTx = proxyContract
         .connect(rootReferrer)
         ["registerReferralPayment(address)"](rootReferrer2.address, {
-          value: ethConverter(paymentValue),
+          value: ethConverter(ptPaymentAmount),
         });
 
       // await calls to be rejected since referral has been completed
@@ -414,9 +440,9 @@ describe(`"Testing ${MULTILEVEL_REWARDS_CONTRACT} referral contract`, async () =
       );
     });
 
-    it(`${MULTILEVEL_REWARDS_CONTRACT} should forward root referrer payment correctly`, async () => {
+    it(`${CONTRACT_NAME} should forward root referrer payment correctly`, async () => {
       const { receiver, rootReferrer, proxyContract } = await loadFixture(
-        deployFunctionTestingFixture
+        processTestingFixture
       );
       const initialRootReferrerBalance = await rootReferrer.getBalance();
       const initialReceiverBalance = await receiver.getBalance();
@@ -424,7 +450,7 @@ describe(`"Testing ${MULTILEVEL_REWARDS_CONTRACT} referral contract`, async () =
       // root referrer payment registers address as root
       const rootReferrerPaymentTx = await proxyContract
         .connect(rootReferrer)
-        ["registerReferralPayment()"]({ value: ethConverter(paymentValue) });
+        ["registerReferralPayment()"]({ value: ethConverter(ptPaymentAmount) });
       // calculate referral transaction costs
       const txReceipt = await rootReferrerPaymentTx.wait();
       const txGasUsed = await txReceipt.gasUsed;
@@ -438,26 +464,26 @@ describe(`"Testing ${MULTILEVEL_REWARDS_CONTRACT} referral contract`, async () =
       // assert balances are correct
       expect(afterReceiverBalance.toBigInt()).to.equal(
         initialReceiverBalance.toBigInt() +
-          ethConverter(paymentValue).toBigInt()
+          ethConverter(ptPaymentAmount).toBigInt()
       );
       expect(afterRootReferrerBalance.toBigInt()).to.equal(
         initialRootReferrerBalance.toBigInt() -
-          ethConverter(paymentValue).toBigInt() -
+          ethConverter(ptPaymentAmount).toBigInt() -
           txCost.toBigInt()
       );
       expect(finalContractBalance.toBigInt()).to.equal(
         ethConverter(0).toBigInt()
       );
     });
-    it(`${MULTILEVEL_REWARDS_CONTRACT} should forward multiple root referrer payments and update data correctly`, async () => {
+    it(`${CONTRACT_NAME} should forward multiple root referrer payments and update data correctly`, async () => {
       const { receiver, rootReferrer, proxyContract } = await loadFixture(
-        deployFunctionTestingFixture
+        processTestingFixture
       );
 
       // register root referrer with payment
       await proxyContract
         .connect(rootReferrer)
-        ["registerReferralPayment()"]({ value: ethConverter(paymentValue) });
+        ["registerReferralPayment()"]({ value: ethConverter(ptPaymentAmount) });
 
       const initialRootReferrerBalance = await rootReferrer.getBalance();
       const initialReceiverBalance = await receiver.getBalance();
@@ -465,7 +491,7 @@ describe(`"Testing ${MULTILEVEL_REWARDS_CONTRACT} referral contract`, async () =
       // second root referrer payment
       const rootReferrerPaymentTx = await proxyContract
         .connect(rootReferrer)
-        ["registerReferralPayment()"]({ value: ethConverter(paymentValue) });
+        ["registerReferralPayment()"]({ value: ethConverter(ptPaymentAmount) });
       // calculate referral transaction costs
       const txReceipt = await rootReferrerPaymentTx.wait();
       const txGasUsed = await txReceipt.gasUsed;
@@ -482,11 +508,11 @@ describe(`"Testing ${MULTILEVEL_REWARDS_CONTRACT} referral contract`, async () =
       // assert balances are correct
       expect(afterReceiverBalance.toBigInt()).to.equal(
         initialReceiverBalance.toBigInt() +
-          ethConverter(paymentValue).toBigInt()
+          ethConverter(ptPaymentAmount).toBigInt()
       );
       expect(afterRootReferrerBalance.toBigInt()).to.equal(
         initialRootReferrerBalance.toBigInt() -
-          ethConverter(paymentValue).toBigInt() -
+          ethConverter(ptPaymentAmount).toBigInt() -
           txCost.toBigInt()
       );
       expect(finalContractBalance.toBigInt()).to.equal(
@@ -501,18 +527,18 @@ describe(`"Testing ${MULTILEVEL_REWARDS_CONTRACT} referral contract`, async () =
         ethers.constants.AddressZero
       );
       expect(rootReferrerMapping.paymentsValue).to.equal(
-        ethConverter(paymentValue * 2).toBigInt()
+        ethConverter(ptPaymentAmount * 2).toBigInt()
       );
       expect(rootReferrerMapping.paymentsQuantity).to.equal(2);
     });
-    it(`${MULTILEVEL_REWARDS_CONTRACT} should forward referee payment with referrer address param correctly`, async () => {
+    it(`${CONTRACT_NAME} should forward referee payment with referrer address param correctly`, async () => {
       const { receiver, referee, rootReferrer, proxyContract } =
-        await loadFixture(deployFunctionTestingFixture);
+        await loadFixture(processTestingFixture);
 
       // root referrer payment registers address as root
       await proxyContract
         .connect(rootReferrer)
-        ["registerReferralPayment()"]({ value: ethConverter(paymentValue) });
+        ["registerReferralPayment()"]({ value: ethConverter(ptPaymentAmount) });
 
       const initialRefereeBalance = await referee.getBalance();
       const initialReceiverBalance = await receiver.getBalance();
@@ -522,7 +548,7 @@ describe(`"Testing ${MULTILEVEL_REWARDS_CONTRACT} referral contract`, async () =
       const refereePaymentTx = await proxyContract
         .connect(referee)
         ["registerReferralPayment(address)"](rootReferrer.address, {
-          value: ethConverter(paymentValue),
+          value: ethConverter(ptPaymentAmount),
         });
 
       // calculate referral transaction costs
@@ -533,8 +559,8 @@ describe(`"Testing ${MULTILEVEL_REWARDS_CONTRACT} referral contract`, async () =
       const refereeTxCost = refereeTxGasUsed.mul(refereeTxEffectiveGasPrice);
 
       // calculate result values
-      const reward = (paymentValue / 100) * REFERRAL_PERCENTAGE;
-      const receiverAmount = paymentValue - reward;
+      const reward = (ptPaymentAmount / 100) * DEFAULT_REFERRAL_PERCENTAGE;
+      const receiverAmount = ptPaymentAmount - reward;
       const finalContractBalance = await proxyContract.getBalance();
       const afterReceiverBalance = await receiver.getBalance();
       const afterRefereeBalance = await referee.getBalance();
@@ -545,27 +571,27 @@ describe(`"Testing ${MULTILEVEL_REWARDS_CONTRACT} referral contract`, async () =
       );
       expect(afterRefereeBalance.toBigInt()).to.equal(
         initialRefereeBalance.toBigInt() -
-          ethConverter(paymentValue).toBigInt() -
+          ethConverter(ptPaymentAmount).toBigInt() -
           refereeTxCost.toBigInt()
       );
       expect(finalContractBalance.toBigInt()).to.equal(
         initialContractValue.toBigInt() + ethConverter(reward).toBigInt()
       );
     });
-    it(`${MULTILEVEL_REWARDS_CONTRACT} should forward referee payment with empty referrer address param correctly`, async () => {
+    it(`${CONTRACT_NAME} should forward referee payment with empty referrer address param correctly`, async () => {
       const { receiver, referee, rootReferrer, proxyContract } =
-        await loadFixture(deployFunctionTestingFixture);
+        await loadFixture(processTestingFixture);
 
       // root referrer payment registers address as root
       await proxyContract
         .connect(rootReferrer)
-        ["registerReferralPayment()"]({ value: ethConverter(paymentValue) });
+        ["registerReferralPayment()"]({ value: ethConverter(ptPaymentAmount) });
 
       // execute referee payment with root referrer as referrer address
       await proxyContract
         .connect(referee)
         ["registerReferralPayment(address)"](rootReferrer.address, {
-          value: ethConverter(paymentValue),
+          value: ethConverter(ptPaymentAmount),
         });
 
       const initialRefereeBalance = await referee.getBalance();
@@ -576,7 +602,7 @@ describe(`"Testing ${MULTILEVEL_REWARDS_CONTRACT} referral contract`, async () =
       const refereePaymentTx = await proxyContract
         .connect(referee)
         ["registerReferralPayment()"]({
-          value: ethConverter(paymentValue),
+          value: ethConverter(ptPaymentAmount),
         });
 
       // calculate referral transaction costs
@@ -587,8 +613,8 @@ describe(`"Testing ${MULTILEVEL_REWARDS_CONTRACT} referral contract`, async () =
       const refereeTxCost = refereeTxGasUsed.mul(refereeTxEffectiveGasPrice);
 
       // calculate result values
-      const reward = (paymentValue / 100) * REFERRAL_PERCENTAGE;
-      const receiverAmount = paymentValue - reward;
+      const reward = (ptPaymentAmount / 100) * DEFAULT_REFERRAL_PERCENTAGE;
+      const receiverAmount = ptPaymentAmount - reward;
       const finalContractBalance = await proxyContract.getBalance();
       const afterReceiverBalance = await receiver.getBalance();
       const afterRefereeBalance = await referee.getBalance();
@@ -599,7 +625,7 @@ describe(`"Testing ${MULTILEVEL_REWARDS_CONTRACT} referral contract`, async () =
       );
       expect(afterRefereeBalance.toBigInt()).to.equal(
         initialRefereeBalance.toBigInt() -
-          ethConverter(paymentValue).toBigInt() -
+          ethConverter(ptPaymentAmount).toBigInt() -
           refereeTxCost.toBigInt()
       );
       expect(finalContractBalance.toBigInt()).to.equal(
@@ -613,26 +639,28 @@ describe(`"Testing ${MULTILEVEL_REWARDS_CONTRACT} referral contract`, async () =
   // -----------------------------------------------------------------------------------------------
 
   describe(`Testing Distributing Multi Level Rewards Functionality`, async () => {
-    // light referral conditions for easier testing --> second transaction will complete referral process
-    const paymentValue = 10;
-    const paymentsValueThreshold = paymentValue;
-    const paymentsQuantityThreshold = 1;
+    // referral conditions for testing reward distribution (rd)
+    const rdPaymentValue = 10;
+    const rdPaymentsValueThreshold = rdPaymentValue;
+    const rdPaymentsQuantityThreshold = 1;
 
     // get fixture function for testing
-    const deployReferralRewardsPayoutFixture = async () => {
-      return deployV1MultilevelReferralRewardFixture({
-        contractName: MULTILEVEL_REWARDS_CONTRACT,
-        referralPercentage: REFERRAL_PERCENTAGE,
-        paymentQuantityThreshold: paymentsQuantityThreshold,
-        paymentValueThreshold: paymentsValueThreshold,
-      });
+    const rewardDistributionFixture = async () => {
+      return deployMultilevelReferralRewardFixture<V1ReferralMultilevelRewardsUpgradable>(
+        {
+          contractName: CONTRACT_NAME,
+          referralPercentage: DEFAULT_REFERRAL_PERCENTAGE,
+          paymentQuantityThreshold: rdPaymentsQuantityThreshold,
+          paymentValueThreshold: rdPaymentsValueThreshold,
+        }
+      );
     };
 
     // -----------------------------------------------------------------------------------------------
     // Testing Referral Completion and Reward Payments
     // -----------------------------------------------------------------------------------------------
 
-    it(`${MULTILEVEL_REWARDS_CONTRACT} should distribute 1-level rewards correctly after referee completed referral process`, async () => {
+    it(`${CONTRACT_NAME} should distribute 1-level rewards correctly after referee completed referral process`, async () => {
       const {
         rootReferrer,
         referee,
@@ -641,7 +669,7 @@ describe(`"Testing ${MULTILEVEL_REWARDS_CONTRACT} referral contract`, async () =
         referee4,
         finalReferee,
         proxyContract,
-      } = await loadFixture(deployReferralRewardsPayoutFixture);
+      } = await loadFixture(rewardDistributionFixture);
 
       // create referral chain payments
       const chain = await createReferralChain({
@@ -652,28 +680,28 @@ describe(`"Testing ${MULTILEVEL_REWARDS_CONTRACT} referral contract`, async () =
         referee4,
         finalReferee,
         proxyContract,
-        paymentValue,
+        paymentValue: rdPaymentValue,
       });
 
       // complete referral process for referee 1
       await chain.proxyContract
         .connect(chain.referee)
         ["registerReferralPayment()"]({
-          value: ethConverter(paymentValue),
+          value: ethConverter(rdPaymentValue),
         });
 
       // calculate result values
       const numberOfRewardLevels = 1;
-      const registeredPaidValue = paymentValue * 2;
+      const registeredPaidValue = rdPaymentValue * 2;
       // proportion of the completion payment that stays on the reward contract
       const completionPaymentContractReward =
-        (paymentValue / 100) * REFERRAL_PERCENTAGE;
+        (rdPaymentValue / 100) * DEFAULT_REFERRAL_PERCENTAGE;
       // account balances
       const afterRootReferralBalance = await chain.rootReferrer.getBalance();
       const afterContractBalance = await chain.proxyContract.getBalance();
       // reward values
       const expectedPaidOutReward =
-        (registeredPaidValue / 100) * REFERRAL_PERCENTAGE;
+        (registeredPaidValue / 100) * DEFAULT_REFERRAL_PERCENTAGE;
       const expectedPaidOutRewardProportion =
         expectedPaidOutReward / numberOfRewardLevels;
 
@@ -693,7 +721,7 @@ describe(`"Testing ${MULTILEVEL_REWARDS_CONTRACT} referral contract`, async () =
       );
     });
 
-    it(`${MULTILEVEL_REWARDS_CONTRACT} should distribute 2-level rewards correctly after referee completed referral process`, async () => {
+    it(`${CONTRACT_NAME} should distribute 2-level rewards correctly after referee completed referral process`, async () => {
       const {
         rootReferrer,
         referee,
@@ -702,7 +730,7 @@ describe(`"Testing ${MULTILEVEL_REWARDS_CONTRACT} referral contract`, async () =
         referee4,
         finalReferee,
         proxyContract,
-      } = await loadFixture(deployReferralRewardsPayoutFixture);
+      } = await loadFixture(rewardDistributionFixture);
 
       // create referral chain payments
       const chain = await createReferralChain({
@@ -713,29 +741,29 @@ describe(`"Testing ${MULTILEVEL_REWARDS_CONTRACT} referral contract`, async () =
         referee4,
         finalReferee,
         proxyContract,
-        paymentValue,
+        paymentValue: rdPaymentValue,
       });
 
       // complete referral process for referee 2
       await chain.proxyContract
         .connect(chain.referee2)
         ["registerReferralPayment()"]({
-          value: ethConverter(paymentValue),
+          value: ethConverter(rdPaymentValue),
         });
 
       // calculate result values
       const numberOfRewardLevels = 2;
-      const registeredPaidValue = paymentValue * 2;
+      const registeredPaidValue = rdPaymentValue * 2;
       // proportion of the completion payment that stays on the reward contract
       const completionPaymentContractReward =
-        (paymentValue / 100) * REFERRAL_PERCENTAGE;
+        (rdPaymentValue / 100) * DEFAULT_REFERRAL_PERCENTAGE;
       // account balances
       const afterRootReferralBalance = await chain.rootReferrer.getBalance();
       const afterRefereeBalance = await chain.referee.getBalance();
       const afterContractBalance = await chain.proxyContract.getBalance();
       // reward values
       const expectedPaidOutReward =
-        (registeredPaidValue / 100) * REFERRAL_PERCENTAGE;
+        (registeredPaidValue / 100) * DEFAULT_REFERRAL_PERCENTAGE;
       const expectedPaidOutRewardProportion =
         expectedPaidOutReward / numberOfRewardLevels;
 
@@ -760,7 +788,7 @@ describe(`"Testing ${MULTILEVEL_REWARDS_CONTRACT} referral contract`, async () =
       );
     });
 
-    it(`${MULTILEVEL_REWARDS_CONTRACT} should distribute 3-level rewards correctly after referee completed referral process`, async () => {
+    it(`${CONTRACT_NAME} should distribute 3-level rewards correctly after referee completed referral process`, async () => {
       const {
         rootReferrer,
         referee,
@@ -769,7 +797,7 @@ describe(`"Testing ${MULTILEVEL_REWARDS_CONTRACT} referral contract`, async () =
         referee4,
         finalReferee,
         proxyContract,
-      } = await loadFixture(deployReferralRewardsPayoutFixture);
+      } = await loadFixture(rewardDistributionFixture);
 
       // create referral chain payments
       const chain = await createReferralChain({
@@ -780,22 +808,22 @@ describe(`"Testing ${MULTILEVEL_REWARDS_CONTRACT} referral contract`, async () =
         referee4,
         finalReferee,
         proxyContract,
-        paymentValue,
+        paymentValue: rdPaymentValue,
       });
 
       // complete referral process for referee 3
       await chain.proxyContract
         .connect(chain.referee3)
         ["registerReferralPayment()"]({
-          value: ethConverter(paymentValue),
+          value: ethConverter(rdPaymentValue),
         });
 
       // calculate result values
       const numberOfRewardLevels = 3;
-      const registeredPaidValue = paymentValue * 2;
+      const registeredPaidValue = rdPaymentValue * 2;
       // proportion of the completion payment that stays on the reward contract
       const completionPaymentContractReward =
-        (paymentValue / 100) * REFERRAL_PERCENTAGE;
+        (rdPaymentValue / 100) * DEFAULT_REFERRAL_PERCENTAGE;
       // account balances
       const afterRootReferralBalance = await chain.rootReferrer.getBalance();
       const afterRefereeBalance = await chain.referee.getBalance();
@@ -803,7 +831,7 @@ describe(`"Testing ${MULTILEVEL_REWARDS_CONTRACT} referral contract`, async () =
       const afterContractBalance = await chain.proxyContract.getBalance();
       // reward values
       const expectedPaidOutReward =
-        (registeredPaidValue / 100) * REFERRAL_PERCENTAGE;
+        (registeredPaidValue / 100) * DEFAULT_REFERRAL_PERCENTAGE;
       const expectedPaidOutRewardProportion =
         expectedPaidOutReward / numberOfRewardLevels;
 
@@ -833,7 +861,7 @@ describe(`"Testing ${MULTILEVEL_REWARDS_CONTRACT} referral contract`, async () =
       );
     });
 
-    it(`${MULTILEVEL_REWARDS_CONTRACT} should distribute 4-level rewards correctly after referee completed referral process`, async () => {
+    it(`${CONTRACT_NAME} should distribute 4-level rewards correctly after referee completed referral process`, async () => {
       const {
         rootReferrer,
         referee,
@@ -842,7 +870,7 @@ describe(`"Testing ${MULTILEVEL_REWARDS_CONTRACT} referral contract`, async () =
         referee4,
         finalReferee,
         proxyContract,
-      } = await loadFixture(deployReferralRewardsPayoutFixture);
+      } = await loadFixture(rewardDistributionFixture);
 
       // create referral chain payments
       const chain = await createReferralChain({
@@ -853,22 +881,22 @@ describe(`"Testing ${MULTILEVEL_REWARDS_CONTRACT} referral contract`, async () =
         referee4,
         finalReferee,
         proxyContract,
-        paymentValue,
+        paymentValue: rdPaymentValue,
       });
 
       // complete referral process for referee 4
       await chain.proxyContract
         .connect(chain.referee4)
         ["registerReferralPayment()"]({
-          value: ethConverter(paymentValue),
+          value: ethConverter(rdPaymentValue),
         });
 
       // calculate result values
       const numberOfRewardLevels = 4;
-      const registeredPaidValue = paymentValue * 2;
+      const registeredPaidValue = rdPaymentValue * 2;
       // proportion of the completion payment that stays on the reward contract
       const completionPaymentContractReward =
-        (paymentValue / 100) * REFERRAL_PERCENTAGE;
+        (rdPaymentValue / 100) * DEFAULT_REFERRAL_PERCENTAGE;
       // account balances
       const afterRootReferralBalance = await chain.rootReferrer.getBalance();
       const afterRefereeBalance = await chain.referee.getBalance();
@@ -877,7 +905,7 @@ describe(`"Testing ${MULTILEVEL_REWARDS_CONTRACT} referral contract`, async () =
       const afterContractBalance = await chain.proxyContract.getBalance();
       // reward values
       const expectedPaidOutReward =
-        (registeredPaidValue / 100) * REFERRAL_PERCENTAGE;
+        (registeredPaidValue / 100) * DEFAULT_REFERRAL_PERCENTAGE;
       const expectedPaidOutRewardProportion =
         expectedPaidOutReward / numberOfRewardLevels;
 
@@ -912,7 +940,7 @@ describe(`"Testing ${MULTILEVEL_REWARDS_CONTRACT} referral contract`, async () =
       );
     });
 
-    it(`${MULTILEVEL_REWARDS_CONTRACT} should distribute 5-level (final referee) rewards correctly after referee completed referral process`, async () => {
+    it(`${CONTRACT_NAME} should distribute 5-level (final referee) rewards correctly after referee completed referral process`, async () => {
       const {
         rootReferrer,
         referee,
@@ -921,7 +949,7 @@ describe(`"Testing ${MULTILEVEL_REWARDS_CONTRACT} referral contract`, async () =
         referee4,
         finalReferee,
         proxyContract,
-      } = await loadFixture(deployReferralRewardsPayoutFixture);
+      } = await loadFixture(rewardDistributionFixture);
 
       // create referral chain payments
       const chain = await createReferralChain({
@@ -932,22 +960,22 @@ describe(`"Testing ${MULTILEVEL_REWARDS_CONTRACT} referral contract`, async () =
         referee4,
         finalReferee,
         proxyContract,
-        paymentValue,
+        paymentValue: rdPaymentValue,
       });
 
       // complete referral process for final referee (5)
       await chain.proxyContract
         .connect(chain.finalReferee)
         ["registerReferralPayment()"]({
-          value: ethConverter(paymentValue),
+          value: ethConverter(rdPaymentValue),
         });
 
       // calculate result values
       const numberOfRewardLevels = 5;
-      const registeredPaidValue = paymentValue * 2;
+      const registeredPaidValue = rdPaymentValue * 2;
       // proportion of the completion payment that stays on the reward contract
       const completionPaymentContractReward =
-        (paymentValue / 100) * REFERRAL_PERCENTAGE;
+        (rdPaymentValue / 100) * DEFAULT_REFERRAL_PERCENTAGE;
       // account balances
       const afterRootReferralBalance = await chain.rootReferrer.getBalance();
       const afterRefereeBalance = await chain.referee.getBalance();
@@ -957,7 +985,7 @@ describe(`"Testing ${MULTILEVEL_REWARDS_CONTRACT} referral contract`, async () =
       const afterContractBalance = await chain.proxyContract.getBalance();
       // reward values
       const expectedPaidOutReward =
-        (registeredPaidValue / 100) * REFERRAL_PERCENTAGE;
+        (registeredPaidValue / 100) * DEFAULT_REFERRAL_PERCENTAGE;
       const expectedPaidOutRewardProportion =
         expectedPaidOutReward / numberOfRewardLevels;
 
@@ -997,7 +1025,7 @@ describe(`"Testing ${MULTILEVEL_REWARDS_CONTRACT} referral contract`, async () =
       );
     });
 
-    it(`${MULTILEVEL_REWARDS_CONTRACT} should distribute multiple (1-level & 2-level) rewards correctly after referees completed referral processes`, async () => {
+    it(`${CONTRACT_NAME} should distribute multiple (1-level & 2-level) rewards correctly after referees completed referral processes`, async () => {
       const {
         rootReferrer,
         referee,
@@ -1006,7 +1034,7 @@ describe(`"Testing ${MULTILEVEL_REWARDS_CONTRACT} referral contract`, async () =
         referee4,
         finalReferee,
         proxyContract,
-      } = await loadFixture(deployReferralRewardsPayoutFixture);
+      } = await loadFixture(rewardDistributionFixture);
 
       // create referral chain payments
       const chain = await createReferralChain({
@@ -1017,14 +1045,14 @@ describe(`"Testing ${MULTILEVEL_REWARDS_CONTRACT} referral contract`, async () =
         referee4,
         finalReferee,
         proxyContract,
-        paymentValue,
+        paymentValue: rdPaymentValue,
       });
 
       // complete referral process for referee 1
       await chain.proxyContract
         .connect(chain.referee)
         ["registerReferralPayment()"]({
-          value: ethConverter(paymentValue),
+          value: ethConverter(rdPaymentValue),
         });
 
       const initialAfterCompletionPaymentRefereeBalance =
@@ -1034,21 +1062,21 @@ describe(`"Testing ${MULTILEVEL_REWARDS_CONTRACT} referral contract`, async () =
       await chain.proxyContract
         .connect(chain.referee2)
         ["registerReferralPayment()"]({
-          value: ethConverter(paymentValue),
+          value: ethConverter(rdPaymentValue),
         });
 
       // calculate result values
-      const registeredPaidValue = paymentValue * 2;
+      const registeredPaidValue = rdPaymentValue * 2;
       // proportion of the completion payment that stays on the reward contract
       const completionPaymentContractReward =
-        (paymentValue / 100) * REFERRAL_PERCENTAGE;
+        (rdPaymentValue / 100) * DEFAULT_REFERRAL_PERCENTAGE;
       // account balances
       const afterRootReferralBalance = await chain.rootReferrer.getBalance();
       const afterRefereeBalance = await chain.referee.getBalance();
       const afterContractBalance = await chain.proxyContract.getBalance();
       // reward values
       const expectedPaidOutReward =
-        (registeredPaidValue / 100) * REFERRAL_PERCENTAGE;
+        (registeredPaidValue / 100) * DEFAULT_REFERRAL_PERCENTAGE;
 
       const firstLevelRewardProportion = expectedPaidOutReward;
       const secondLevelRewardProportion = expectedPaidOutReward / 2;
@@ -1076,7 +1104,7 @@ describe(`"Testing ${MULTILEVEL_REWARDS_CONTRACT} referral contract`, async () =
       );
     });
 
-    it(`${MULTILEVEL_REWARDS_CONTRACT} should throw if referee with completed process wants to register payment`, async () => {
+    it(`${CONTRACT_NAME} should throw if referee with completed process wants to register payment`, async () => {
       const {
         rootReferrer,
         referee,
@@ -1085,7 +1113,7 @@ describe(`"Testing ${MULTILEVEL_REWARDS_CONTRACT} referral contract`, async () =
         referee4,
         finalReferee,
         proxyContract,
-      } = await loadFixture(deployReferralRewardsPayoutFixture);
+      } = await loadFixture(rewardDistributionFixture);
 
       // create referral chain payments
       const chain = await createReferralChain({
@@ -1096,20 +1124,20 @@ describe(`"Testing ${MULTILEVEL_REWARDS_CONTRACT} referral contract`, async () =
         referee4,
         finalReferee,
         proxyContract,
-        paymentValue,
+        paymentValue: rdPaymentValue,
       });
 
       // complete referral process for referee 1
       await chain.proxyContract
         .connect(chain.referee)
         ["registerReferralPayment()"]({
-          value: ethConverter(paymentValue),
+          value: ethConverter(rdPaymentValue),
         });
 
       const completedRefereePaymentTxPromise = chain.proxyContract
         .connect(referee)
         ["registerReferralPayment()"]({
-          value: ethConverter(paymentValue),
+          value: ethConverter(rdPaymentValue),
         });
 
       // await calls to be rejected since referral has been completed

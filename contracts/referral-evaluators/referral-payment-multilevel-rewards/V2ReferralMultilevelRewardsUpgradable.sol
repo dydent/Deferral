@@ -1,7 +1,7 @@
 // -----------------------------------------------------------------------------------------------
 // UPGRADABLE CONTRACT
 // add two-sided rewards and make referee rewards claimable
-// allow to do regular payments for completed referral processes and forward payments
+// add max level for multilevel reward payouts
 // -----------------------------------------------------------------------------------------------
 
 // SPDX-License-Identifier: GPL-3.0
@@ -13,7 +13,7 @@ import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Own
 
 import "hardhat/console.sol";
 
-contract V2MultilevelRewardReferralUpgradable is
+contract V2ReferralMultilevelRewardsUpgradable is
     Initializable,
     OwnableUpgradeable
 {
@@ -25,12 +25,14 @@ contract V2MultilevelRewardReferralUpgradable is
     address payable public receiverAddress;
     // percentage (0 - 100) of the paid amount that is distributed as referral reward upon completion
     uint256 public rewardPercentage;
-    // percentage (0 - 100) of the earned reward that is distributed to the referee --> complement is referrer reward percentage
-    uint256 public refereeRewardAllocationPercentage;
+    // percentage of the reward that will be distributed to the referee
+    uint256 public refereeRewardPercentage;
     // required amount of payments in order to successfully complete referral process
     uint256 public paymentsQuantityThreshold;
     // required accumulated value of payments in order to successfully complete referral process
     uint256 public paymentsValueThreshold;
+    // max nr of parent referrers (levels) up in the referral chain for which rewards will be distributed
+    uint256 public maxRewardLevels;
 
     // referral conditions required for evaluating the referral process
     struct ReferralProcess {
@@ -47,9 +49,6 @@ contract V2MultilevelRewardReferralUpgradable is
 
     // mapping for referees including their data for referral conditions progress
     mapping(address => ReferralProcess) public refereeProcessMapping;
-
-    // mapping for claimable referral rewards
-    mapping(address => uint256) public claimableRefereesRewardMapping;
 
     // -----------------------------------------------------------------------------------------------
     // EVENTS
@@ -71,11 +70,10 @@ contract V2MultilevelRewardReferralUpgradable is
     // events when owner is updating contracts variables
     event ReceiverAddressChanged(address indexed newReceiver);
     event RewardPercentageChanged(uint256 newReward);
+    event RefereeRewardPercentageChanged(uint256 newRefereeRewardPercentage);
     event PaymentsValueThresholdChanged(uint256 newValueThreshold);
     event PaymentsQuantityThresholdChanged(uint256 newQuantityThreshold);
-    event RefereeRewardAllocationPercentageChanged(
-        uint256 newRefereeRewardAllocation
-    );
+    event MaxRewardLevelsChanged(uint256 newMaxRewardLevels);
 
     // -----------------------------------------------------------------------------------------------
     // INTERNAL FUNCTIONS
@@ -137,15 +135,17 @@ contract V2MultilevelRewardReferralUpgradable is
             address(this).balance >= calculatedTotalReward,
             "Contract has not enough funds to pay rewards"
         );
-        // calculate and allocate claimable referee rewards
+
+        // calculate and distribute referee rewards
         uint256 refereeReward = (calculatedTotalReward / 100) *
-            refereeRewardAllocationPercentage;
-        claimableRefereesRewardMapping[_referee] += refereeReward;
+            refereeRewardPercentage;
+        payable(_referee).transfer(refereeReward);
         emit ReferralRewardsAllocated(_referee);
 
         // calculate remaining referrer rewards
         uint256 referrerReward = calculatedTotalReward - refereeReward;
         // get all eligible referral addresses
+
         address payable[]
             memory rewardAddresses = getAllParentReferrerAddresses(_referee);
         // calculate reward per referrer in reward chain
@@ -166,12 +166,17 @@ contract V2MultilevelRewardReferralUpgradable is
     ) internal view returns (address payable[] memory) {
         uint256 length = 0;
         address currentRefereeAddress = _referee;
-        // loop until get to root address
-        while (refereeProcessMapping[currentRefereeAddress].isRoot != true) {
+        // loop until get to root address OR maxRewardLevels is reached
+        while (
+            refereeProcessMapping[currentRefereeAddress].isRoot != true &&
+            length < maxRewardLevels
+        ) {
             length++;
             currentRefereeAddress = refereeProcessMapping[currentRefereeAddress]
                 .parentReferrerAddress;
         }
+        console.log("length", length);
+        console.log("max reward levels", maxRewardLevels);
 
         address payable[]
             memory parentReferrerAddresses = new address payable[](length);
@@ -196,14 +201,6 @@ contract V2MultilevelRewardReferralUpgradable is
     // EXTERNAL FUNCTIONS
     // -----------------------------------------------------------------------------------------------
 
-    function claimRewards() public {
-        uint256 rewards = claimableRefereesRewardMapping[msg.sender];
-        require(rewards > 0, "You have no rewards to claim");
-        payable(msg.sender).transfer(rewards);
-        claimableRefereesRewardMapping[msg.sender] = 0;
-        emit ClaimedRewards(msg.sender, rewards);
-    }
-
     // overload function for referral payments without a referrer address
     function registerReferralPayment() external payable {
         ReferralProcess storage refereeProcess = refereeProcessMapping[
@@ -221,6 +218,7 @@ contract V2MultilevelRewardReferralUpgradable is
             );
             // evaluate updated referral process
             evaluateReferralProcess(msg.sender);
+
             // forward value to the receiver address
             forwardPayment(msg.value - (msg.value / 100) * rewardPercentage);
         }
@@ -247,11 +245,8 @@ contract V2MultilevelRewardReferralUpgradable is
     function registerReferralPayment(
         address payable _referrerAddress
     ) external payable {
-        // sender cannot use its own address as referrer
-        require(
-            msg.sender != _referrerAddress,
-            "Sender address cannot be used as referrer address"
-        );
+        require(msg.sender != _referrerAddress, "Sender cannot be referrer");
+
         // check preconditions for _referrerAddress
 
         // get current referrer process data
@@ -289,26 +284,26 @@ contract V2MultilevelRewardReferralUpgradable is
     function initialize(
         address payable _receiverAddress,
         uint256 _rewardPercentage,
-        uint256 _refereeRewardAllocationPercentage,
+        uint256 _refereeRewardPercentage,
         uint256 _paymentsQuantityThreshold,
-        uint256 _paymentsValueThreshold
+        uint256 _paymentsValueThreshold,
+        uint256 _maxRewardLevels
     ) public initializer {
-        // percentage values must be between 0 and 100
         require(
-            _rewardPercentage >= 0 && _rewardPercentage <= 100,
-            "reward percentage must be between 0 and 100"
-        );
-        require(
-            _refereeRewardAllocationPercentage >= 0 &&
-                _refereeRewardAllocationPercentage <= 100,
-            "referee reward allocation percentage must be between 0 and 100"
+            _rewardPercentage >= 0 &&
+                _rewardPercentage <= 100 &&
+                _refereeRewardPercentage >= 0 &&
+                _refereeRewardPercentage <= 100,
+            "percentage value must be between 0 and 100"
         );
         __Ownable_init();
         receiverAddress = _receiverAddress;
         rewardPercentage = _rewardPercentage;
-        refereeRewardAllocationPercentage = _refereeRewardAllocationPercentage;
+        refereeRewardPercentage = _refereeRewardPercentage;
         paymentsQuantityThreshold = _paymentsQuantityThreshold;
         paymentsValueThreshold = _paymentsValueThreshold;
+        paymentsValueThreshold = _paymentsValueThreshold;
+        maxRewardLevels = _maxRewardLevels;
         emit PaymentReferralCreated(msg.sender, _receiverAddress);
     }
 
@@ -331,24 +326,22 @@ contract V2MultilevelRewardReferralUpgradable is
     function updateReferralReward(uint256 _newReferralReward) public onlyOwner {
         require(
             _newReferralReward >= 0 && _newReferralReward <= 100,
-            "reward percentage must be between 0 and 100"
+            "percentage value must be between 0 and 100"
         );
         rewardPercentage = _newReferralReward;
         emit RewardPercentageChanged(_newReferralReward);
     }
 
-    function updateRefereeRewardAllocation(
-        uint256 _newRefereeRewardAllocationPercentage
+    function updateRefereeReward(
+        uint256 _newRefereeRewardPercentage
     ) public onlyOwner {
         require(
-            _newRefereeRewardAllocationPercentage >= 0 &&
-                _newRefereeRewardAllocationPercentage <= 100,
-            "referee reward allocation percentage must be between 0 and 100"
+            _newRefereeRewardPercentage >= 0 &&
+                _newRefereeRewardPercentage <= 100,
+            "percentage value must be between 0 and 100"
         );
-        refereeRewardAllocationPercentage = _newRefereeRewardAllocationPercentage;
-        emit RefereeRewardAllocationPercentageChanged(
-            _newRefereeRewardAllocationPercentage
-        );
+        refereeRewardPercentage = _newRefereeRewardPercentage;
+        emit RefereeRewardPercentageChanged(_newRefereeRewardPercentage);
     }
 
     function updatePaymentsQuantityThreshold(
@@ -363,5 +356,12 @@ contract V2MultilevelRewardReferralUpgradable is
     ) public onlyOwner {
         paymentsValueThreshold = _newPaymentsValueThreshold;
         emit PaymentsValueThresholdChanged(_newPaymentsValueThreshold);
+    }
+
+    function updateMaxRewardLevels(
+        uint256 _newMaxRewardLevels
+    ) public onlyOwner {
+        maxRewardLevels = _newMaxRewardLevels;
+        emit MaxRewardLevelsChanged(_newMaxRewardLevels);
     }
 }

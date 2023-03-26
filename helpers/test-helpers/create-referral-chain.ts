@@ -2,14 +2,14 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { ethConverter } from "../converters";
 import {
-  V1MultilevelRewardReferralUpgradable,
-  V2MultilevelRewardReferralUpgradable,
+  V1ReferralMultilevelRewardsUpgradable,
+  V2ReferralMultilevelRewardsUpgradable,
 } from "../../typechain-types";
 import { BigNumber } from "ethers";
 
 type ValidContractType =
-  | V1MultilevelRewardReferralUpgradable
-  | V2MultilevelRewardReferralUpgradable;
+  | V1ReferralMultilevelRewardsUpgradable
+  | V2ReferralMultilevelRewardsUpgradable;
 
 type ReturnType = {
   rootReferrer: SignerWithAddress;

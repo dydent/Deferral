@@ -10,7 +10,7 @@ pragma solidity 0.8.9;
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
-contract V2ReferralQuantityPaymentUpgradable is
+contract V2ReferralPaymentQuantityUpgradable is
     Initializable,
     OwnableUpgradeable
 {
@@ -18,27 +18,25 @@ contract V2ReferralQuantityPaymentUpgradable is
     // VARS, STRUCTS & MAPPINGS
     // -----------------------------------------------------------------------------------------------
 
-    // address of the receiver wallet
+    // address of the receiver/company wallet
     address payable public receiverAddress;
-    // percentage of the paid amount that is distributed as referral reward upon completion
+    // percentage of the total paid amount that will be distributed as reward
     uint256 public rewardPercentage;
-    // required amount of payments in order to successfully complete referral process
-    uint256 public requiredAmountOfPayments;
+    // threshold value for evaluating referral process
+    uint256 public paymentsQuantityThreshold;
 
-    //   referral conditions required for evaluating the referral process
     struct ReferralProcess {
         // set true if the referral has been successful & rewards have been paid out
         bool referralProcessCompleted;
         // set true if the referrer address has been set
         bool referrerAddressHasBeenSet;
         address payable referrerAddress;
-        uint paidValue;
-        uint paymentQuantity;
+        uint256 paymentsValue;
+        uint256 paymentsQuantity;
     }
 
     // mapping for referees including their data for referral conditions progress
     mapping(address => ReferralProcess) public refereeProcessMapping;
-
     // -----------------------------------------------------------------------------------------------
     // EVENTS
     // -----------------------------------------------------------------------------------------------
@@ -48,7 +46,7 @@ contract V2ReferralQuantityPaymentUpgradable is
     event ReferralConditionsUpdated(address indexed referee);
     event ReceiverUpdated(address indexed newReceiver);
     event RewardUpdated(uint256 newReward);
-    event RequiredAmountOfPaymentsUpdated(uint256 newRequiredAmountOfPayments);
+    event QuantityThresholdUpdated(uint256 newQuantityThreshold);
 
     // -----------------------------------------------------------------------------------------------
     // EXTERNAL FUNCTIONS
@@ -58,6 +56,7 @@ contract V2ReferralQuantityPaymentUpgradable is
     function registerReferralPayment(
         address payable _referrerAddress
     ) external payable {
+        require(msg.sender != _referrerAddress, "Sender cannot be referrer");
         // get current referee process data
         ReferralProcess storage currentProcess = refereeProcessMapping[
             msg.sender
@@ -67,11 +66,6 @@ contract V2ReferralQuantityPaymentUpgradable is
             !currentProcess.referralProcessCompleted,
             "Referral process has been completed for this address"
         );
-        // referral reward must be smaller than msg value
-        require(
-            (msg.value / 100) * rewardPercentage < msg.value,
-            "reward must be portion of paymentAmount"
-        );
         //  set referrer address first time
         if (!currentProcess.referrerAddressHasBeenSet) {
             // update values
@@ -79,12 +73,12 @@ contract V2ReferralQuantityPaymentUpgradable is
             currentProcess.referrerAddressHasBeenSet = true;
         }
         // set and update values
-        currentProcess.paidValue += msg.value;
-        currentProcess.paymentQuantity += 1;
+        currentProcess.paymentsValue += msg.value;
+        currentProcess.paymentsQuantity += 1;
         emit ReferralConditionsUpdated(msg.sender);
         // evaluate referral process and progress
-        if (currentProcess.paymentQuantity > requiredAmountOfPayments) {
-            uint256 calculatedReward = (currentProcess.paidValue / 100) *
+        if (currentProcess.paymentsQuantity > paymentsQuantityThreshold) {
+            uint256 calculatedReward = (currentProcess.paymentsValue / 100) *
                 rewardPercentage;
             if (currentProcess.referrerAddressHasBeenSet) {
                 require(
@@ -106,19 +100,18 @@ contract V2ReferralQuantityPaymentUpgradable is
     function initialize(
         address payable _receiver,
         uint256 _rewardPercentage,
-        uint256 _requiredAmountOfPayments
+        uint256 _paymentsQuantityThreshold
     ) public initializer {
         require(
             _rewardPercentage >= 0 && _rewardPercentage <= 100,
-            "reward percentage must be between 0 and 100"
+            "percentage value must be between 0 and 100"
         );
         __Ownable_init();
         receiverAddress = _receiver;
         rewardPercentage = _rewardPercentage;
-        requiredAmountOfPayments = _requiredAmountOfPayments;
+        paymentsQuantityThreshold = _paymentsQuantityThreshold;
     }
 
-    // function to update the receiver address
     function updateReceiverAddress(
         address payable _updatedReceiverAddress
     ) public onlyOwner {
@@ -126,25 +119,22 @@ contract V2ReferralQuantityPaymentUpgradable is
         emit ReceiverUpdated(_updatedReceiverAddress);
     }
 
-    // function to update the referral reward
     function updateReferralReward(uint256 _newReferralReward) public onlyOwner {
         require(
             _newReferralReward >= 0 && _newReferralReward <= 100,
-            "reward percentage must be between 0 and 100"
+            "percentage value must be between 0 and 100"
         );
         rewardPercentage = _newReferralReward;
         emit RewardUpdated(_newReferralReward);
     }
 
-    // function to update the referral reward
-    function updateRequiredAmountOfPayments(
-        uint256 _newAmountOfPayments
+    function updateQuantityThreshold(
+        uint256 _newPaymentsQuantityThreshold
     ) public onlyOwner {
-        requiredAmountOfPayments = _newAmountOfPayments;
-        emit RequiredAmountOfPaymentsUpdated(_newAmountOfPayments);
+        paymentsQuantityThreshold = _newPaymentsQuantityThreshold;
+        emit QuantityThresholdUpdated(_newPaymentsQuantityThreshold);
     }
 
-    // view functions do only read and not update any data of a contract
     function getBalance() public view returns (uint) {
         return address(this).balance;
     }

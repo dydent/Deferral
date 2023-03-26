@@ -4,7 +4,7 @@ module.exports = {
     mnemonic: process.env.MNEMONIC,
   },
   // skipFiles: [
-  //   "referral-evaluators/referral-payment-transmitter/upgradable-contracts/UpgradableV1_ReferralPaymentTransmitter.sol",
+  //   "referral-evaluators/referral-payment-transmitter/upgradable-contracts/V2ReferralPaymentTransmitterUpgradable.sol",
   // ],
 
   silent: false,

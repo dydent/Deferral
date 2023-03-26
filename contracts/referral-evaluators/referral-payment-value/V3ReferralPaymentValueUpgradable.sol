@@ -1,6 +1,6 @@
 // -----------------------------------------------------------------------------------------------
 // UPGRADABLE CONTRACT
-// Use claimable rewards instead of sending reward directly
+// Use two-sided rewards and send all rewards directly
 // -----------------------------------------------------------------------------------------------
 
 // SPDX-License-Identifier: GPL-3.0
@@ -10,7 +10,7 @@ pragma solidity 0.8.9;
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
-contract V2ReferralPaymentValueUpgradable is Initializable, OwnableUpgradeable {
+contract V3ReferralPaymentValueUpgradable is Initializable, OwnableUpgradeable {
     // -----------------------------------------------------------------------------------------------
     // VARS, STRUCTS & MAPPINGS
     // -----------------------------------------------------------------------------------------------
@@ -20,6 +20,8 @@ contract V2ReferralPaymentValueUpgradable is Initializable, OwnableUpgradeable {
     // percentage of the total paid amount that will be distributed as reward
     uint256 public rewardPercentage;
     // percentage of the reward that will be distributed to the referee
+    uint256 public refereeRewardPercentage;
+    // accumulate value threshold of payments done by the referee to complete referral process
     uint256 public paymentsValueThreshold;
 
     struct ReferralProcess {
@@ -32,31 +34,29 @@ contract V2ReferralPaymentValueUpgradable is Initializable, OwnableUpgradeable {
         uint256 paymentsQuantity;
     }
 
-    // mapping for referees including their data for referral conditions progress
+    // mapping for referees including their referral process data
     mapping(address => ReferralProcess) public refereeProcessMapping;
-
-    // mapping for claimable referral rewards
-    mapping(address => uint256) public claimableRewardMapping;
 
     // -----------------------------------------------------------------------------------------------
     // EVENTS
     // -----------------------------------------------------------------------------------------------
-
-    // Referral Event to be emitted once a referral process has been completed
     event ReferralCompleted(address indexed referee, address indexed referrer);
     event ReferralConditionsUpdated(address indexed referee);
     event ReceiverUpdated(address indexed newReceiver);
     event RewardUpdated(uint256 newReward);
     event ValueThresholdUpdated(uint256 newValueThreshold);
+    event RefereeRewardAllocationPercentageChanged(
+        uint256 newRefereeRewardAllocation
+    );
 
-    event ReferralRewardsAllocated(address indexed allocatedAddress);
-    event ClaimedRewards(address indexed claimerAddress, uint256 amount);
+    event RefereeRewardsDistributed(address indexed distributedAddress);
+    event ReferrerRewardsDistributed(address indexed distributedAddress);
 
     // -----------------------------------------------------------------------------------------------
     // EXTERNAL FUNCTIONS
     // -----------------------------------------------------------------------------------------------
 
-    // register and forward referral payment tx
+    // forward paymentAmount to the receiver and send referralReward to the referrerAddress
     function registerReferralPayment(
         address payable _referrerAddress
     ) external payable {
@@ -83,14 +83,30 @@ contract V2ReferralPaymentValueUpgradable is Initializable, OwnableUpgradeable {
         emit ReferralConditionsUpdated(msg.sender);
         // evaluate referral process and progress
         if (currentProcess.paymentsValue > paymentsValueThreshold) {
-            uint256 calculatedReward = (currentProcess.paymentsValue / 100) *
-                rewardPercentage;
-            if (currentProcess.referrerAddressHasBeenSet) {
-                claimableRewardMapping[_referrerAddress] += calculatedReward;
-                emit ReferralRewardsAllocated(_referrerAddress);
-                currentProcess.referralProcessCompleted = true;
-                emit ReferralCompleted(msg.sender, _referrerAddress);
+            // calculate the total reward based on the referee payment value/volume
+            uint256 calculatedTotalReward = (currentProcess.paymentsValue /
+                100) * rewardPercentage;
+            require(
+                address(this).balance >= calculatedTotalReward,
+                "Contract has not enough funds to pay rewards"
+            );
+
+            // calculate referee & referrer rewards from total reward
+            uint256 refereeReward = (calculatedTotalReward / 100) *
+                refereeRewardPercentage;
+            uint256 referrerReward = calculatedTotalReward - refereeReward;
+
+            // if reward allocation is two sided send rewards to referee
+            if (refereeReward > 0 && refereeRewardPercentage > 0) {
+                payable(msg.sender).transfer(refereeReward);
+                emit RefereeRewardsDistributed(msg.sender);
             }
+            // send rewards to referrer
+            _referrerAddress.transfer(referrerReward);
+            emit ReferrerRewardsDistributed(_referrerAddress);
+            // mark process as completed
+            currentProcess.referralProcessCompleted = true;
+            emit ReferralCompleted(msg.sender, _referrerAddress);
         }
         // calculate reward and payment prices
         uint256 reward = (msg.value / 100) * rewardPercentage;
@@ -99,26 +115,24 @@ contract V2ReferralPaymentValueUpgradable is Initializable, OwnableUpgradeable {
         receiverAddress.transfer(receiverAmount);
     }
 
-    function claimRewards() public {
-        uint256 rewards = claimableRewardMapping[msg.sender];
-        require(rewards > 0, "No rewards to claim");
-        payable(msg.sender).transfer(rewards);
-        claimableRewardMapping[msg.sender] = 0;
-        emit ClaimedRewards(msg.sender, rewards);
-    }
-
     function initialize(
         address payable _receiver,
         uint256 _rewardPercentage,
+        uint256 _refereeRewardAllocationPercentage,
         uint256 _valueThreshold
     ) public initializer {
+        // percentage values must be between 0 and 100
         require(
-            _rewardPercentage >= 0 && _rewardPercentage <= 100,
+            _rewardPercentage >= 0 &&
+                _rewardPercentage <= 100 &&
+                _refereeRewardAllocationPercentage >= 0 &&
+                _refereeRewardAllocationPercentage <= 100,
             "percentage value must be between 0 and 100"
         );
         __Ownable_init();
         receiverAddress = _receiver;
         rewardPercentage = _rewardPercentage;
+        refereeRewardPercentage = _refereeRewardAllocationPercentage;
         paymentsValueThreshold = _valueThreshold;
     }
 
@@ -141,6 +155,20 @@ contract V2ReferralPaymentValueUpgradable is Initializable, OwnableUpgradeable {
     function updateValueThreshold(uint256 _newValueThreshold) public onlyOwner {
         paymentsValueThreshold = _newValueThreshold;
         emit ValueThresholdUpdated(_newValueThreshold);
+    }
+
+    function updateRefereeReward(
+        uint256 _newRefereeRewardAllocationPercentage
+    ) public onlyOwner {
+        require(
+            _newRefereeRewardAllocationPercentage >= 0 &&
+                _newRefereeRewardAllocationPercentage <= 100,
+            "percentage value must be between 0 and 100"
+        );
+        refereeRewardPercentage = _newRefereeRewardAllocationPercentage;
+        emit RefereeRewardAllocationPercentageChanged(
+            _newRefereeRewardAllocationPercentage
+        );
     }
 
     function getBalance() public view returns (uint) {

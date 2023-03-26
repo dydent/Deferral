@@ -9,7 +9,7 @@ pragma solidity 0.8.9;
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
-contract UpgradableV2ReferralPaymentTransmitter is
+contract V3ReferralPaymentTransmitterUpgradable is
     Initializable,
     OwnableUpgradeable
 {
@@ -47,7 +47,6 @@ contract UpgradableV2ReferralPaymentTransmitter is
         uint256 _amount,
         uint256 _referralReward
     ) public initializer {
-        // TODO test this in remix
         // set owner
         __Ownable_init();
         require(
@@ -63,6 +62,7 @@ contract UpgradableV2ReferralPaymentTransmitter is
     function forwardReferralPayment(
         address payable _referrerAddress
     ) external payable exactAmount {
+        require(msg.sender != _referrerAddress, "Sender cannot be referrer");
         uint256 receiverAmount = msg.value - referralReward;
         uint256 referrerRewardAmount = msg.value - receiverAmount;
         // forward payment to receiver

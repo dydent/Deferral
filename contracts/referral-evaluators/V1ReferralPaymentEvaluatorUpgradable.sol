@@ -35,8 +35,8 @@ contract V1ReferralPaymentEvaluatorUpgradable is
         // set true if the parent referrer address has been set
         bool referrerAddressHasBeenSet;
         address payable parentReferrerAddress;
-        uint paymentsValue;
-        uint paymentsQuantity;
+        uint256 paymentsValue;
+        uint256 paymentsQuantity;
     }
 
     // mapping for referees including their data for referral conditions progress

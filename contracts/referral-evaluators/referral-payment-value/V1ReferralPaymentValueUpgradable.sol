@@ -15,21 +15,21 @@ contract V1ReferralPaymentValueUpgradable is Initializable, OwnableUpgradeable {
     // VARS, STRUCTS & MAPPINGS
     // -----------------------------------------------------------------------------------------------
 
-    // address of the receiver wallet
+    // address of the receiver/company wallet
     address payable public receiverAddress;
-    // percentage of the paid amount that is distributed as referral reward upon completion
+    // percentage of the total paid amount that will be distributed as reward
     uint256 public rewardPercentage;
-    // required amount of payments in order to successfully complete referral process
-    uint256 public valueThreshold;
-    //   referral conditions required for evaluating the referral process
+    // threshold value for evaluating referral process
+    uint256 public paymentsValueThreshold;
+
     struct ReferralProcess {
         // set true if the referral has been successful & rewards have been paid out
         bool referralProcessCompleted;
         // set true if the referrer address has been set
         bool referrerAddressHasBeenSet;
         address payable referrerAddress;
-        uint paidValue;
-        uint paymentQuantity;
+        uint256 paymentsValue;
+        uint256 paymentsQuantity;
     }
 
     // mapping for referees including their data for referral conditions progress
@@ -39,7 +39,6 @@ contract V1ReferralPaymentValueUpgradable is Initializable, OwnableUpgradeable {
     // EVENTS
     // -----------------------------------------------------------------------------------------------
 
-    // Referral Event to be emitted once a referral process has been completed
     event ReferralCompleted(address indexed referee, address indexed referrer);
     event ReferralConditionsUpdated(address indexed referee);
     event ReceiverUpdated(address indexed newReceiver);
@@ -50,10 +49,11 @@ contract V1ReferralPaymentValueUpgradable is Initializable, OwnableUpgradeable {
     // EXTERNAL FUNCTIONS
     // -----------------------------------------------------------------------------------------------
 
-    // forward paymentAmount to the receiver and send referralReward to the referrerAddress
+    // register and forward referral payment tx
     function registerReferralPayment(
         address payable _referrerAddress
     ) external payable {
+        require(msg.sender != _referrerAddress, "Sender cannot be referrer");
         // get current referee process data
         ReferralProcess storage currentProcess = refereeProcessMapping[
             msg.sender
@@ -63,11 +63,6 @@ contract V1ReferralPaymentValueUpgradable is Initializable, OwnableUpgradeable {
             !currentProcess.referralProcessCompleted,
             "Referral process has been completed for this address"
         );
-        // referral reward must be smaller than msg value
-        require(
-            (msg.value / 100) * rewardPercentage < msg.value,
-            "reward must be portion of paymentAmount"
-        );
         //  set referrer address first time
         if (!currentProcess.referrerAddressHasBeenSet) {
             // update values
@@ -75,12 +70,12 @@ contract V1ReferralPaymentValueUpgradable is Initializable, OwnableUpgradeable {
             currentProcess.referrerAddressHasBeenSet = true;
         }
         // set and update values
-        currentProcess.paidValue += msg.value;
-        currentProcess.paymentQuantity += 1;
+        currentProcess.paymentsValue += msg.value;
+        currentProcess.paymentsQuantity += 1;
         emit ReferralConditionsUpdated(msg.sender);
         // evaluate referral process and progress
-        if (currentProcess.paidValue > valueThreshold) {
-            uint256 calculatedReward = (currentProcess.paidValue / 100) *
+        if (currentProcess.paymentsValue > paymentsValueThreshold) {
+            uint256 calculatedReward = (currentProcess.paymentsValue / 100) *
                 rewardPercentage;
             if (currentProcess.referrerAddressHasBeenSet) {
                 require(
@@ -102,19 +97,18 @@ contract V1ReferralPaymentValueUpgradable is Initializable, OwnableUpgradeable {
     function initialize(
         address payable _receiver,
         uint256 _rewardPercentage,
-        uint256 _valueThreshold
+        uint256 _paymentsValueThreshold
     ) public initializer {
         require(
             _rewardPercentage >= 0 && _rewardPercentage <= 100,
-            "reward percentage must be between 0 and 100"
+            "percentage value must be between 0 and 100"
         );
         __Ownable_init();
         receiverAddress = _receiver;
         rewardPercentage = _rewardPercentage;
-        valueThreshold = _valueThreshold;
+        paymentsValueThreshold = _paymentsValueThreshold;
     }
 
-    // function to update the receiver address
     function updateReceiverAddress(
         address payable _updatedReceiverAddress
     ) public onlyOwner {
@@ -122,23 +116,22 @@ contract V1ReferralPaymentValueUpgradable is Initializable, OwnableUpgradeable {
         emit ReceiverUpdated(_updatedReceiverAddress);
     }
 
-    // function to update the referral reward
     function updateReferralReward(uint256 _newReferralReward) public onlyOwner {
         require(
             _newReferralReward >= 0 && _newReferralReward <= 100,
-            "reward percentage must be between 0 and 100"
+            "percentage value must be between 0 and 100"
         );
         rewardPercentage = _newReferralReward;
         emit RewardUpdated(_newReferralReward);
     }
 
-    // function to update the referral reward
-    function updateValueThreshold(uint256 _newValueThreshold) public onlyOwner {
-        valueThreshold = _newValueThreshold;
-        emit ValueThresholdUpdated(_newValueThreshold);
+    function updateValueThreshold(
+        uint256 _newPaymentsValueThreshold
+    ) public onlyOwner {
+        paymentsValueThreshold = _newPaymentsValueThreshold;
+        emit ValueThresholdUpdated(_newPaymentsValueThreshold);
     }
 
-    // view functions do only read and not update any data of a contract
     function getBalance() public view returns (uint) {
         return address(this).balance;
     }

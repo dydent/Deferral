@@ -11,9 +11,7 @@ pragma solidity 0.8.9;
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
-import "hardhat/console.sol";
-
-contract V1MultilevelRewardReferralUpgradable is
+contract V1ReferralMultilevelRewardsUpgradable is
     Initializable,
     OwnableUpgradeable
 {
@@ -120,15 +118,10 @@ contract V1MultilevelRewardReferralUpgradable is
         ReferralProcess storage completedProcess = refereeProcessMapping[
             _referee
         ];
-        uint256 cBalance = getBalance();
-        console.log("cbalance", cBalance);
         // calculate the reward for the referrer
         uint256 calculatedReferrerReward = (completedProcess.paymentsValue /
             100) * rewardPercentage;
-        console.log("contract reward", calculatedReferrerReward);
         // get all address that are eligible for rewards
-        // TODO if two-sided rewards, calculate the referee reward that can be claimed
-        // TODO check and implement multiple ways where and how the rewards are stored and distributed
         require(
             address(this).balance >= calculatedReferrerReward,
             "Contract has not enough funds to pay rewards"
@@ -139,12 +132,9 @@ contract V1MultilevelRewardReferralUpgradable is
 
         // calculate reward per referrer
         uint256 numberOfRewardAddresses = rewardAddresses.length;
-        console.log("nr reward addresses", numberOfRewardAddresses);
 
         uint256 rewardProportion = calculatedReferrerReward /
             numberOfRewardAddresses;
-
-        console.log("reward proportion", rewardProportion);
 
         uint256 i = 0;
         // distribute rewards to all referrers
@@ -233,11 +223,8 @@ contract V1MultilevelRewardReferralUpgradable is
     function registerReferralPayment(
         address payable _referrerAddress
     ) external payable {
-        // sender cannot use its own address as referrer
-        require(
-            msg.sender != _referrerAddress,
-            "Sender address cannot be used as referrer address"
-        );
+        require(msg.sender != _referrerAddress, "Sender cannot be referrer");
+
         // check preconditions for _referrerAddress
 
         // get current referrer process data
@@ -280,7 +267,7 @@ contract V1MultilevelRewardReferralUpgradable is
     ) public initializer {
         require(
             _rewardPercentage >= 0 && _rewardPercentage <= 100,
-            "reward percentage must be between 0 and 100"
+            "percentage value must be between 0 and 100"
         );
         __Ownable_init();
         receiverAddress = _receiverAddress;
@@ -309,7 +296,7 @@ contract V1MultilevelRewardReferralUpgradable is
     function updateReferralReward(uint256 _newReferralReward) public onlyOwner {
         require(
             _newReferralReward >= 0 && _newReferralReward <= 100,
-            "reward percentage must be between 0 and 100"
+            "percentage value must be between 0 and 100"
         );
         rewardPercentage = _newReferralReward;
         emit RewardPercentageChanged(_newReferralReward);

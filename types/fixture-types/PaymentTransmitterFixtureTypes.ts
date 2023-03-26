@@ -15,3 +15,12 @@ export type PaymentTransmitterFixtureReturnType<T extends BaseContract> = {
   referee: SignerWithAddress;
   deployedContract: T;
 };
+
+export type UpgradablePaymentTransmitterFixtureReturnType<T> = {
+  admin: SignerWithAddress;
+  receiver: SignerWithAddress;
+  updatedReceiver: SignerWithAddress;
+  referrer: SignerWithAddress;
+  referee: SignerWithAddress;
+  proxyContract: T;
+};

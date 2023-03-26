@@ -1,20 +1,20 @@
 import { ethers, upgrades } from "hardhat";
 import { deployContractHelper } from "../deployer-functions/deploy-contract-helper";
 import { ethConverter } from "../converters";
-import {
-  UpgradableV1ReferralPaymentTransmitter,
-  UpgradableV2ReferralPaymentTransmitter,
-  V1ReferralPaymentTransmitter,
-} from "../../typechain-types";
+import { V1ReferralPaymentTransmitter } from "../../typechain-types";
 import {
   PaymentTransmitterFixtureInputType,
   PaymentTransmitterFixtureReturnType,
+  UpgradablePaymentTransmitterFixtureReturnType,
 } from "../../types/fixture-types/PaymentTransmitterFixtureTypes";
 import {
   deployUpgradableContractHelper,
   upgradeUpgradableContractHelper,
 } from "../deployer-functions/deploy-upgradable-contract-helper";
 import { DeployAndUpgradePaymentTransmitterFixtureReturnType } from "../../types/fixture-types/UpgradablePaymentTransmitterFixtureTypes";
+import { BaseContract } from "ethers";
+import { UpgradableV1ReferralPaymentTransmitter } from "../../typechain-types/contracts/referral-evaluators/referral-payment-transmitter/upgradable-contracts/UpgradableV1_ReferralPaymentTransmitter.sol";
+import { UpgradableV2ReferralPaymentTransmitter } from "../../typechain-types/contracts/referral-evaluators/referral-payment-transmitter/upgradable-contracts/UpgradableV2_ReferralPaymentTransmitter.sol";
 
 // -----------------------------------------------------------------------------------------------
 // Fixture helper functions for testing referral payment transmitter contracts
@@ -48,6 +48,39 @@ export async function deployV1ReferralPaymentTransmitterFixture({
     referrer,
     referee,
     deployedContract,
+  };
+}
+
+// Fixture for testing V1 Upgradable Payment Transmitters
+export async function deployUpgradableReferralPaymentTransmitter<
+  UpgradableContractType extends BaseContract
+>({
+  contractName,
+  paymentAmount,
+  referralReward,
+}: PaymentTransmitterFixtureInputType): Promise<
+  UpgradablePaymentTransmitterFixtureReturnType<UpgradableContractType>
+> {
+  const [admin, receiver, updatedReceiver, referrer, referee] =
+    await ethers.getSigners();
+  // deploy upgradable contracts
+  const proxyContract =
+    await deployUpgradableContractHelper<UpgradableContractType>({
+      contractName: contractName,
+      initArgs: [
+        receiver.address,
+        ethConverter(paymentAmount),
+        ethConverter(referralReward),
+      ],
+    });
+
+  return {
+    admin,
+    receiver,
+    updatedReceiver,
+    referrer,
+    referee,
+    proxyContract,
   };
 }
 
