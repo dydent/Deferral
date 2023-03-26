@@ -31,7 +31,7 @@ contract V2ReferralMultilevelRewardsUpgradable is
     uint256 public paymentsQuantityThreshold;
     // required accumulated value of payments in order to successfully complete referral process
     uint256 public paymentsValueThreshold;
-    // max nr of parent referrers (levels) up in the referral chain for which rewards will be distributed
+    // max nr of parent referrers (levels) up in the referral chain for which rewards will be distributed (MIN: 1)
     uint256 public maxRewardLevels;
 
     // referral conditions required for evaluating the referral process
@@ -289,6 +289,8 @@ contract V2ReferralMultilevelRewardsUpgradable is
         uint256 _paymentsValueThreshold,
         uint256 _maxRewardLevels
     ) public initializer {
+        require(_maxRewardLevels >= 1, "minimum reward levels is 1");
+
         require(
             _rewardPercentage >= 0 &&
                 _rewardPercentage <= 100 &&
@@ -361,6 +363,7 @@ contract V2ReferralMultilevelRewardsUpgradable is
     function updateMaxRewardLevels(
         uint256 _newMaxRewardLevels
     ) public onlyOwner {
+        require(_newMaxRewardLevels >= 1, "minimum reward levels is 1");
         maxRewardLevels = _newMaxRewardLevels;
         emit MaxRewardLevelsChanged(_newMaxRewardLevels);
     }

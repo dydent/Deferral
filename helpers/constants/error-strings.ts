@@ -25,3 +25,5 @@ export const ROOT_ADDRESS_CANNOT_BE_REFEREE =
   "Root address cannot be a referee";
 
 export const NO_REWARDS_TO_CLAIM = "No rewards to claim";
+
+export const MIN_REWARD_LEVELS = "minimum reward levels is 1";

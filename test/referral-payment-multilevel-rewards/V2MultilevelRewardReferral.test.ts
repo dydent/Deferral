@@ -2,6 +2,7 @@ import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 import { ethConverter } from "../../helpers/converters";
 import { expect } from "chai";
 import {
+  MIN_REWARD_LEVELS,
   OWNABLE_ERROR_STRING,
   REFERRAL_PROCESS_MUST_NOT_BE_COMPLETED,
   REFERRER_IS_NOT_REGISTERED,
@@ -99,6 +100,29 @@ describe(`Testing ${CONTRACT_NAME} Referral Contract`, async () => {
         REWARD_PERCENTAGE_OUT_OF_BOUNDS
       );
     });
+    it(`${CONTRACT_NAME} should throw if deployed with incorrect maxRewardLevels param`, async () => {
+      const [receiver] = await ethers.getSigners();
+
+      const incorrectMaxRewardLevelsParam = 0;
+      const correctRewardPercentage = 50;
+
+      const referralContract = await ethers.getContractFactory(CONTRACT_NAME);
+
+      const deployedProxyContractPromise = upgrades.deployProxy(
+        referralContract,
+        [
+          receiver.address,
+          correctRewardPercentage,
+          correctRewardPercentage,
+          DEFAULT_QUANTITY_THRESHOLD,
+          DEFAULT_VALUE_THRESHOLD,
+          incorrectMaxRewardLevelsParam,
+        ]
+      );
+      await expect(deployedProxyContractPromise).to.be.rejectedWith(
+        MIN_REWARD_LEVELS
+      );
+    });
   });
 
   // -----------------------------------------------------------------------------------------------
@@ -146,7 +170,7 @@ describe(`Testing ${CONTRACT_NAME} Referral Contract`, async () => {
       }
     });
 
-    it(`${CONTRACT_NAME} should update referee reward  percentage`, async () => {
+    it(`${CONTRACT_NAME} should update referee reward percentage`, async () => {
       const { admin, proxyContract } = await loadFixture(defaultFixture);
       // test with regular and inbound boundary values
       const validUpdateValues = [0, 20, 100];
@@ -157,7 +181,7 @@ describe(`Testing ${CONTRACT_NAME} Referral Contract`, async () => {
         expect(contractValue).to.equal(updatedValue);
       }
     });
-    it(`${CONTRACT_NAME} should throw if updated referee reward  percentage is not between 0 and 100`, async () => {
+    it(`${CONTRACT_NAME} should throw if updated referee reward percentage is not between 0 and 100`, async () => {
       const { admin, proxyContract } = await loadFixture(defaultFixture);
       // test with invalid and outbound boundary values
       const invalidUpdateValues = [101, 500];
@@ -201,12 +225,25 @@ describe(`Testing ${CONTRACT_NAME} Referral Contract`, async () => {
     it(`${CONTRACT_NAME} should update max reward levels`, async () => {
       const { admin, proxyContract } = await loadFixture(defaultFixture);
       // test with regular and inbound boundary values
-      const validUpdateValues = [0, 4, 20];
+      const validUpdateValues = [4, 20];
       // update values and assert they are updated
       for (const updatedValue of validUpdateValues) {
         await proxyContract.connect(admin).updateMaxRewardLevels(updatedValue);
         const contractValue = await proxyContract.maxRewardLevels();
         expect(contractValue).to.equal(updatedValue);
+      }
+    });
+
+    it(`${CONTRACT_NAME} should throw if updated max reward levels is 0`, async () => {
+      const { admin, proxyContract } = await loadFixture(defaultFixture);
+      // test with invalid and outbound boundary values
+      const invalidUpdateValues = [0];
+      // update values and assert update fails
+      for (const updatedValue of invalidUpdateValues) {
+        const updatePromise = proxyContract
+          .connect(admin)
+          .updateMaxRewardLevels(updatedValue);
+        await expect(updatePromise).to.be.rejectedWith(MIN_REWARD_LEVELS);
       }
     });
   });
@@ -1273,6 +1310,7 @@ describe(`Testing ${CONTRACT_NAME} Referral Contract`, async () => {
         });
 
       // calculate result values
+      const referrerPercentage = 100 - rdRefereePercentage;
       const registeredPaidValue = rdPaymentValue * 2;
       // proportion of the completion payment that stays on the reward contract
       const completionPaymentContractReward =
@@ -1282,11 +1320,13 @@ describe(`Testing ${CONTRACT_NAME} Referral Contract`, async () => {
       const afterRefereeBalance = await chain.referee.getBalance();
       const afterContractBalance = await chain.proxyContract.getBalance();
       // reward values
-      const expectedPaidOutReward =
+      const expectedTotalPaidOutReward =
         (registeredPaidValue / 100) * DEFAULT_REFERRAL_PERCENTAGE;
+      const expectedReferrerReward =
+        expectedTotalPaidOutReward * referrerPercentage;
 
-      const firstLevelRewardProportion = expectedPaidOutReward;
-      const secondLevelRewardProportion = expectedPaidOutReward / 2;
+      const firstLevelRewardProportion = expectedReferrerReward;
+      const secondLevelRewardProportion = expectedReferrerReward / 2;
 
       // assert reward has been paid out correctly to all parties after completion
       // -------------------------------------------------------------------------
@@ -1307,7 +1347,7 @@ describe(`Testing ${CONTRACT_NAME} Referral Contract`, async () => {
       expect(afterContractBalance.toBigInt()).to.equal(
         chain.initialContractBalance.toBigInt() +
           ethConverter(completionPaymentContractReward * 2).toBigInt() -
-          ethConverter(expectedPaidOutReward * 2).toBigInt()
+          ethConverter(expectedTotalPaidOutReward * 2).toBigInt()
       );
     });
 
@@ -1358,32 +1398,32 @@ describe(`Testing ${CONTRACT_NAME} Referral Contract`, async () => {
   // Testing Referral Completion and Reward Payments
   // -----------------------------------------------------------------------------------------------
 
-  describe(`Testing Special Two-Sided Reward Setup`, async () => {
+  describe(`Testing Special Cases for Two-Sided Rewards`, async () => {
     // -----------------------------------------------------------------------------------------------
     // Testing Referral Completion and Reward Payments
     // -----------------------------------------------------------------------------------------------
 
-    it(`${CONTRACT_NAME} should distribute 1-level rewards only to referrer`, async () => {
-      // referral conditions ONE SIDED Rewards
-      const rdPaymentValue = 12;
-      const rdReferralPercentage = 20;
-      const rdRefereePercentage = 0;
-      const rdPaymentsValueThreshold = rdPaymentValue;
-      const rdPaymentsQuantityThreshold = 1;
-      const rdMaxRewardLevel = 3;
+    // referral conditions ONE SIDED Rewards
+    const rdPaymentValue = 10;
+    const rdReferralPercentage = 20;
+    const rdRefereePercentage = 0;
+    const rdPaymentsValueThreshold = rdPaymentValue;
+    const rdPaymentsQuantityThreshold = 1;
+    const rdMaxRewardLevel = 1;
 
-      // get fixture function for testing
-      const rewardDistributionFixture = async () => {
-        return deployV2MultilevelReferralRewardFixture({
-          contractName: CONTRACT_NAME,
-          referralPercentage: rdReferralPercentage,
-          refereePercentage: rdRefereePercentage,
-          paymentQuantityThreshold: rdPaymentsQuantityThreshold,
-          paymentValueThreshold: rdPaymentsValueThreshold,
-          maxRewardLevels: rdMaxRewardLevel,
-        });
-      };
+    // get fixture function for testing
+    const rewardDistributionFixture = async () => {
+      return deployV2MultilevelReferralRewardFixture({
+        contractName: CONTRACT_NAME,
+        referralPercentage: rdReferralPercentage,
+        refereePercentage: rdRefereePercentage,
+        paymentQuantityThreshold: rdPaymentsQuantityThreshold,
+        paymentValueThreshold: rdPaymentsValueThreshold,
+        maxRewardLevels: rdMaxRewardLevel,
+      });
+    };
 
+    it(`${CONTRACT_NAME} should distribute 1-level one-sided rewards only to referrer`, async () => {
       const {
         rootReferrer,
         referee,
@@ -1433,6 +1473,108 @@ describe(`Testing ${CONTRACT_NAME} Referral Contract`, async () => {
       // reward for referee
       const expectedRefereeReward =
         (expectedTotalPaidOutReward / 100) * rdRefereePercentage;
+      console.log("expectedRefereeReward", expectedRefereeReward, "");
+      // reward for all referrers
+      const expectedReferrerReward =
+        (expectedTotalPaidOutReward / 100) * referrerPercentage;
+      console.log("expectedReferrerReward", expectedReferrerReward, "");
+      // reward for a single referrer
+      const expectedRefereeRewardProportion =
+        expectedReferrerReward / numberOfRewardLevels;
+
+      // assert two-sided rewards have been paid out correctly to all parties after completion
+      // -------------------------------------------------------------------------
+
+      // REFEREE --> referee reward is 0% --> 0
+      expect(expectedRefereeReward).to.equal(0);
+      expect(afterRefereeBalance.toBigInt()).to.equal(
+        chain.initialRefereeBalance.toBigInt() -
+          ethConverter(rdPaymentValue).toBigInt() -
+          txCost.toBigInt() +
+          ethConverter(expectedRefereeReward).toBigInt()
+      );
+
+      // REFERRERS
+
+      // root referrer reward is 100% of total reward
+      expect(expectedTotalPaidOutReward).to.equal(
+        expectedRefereeRewardProportion
+      );
+      expect(expectedTotalPaidOutReward).to.equal(expectedReferrerReward);
+
+      expect(afterRootReferralBalance.toBigInt()).to.equal(
+        chain.initialRootReferrerBalance.toBigInt() +
+          ethConverter(expectedRefereeRewardProportion).toBigInt()
+      );
+
+      // CONTRACT --> initial contract balance + completion payment reward amount that was received - distributed rewards
+      expect(afterContractBalance.toBigInt()).to.equal(
+        chain.initialContractBalance.toBigInt() +
+          ethConverter(completionPaymentContractReward).toBigInt() -
+          ethConverter(expectedTotalPaidOutReward).toBigInt()
+      );
+    });
+
+    it(`${CONTRACT_NAME} should distribute 1-level one-sided rewards only to referee`, async () => {
+      const {
+        admin,
+        rootReferrer,
+        referee,
+        referee2,
+        referee3,
+        referee4,
+        finalReferee,
+        proxyContract,
+      } = await loadFixture(rewardDistributionFixture);
+
+      const updatedRefereePercentage = 100;
+
+      // update referee percentage to be 100%
+      await proxyContract
+        .connect(admin)
+        .updateRefereeReward(updatedRefereePercentage);
+
+      const updatedValue = await proxyContract.refereeRewardPercentage();
+      console.log("updatedValue", updatedValue, "");
+      // create referral chain payments
+      const chain = await createReferralChain({
+        rootReferrer,
+        referee,
+        referee2,
+        referee3,
+        referee4,
+        finalReferee,
+        proxyContract,
+        paymentValue: rdPaymentValue,
+      });
+
+      // complete referral process for referee 1
+      const completionPayment = await chain.proxyContract
+        .connect(chain.referee)
+        ["registerReferralPayment()"]({
+          value: ethConverter(rdPaymentValue),
+        });
+
+      const txCost = await getTransactionCosts(completionPayment);
+
+      // calculate result values
+      const numberOfRewardLevels = 1;
+      const registeredPaidValue = rdPaymentValue * 2;
+
+      const referrerPercentage = 100 - updatedRefereePercentage;
+      // proportion of the completion payment that stays on the reward contract
+      const completionPaymentContractReward =
+        (rdPaymentValue / 100) * rdReferralPercentage;
+      // account balances
+      const afterRefereeBalance = await chain.referee.getBalance();
+      const afterRootReferralBalance = await chain.rootReferrer.getBalance();
+      const afterContractBalance = await chain.proxyContract.getBalance();
+      // reward values
+      const expectedTotalPaidOutReward =
+        (registeredPaidValue / 100) * rdReferralPercentage;
+      // reward for referee
+      const expectedRefereeReward =
+        (expectedTotalPaidOutReward / 100) * updatedRefereePercentage;
       // reward for all referrers
       const expectedReferrerReward =
         (expectedTotalPaidOutReward / 100) * referrerPercentage;
@@ -1443,7 +1585,9 @@ describe(`Testing ${CONTRACT_NAME} Referral Contract`, async () => {
       // assert two-sided rewards have been paid out correctly to all parties after completion
       // -------------------------------------------------------------------------
 
-      // REFEREE --> referee
+      // REFEREE --> referee reward is 100% of total rewards
+
+      expect(expectedRefereeReward).to.equal(expectedTotalPaidOutReward);
       expect(afterRefereeBalance.toBigInt()).to.equal(
         chain.initialRefereeBalance.toBigInt() -
           ethConverter(rdPaymentValue).toBigInt() -
@@ -1453,7 +1597,10 @@ describe(`Testing ${CONTRACT_NAME} Referral Contract`, async () => {
 
       // REFERRERS
 
-      // root referrer
+      // root referrer reward is 0% --> 0
+      expect(expectedReferrerReward).to.equal(0);
+      expect(expectedRefereeRewardProportion).to.equal(0);
+
       expect(afterRootReferralBalance.toBigInt()).to.equal(
         chain.initialRootReferrerBalance.toBigInt() +
           ethConverter(expectedRefereeRewardProportion).toBigInt()
