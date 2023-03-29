@@ -19,6 +19,9 @@ contract V2ReferralMultilevelRewardsUpgradable is
     // VARS, STRUCTS & MAPPINGS
     // -----------------------------------------------------------------------------------------------
 
+    // mutex / reentrancy guard
+    bool private locked;
+
     // address of the payment receiver wallet
     address payable public receiverAddress;
     // percentage (0 - 100) of the paid amount that is distributed as referral reward upon completion
@@ -123,6 +126,9 @@ contract V2ReferralMultilevelRewardsUpgradable is
     }
 
     function distributeRewards(address _referee) internal {
+        require(!locked, "Reentrancy detected");
+        locked = true;
+
         ReferralProcess storage refereeCompletedProcess = refereeProcessMapping[
             _referee
         ];
@@ -157,6 +163,8 @@ contract V2ReferralMultilevelRewardsUpgradable is
             emit ReferralRewardsDistributed(rewardAddresses[i]);
             i++;
         }
+
+        locked = false;
     }
 
     function getAllParentReferrerAddresses(
