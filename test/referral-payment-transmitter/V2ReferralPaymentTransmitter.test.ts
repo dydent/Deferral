@@ -1,10 +1,10 @@
 import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
-import { ethConverter } from "../../helpers/converters";
+import { ethConverter } from "../../helpers/unit-converters";
 import { expect } from "chai";
 import { REWARD_AMOUNT_PROPORTION_ERROR } from "../../helpers/constants/error-strings";
 import { deployUpgradableReferralPaymentTransmitter } from "../../helpers/test-helpers/payment-transmitter-fixtures";
-import { V2ReferralPaymentTransmitterUpgradable } from "../../typechain-types/contracts/referral-evaluators/referral-payment-transmitter/upgradable-contracts/V2ReferralPaymentTransmitterUpgradable";
 import { ethers, upgrades } from "hardhat";
+import { V2ReferralPaymentTransmitterUpgradable } from "../../typechain-types";
 
 const CONTRACT_NAME = "V2ReferralPaymentTransmitterUpgradable";
 

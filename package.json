@@ -28,7 +28,6 @@
     "test": "npx hardhat test --network hardhat",
     "test-multilevel-v1": "npx hardhat test test/referral-payment-multilevel-rewards/V1MultilevelRewardReferral.test.ts",
     "test-multilevel-v2": "npx hardhat test test/referral-payment-multilevel-rewards/V2MultilevelRewardReferral.test.ts",
-    "test-referral-payment-evaluator": "npx hardhat test test/V1ReferralPaymentEvaluator.test.ts",
     "test-transmitter-v1": "npx hardhat test test/referral-payment-transmitter/V1ReferralPaymentTransmitter.test.ts",
     "test-transmitter-v2": "npx hardhat test test/referral-payment-transmitter/V2ReferralPaymentTransmitter.test.ts",
     "test-transmitter-v3": "npx hardhat test test/referral-payment-transmitter/V3ReferralPaymentTransmitter.test.ts",
@@ -80,10 +79,12 @@
     "ethers": "^5.7.2",
     "hardhat": "^2.6.8",
     "hardhat-gas-reporter": "^1.0.9",
+    "mocha": "^10.2.0",
     "prettier": "^2.4.1",
     "prettier-plugin-solidity": "^1.1.1",
     "solhint": "^3.4.0",
     "solidity-coverage": "^0.8.2",
+    "ts-mocha": "^10.0.0",
     "ts-node": "^10.4.0",
     "typechain": "^8.1.1",
     "typescript": "^4.4.4"
@@ -96,6 +97,7 @@
     "chai-as-promised": "^7.1.1",
     "depcheck": "^1.4.3",
     "eth-gas-reporter": "^0.2.25",
+    "evm-bn": "^1.1.2",
     "hardhat-shorthand": "^1.0.0",
     "solhint-plugin-prettier": "^0.0.5"
   }

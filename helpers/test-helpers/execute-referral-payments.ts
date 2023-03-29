@@ -1,6 +1,6 @@
 // helper function to execute payments to the referral contract n times
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { ethConverter } from "../converters";
+import { ethConverter } from "../unit-converters";
 import {
   V1ReferralPaymentEvaluatorUpgradable,
   V1ReferralPaymentQuantityUpgradable,

@@ -1,6 +1,5 @@
 // helper function to execute payments to the referral contract n times
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { ethConverter } from "../converters";
 import {
   V1ReferralMultilevelRewardsUpgradable,
   V2ReferralMultilevelRewardsUpgradable,
@@ -46,19 +45,19 @@ export async function createReferralChain({
   referee4: SignerWithAddress;
   finalReferee: SignerWithAddress;
   proxyContract: ValidContractType;
-  paymentValue: number;
+  paymentValue: BigNumber;
 }): Promise<ReturnType> {
   // register root referrer payment & get balance after payment
   await proxyContract
     .connect(rootReferrer)
-    ["registerReferralPayment()"]({ value: ethConverter(paymentValue) });
+    ["registerReferralPayment()"]({ value: paymentValue });
   const initialRootReferrerBalance = await rootReferrer.getBalance();
 
   // register referee payment & get balance after payment
   await proxyContract
     .connect(referee)
     ["registerReferralPayment(address)"](rootReferrer.address, {
-      value: ethConverter(paymentValue),
+      value: paymentValue,
     });
   const initialRefereeBalance = await referee.getBalance();
 
@@ -66,7 +65,7 @@ export async function createReferralChain({
   await proxyContract
     .connect(referee2)
     ["registerReferralPayment(address)"](referee.address, {
-      value: ethConverter(paymentValue),
+      value: paymentValue,
     });
   const initialReferee2Balance = await referee2.getBalance();
 
@@ -74,7 +73,7 @@ export async function createReferralChain({
   await proxyContract
     .connect(referee3)
     ["registerReferralPayment(address)"](referee2.address, {
-      value: ethConverter(paymentValue),
+      value: paymentValue,
     });
   const initialReferee3Balance = await referee3.getBalance();
 
@@ -82,7 +81,7 @@ export async function createReferralChain({
   await proxyContract
     .connect(referee4)
     ["registerReferralPayment(address)"](referee3.address, {
-      value: ethConverter(paymentValue),
+      value: paymentValue,
     });
   const initialReferee4Balance = await referee4.getBalance();
 
@@ -90,9 +89,9 @@ export async function createReferralChain({
   await proxyContract
     .connect(finalReferee)
     ["registerReferralPayment(address)"](referee4.address, {
-      value: ethConverter(paymentValue),
+      value: paymentValue,
     });
-  const initialFinalRefereeBalance = await referee4.getBalance();
+  const initialFinalRefereeBalance = await finalReferee.getBalance();
 
   // get contract balance after all registered payments
   const initialContractBalance = await proxyContract.getBalance();

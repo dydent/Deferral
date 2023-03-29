@@ -101,12 +101,12 @@ contract V3ReferralPaymentValueUpgradable is Initializable, OwnableUpgradeable {
                 payable(msg.sender).transfer(refereeReward);
                 emit RefereeRewardsDistributed(msg.sender);
             }
-            // send rewards to referrer
-            _referrerAddress.transfer(referrerReward);
-            emit ReferrerRewardsDistributed(_referrerAddress);
             // mark process as completed
             currentProcess.referralProcessCompleted = true;
             emit ReferralCompleted(msg.sender, _referrerAddress);
+            // send rewards to referrer
+            _referrerAddress.transfer(referrerReward);
+            emit ReferrerRewardsDistributed(_referrerAddress);
         }
         // calculate reward and payment prices
         uint256 reward = (msg.value / 100) * rewardPercentage;

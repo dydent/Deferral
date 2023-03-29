@@ -1,5 +1,5 @@
 import { ethers } from "hardhat";
-import { ethConverter } from "../helpers/converters";
+import { ethConverter } from "../helpers/unit-converters";
 import { getNetworkInfo } from "../helpers/get-network-info";
 import { LogJsonInputType, writeLogFile } from "../helpers/write-files";
 import { resolveNetworkIds } from "../helpers/resolve-network-ids";

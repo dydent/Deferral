@@ -7,7 +7,7 @@ import {
   PaymentValueFixtureReturnType,
   V3PaymentValueFixtureInputType,
 } from "../../types/fixture-types/PaymentValueFixtureTypes";
-import { ethConverter } from "../converters";
+import { ethConverter } from "../unit-converters";
 import { BaseContract } from "ethers";
 
 // -----------------------------------------------------------------------------------------------

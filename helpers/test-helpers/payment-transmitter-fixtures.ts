@@ -1,7 +1,11 @@
 import { ethers, upgrades } from "hardhat";
 import { deployContractHelper } from "../deployer-functions/deploy-contract-helper";
-import { ethConverter } from "../converters";
-import { V1ReferralPaymentTransmitter } from "../../typechain-types";
+import { ethConverter } from "../unit-converters";
+import {
+  V1ReferralPaymentTransmitter,
+  V2ReferralPaymentTransmitterUpgradable,
+  V3ReferralPaymentTransmitterUpgradable,
+} from "../../typechain-types";
 import {
   PaymentTransmitterFixtureInputType,
   PaymentTransmitterFixtureReturnType,
@@ -13,8 +17,6 @@ import {
 } from "../deployer-functions/deploy-upgradable-contract-helper";
 import { DeployAndUpgradePaymentTransmitterFixtureReturnType } from "../../types/fixture-types/UpgradablePaymentTransmitterFixtureTypes";
 import { BaseContract } from "ethers";
-import { UpgradableV1ReferralPaymentTransmitter } from "../../typechain-types/contracts/referral-evaluators/referral-payment-transmitter/upgradable-contracts/UpgradableV1_ReferralPaymentTransmitter.sol";
-import { UpgradableV2ReferralPaymentTransmitter } from "../../typechain-types/contracts/referral-evaluators/referral-payment-transmitter/upgradable-contracts/UpgradableV2_ReferralPaymentTransmitter.sol";
 
 // -----------------------------------------------------------------------------------------------
 // Fixture helper functions for testing referral payment transmitter contracts
@@ -94,15 +96,15 @@ export async function deployAndUpgradeUpgradablePaymentTransmitterFixture({
   upgradedContractName: string;
 }): Promise<
   DeployAndUpgradePaymentTransmitterFixtureReturnType<
-    UpgradableV1ReferralPaymentTransmitter,
-    UpgradableV2ReferralPaymentTransmitter
+    V2ReferralPaymentTransmitterUpgradable,
+    V3ReferralPaymentTransmitterUpgradable
   >
 > {
   const [admin, receiver, updatedReceiver, referrer, referee] =
     await ethers.getSigners();
   // deploy upgradable contracts
   const proxyContract =
-    await deployUpgradableContractHelper<UpgradableV1ReferralPaymentTransmitter>(
+    await deployUpgradableContractHelper<V2ReferralPaymentTransmitterUpgradable>(
       {
         contractName: contractName,
         initArgs: [
@@ -126,8 +128,8 @@ export async function deployAndUpgradeUpgradablePaymentTransmitterFixture({
     await upgrades.erc1967.getAdminAddress(proxyContract.address);
 
   // upgrade proxy contract
-  const upgradedProxyContract: UpgradableV2ReferralPaymentTransmitter =
-    await upgradeUpgradableContractHelper<UpgradableV2ReferralPaymentTransmitter>(
+  const upgradedProxyContract: V3ReferralPaymentTransmitterUpgradable =
+    await upgradeUpgradableContractHelper<V3ReferralPaymentTransmitterUpgradable>(
       {
         proxyContract,
         upgradedImplementationContractName: upgradedContractName,

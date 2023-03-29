@@ -1,7 +1,7 @@
 // helper function to deploy the referral contract
 import { ethers } from "hardhat";
 import { deployUpgradableContractHelper } from "../deployer-functions/deploy-upgradable-contract-helper";
-import { ethConverter } from "../converters";
+import { ethConverter } from "../unit-converters";
 import { V1ReferralPaymentEvaluatorUpgradable } from "../../typechain-types";
 import {
   ReferralPaymentEvaluatorFixtureInputType,

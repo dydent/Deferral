@@ -1,4 +1,4 @@
-import { ethConverter } from "../../helpers/converters";
+import { ethConverter } from "../../helpers/unit-converters";
 import { expect } from "chai";
 import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 import {
@@ -6,8 +6,8 @@ import {
   OWNABLE_ERROR_STRING,
   REWARD_AMOUNT_PROPORTION_ERROR,
 } from "../../helpers/constants/error-strings";
-import { deployV1ReferralPaymentTransmitterFixture } from "../../helpers/test-helpers/payment-transmitter-fixtures";
 import { ethers } from "hardhat";
+import { deployV1ReferralPaymentTransmitterFixture } from "../../helpers/test-helpers/payment-transmitter-fixtures";
 
 const CONTRACT_NAME = "V1ReferralPaymentTransmitter";
 

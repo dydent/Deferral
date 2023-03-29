@@ -11,8 +11,6 @@ pragma solidity 0.8.9;
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
-import "hardhat/console.sol";
-
 contract V2ReferralMultilevelRewardsUpgradable is
     Initializable,
     OwnableUpgradeable
@@ -129,16 +127,16 @@ contract V2ReferralMultilevelRewardsUpgradable is
             _referee
         ];
         // calculate the total reward based on the referee payment value/volume
-        uint256 calculatedTotalReward = (refereeCompletedProcess.paymentsValue /
-            100) * rewardPercentage;
+        uint256 calculatedTotalReward = (refereeCompletedProcess.paymentsValue *
+            rewardPercentage) / 100;
         require(
             address(this).balance >= calculatedTotalReward,
             "Contract has not enough funds to pay rewards"
         );
 
         // calculate and distribute referee rewards
-        uint256 refereeReward = (calculatedTotalReward / 100) *
-            refereeRewardPercentage;
+        uint256 refereeReward = (calculatedTotalReward *
+            refereeRewardPercentage) / 100;
         payable(_referee).transfer(refereeReward);
         emit ReferralRewardsAllocated(_referee);
 
@@ -175,8 +173,6 @@ contract V2ReferralMultilevelRewardsUpgradable is
             currentRefereeAddress = refereeProcessMapping[currentRefereeAddress]
                 .parentReferrerAddress;
         }
-        console.log("length", length);
-        console.log("max reward levels", maxRewardLevels);
 
         address payable[]
             memory parentReferrerAddresses = new address payable[](length);
@@ -274,7 +270,7 @@ contract V2ReferralMultilevelRewardsUpgradable is
 
         // update referral process with payment
         updateReferralProcess(msg.sender, _referrerAddress, msg.value);
-        // evaluate updated referral process
+        // evaluate updated referral process-
         evaluateReferralProcess(msg.sender);
         // forward value to the receiver address
         forwardPayment(msg.value - (msg.value / 100) * rewardPercentage);

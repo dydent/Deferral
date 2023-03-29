@@ -1,5 +1,5 @@
 import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
-import { ethConverter } from "../../helpers/converters";
+import { ethConverter } from "../../helpers/unit-converters";
 import { expect } from "chai";
 import {
   NO_REWARDS_TO_CLAIM,
