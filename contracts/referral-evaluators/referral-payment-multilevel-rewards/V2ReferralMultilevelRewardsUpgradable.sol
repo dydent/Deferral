@@ -8,22 +8,15 @@
 
 pragma solidity 0.8.9;
 
-// Solidity 0.8 and later versions, SafeMath is no longer necessary for basic arithmetic operations --> still recommended
-import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
-
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {ReentrancyGuardUpgradeable} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
-import "hardhat/console.sol";
 
 contract V2ReferralMultilevelRewardsUpgradable is
     Initializable,
     OwnableUpgradeable,
     ReentrancyGuardUpgradeable
 {
-    // use safe maths for uni256
-    using SafeMath for uint256;
-
     // -----------------------------------------------------------------------------------------------
     // VARS, STRUCTS & MAPPINGS
     // -----------------------------------------------------------------------------------------------
@@ -103,24 +96,13 @@ contract V2ReferralMultilevelRewardsUpgradable is
         ReferralProcess storage refereeProcess = refereeProcessMapping[
             _referee
         ];
-        // referral process must not be completed
-        require(
-            !refereeProcess.referralProcessCompleted,
-            "Referral process has been completed for this address"
-        );
         // set and update values
         if (!refereeProcess.referrerAddressHasBeenSet) {
             refereeProcess.parentReferrerAddress = _referrer;
             refereeProcess.referrerAddressHasBeenSet = true;
         }
-        refereeProcess.paymentsValue = SafeMath.add(
-            refereeProcess.paymentsValue,
-            _paymentValue
-        );
-        refereeProcess.paymentsQuantity = SafeMath.add(
-            refereeProcess.paymentsQuantity,
-            1
-        );
+        refereeProcess.paymentsValue += _paymentValue;
+        refereeProcess.paymentsQuantity += 1;
         emit ReferralConditionsUpdated(_referee);
     }
 
@@ -128,11 +110,6 @@ contract V2ReferralMultilevelRewardsUpgradable is
         ReferralProcess storage refereeProcess = refereeProcessMapping[
             _referee
         ];
-        // require referrer address has been set
-        require(
-            refereeProcess.referrerAddressHasBeenSet,
-            "Referrer Address has not been set for this referee"
-        );
         // check if thresholds for payments value and quantity are surpassed
         if (
             refereeProcess.paymentsValue > paymentsValueThreshold &&
@@ -150,54 +127,33 @@ contract V2ReferralMultilevelRewardsUpgradable is
             _referee
         ];
 
-        uint256 calculatedTotalReward = refereeCompletedProcess
-            .paymentsValue
-            .mul(rewardPercentage)
-            .div(100);
-
+        // calculate the total reward based on the referee payment value/volume
+        uint256 calculatedTotalReward = (refereeCompletedProcess.paymentsValue *
+            rewardPercentage) / 100;
         require(
             address(this).balance >= calculatedTotalReward,
             "Contract has not enough funds to pay rewards"
         );
 
         // calculate and distribute referee rewards
-        uint256 refereeReward = calculatedTotalReward
-            .mul(refereeRewardPercentage)
-            .div(100);
-        require(
-            refereeReward <= calculatedTotalReward,
-            "Referee reward calculation error"
-        );
-        require(
-            SafeMath.sub(address(this).balance, refereeReward) >= 0,
-            "Not enough balance to transfer referee reward"
-        );
+        uint256 refereeReward = (calculatedTotalReward *
+            refereeRewardPercentage) / 100;
         payable(_referee).transfer(refereeReward);
-        emit RefereeRewardsDistributed(_referee, refereeReward);
+        emit ReferralRewardsDistributed(_referee, refereeReward);
 
         // calculate remaining referrer rewards
-        uint256 referrerReward = SafeMath.sub(
-            calculatedTotalReward,
-            refereeReward
-        );
-
+        uint256 referrerReward = calculatedTotalReward - refereeReward;
         // get all eligible referral addresses
         address payable[]
             memory rewardAddresses = getAllParentReferrerAddresses(_referee);
 
         // calculate reward per referrer in reward chain
         uint256 numberOfRewardAddresses = rewardAddresses.length;
-        uint256 referrerRewardProportion = referrerReward.div(
-            numberOfRewardAddresses
-        );
+        uint256 referrerRewardProportion = referrerReward /
+            numberOfRewardAddresses;
 
         // distribute rewards to all eligible referrers
         for (uint256 i = 0; i < numberOfRewardAddresses; i++) {
-            require(
-                SafeMath.sub(address(this).balance, referrerRewardProportion) >=
-                    0,
-                "Not enough balance to transfer referrer reward"
-            );
             rewardAddresses[i].transfer(referrerRewardProportion);
             emit ReferralRewardsDistributed(
                 rewardAddresses[i],
@@ -244,11 +200,17 @@ contract V2ReferralMultilevelRewardsUpgradable is
     // -----------------------------------------------------------------------------------------------
     // EXTERNAL FUNCTIONS
     // -----------------------------------------------------------------------------------------------
+
     // overload function for referral payments without a referrer address
     function registerReferralPayment() external payable {
         ReferralProcess storage refereeProcess = refereeProcessMapping[
             msg.sender
         ];
+        // referral process must not be completed
+        require(
+            !refereeProcess.referralProcessCompleted,
+            "Referral process has been completed for this address"
+        );
         // check if sender is validly registered as referee --> update referral process data and
         if (
             !refereeProcess.isRoot && refereeProcess.referrerAddressHasBeenSet
@@ -262,10 +224,13 @@ contract V2ReferralMultilevelRewardsUpgradable is
             // evaluate updated referral process
             evaluateReferralProcess(msg.sender);
 
+            uint256 rewardPercentageValue = (msg.value * rewardPercentage) /
+                100;
+            uint256 paymentValueAfterReward = msg.value - rewardPercentageValue;
+
             // forward value to the receiver address
-            uint256 reward = msg.value.mul(rewardPercentage).div(100);
-            uint256 netValue = msg.value.sub(reward);
-            forwardPayment(netValue);
+
+            forwardPayment(paymentValueAfterReward);
         }
         // else sender is root or new root referrer
         else {
@@ -279,12 +244,8 @@ contract V2ReferralMultilevelRewardsUpgradable is
                 emit RootReferrerRegistered(msg.sender);
             }
             // update data for root address
-            refereeProcess.paymentsValue = refereeProcess.paymentsValue.add(
-                msg.value
-            );
-            refereeProcess.paymentsQuantity = refereeProcess
-                .paymentsQuantity
-                .add(1);
+            refereeProcess.paymentsValue += msg.value;
+            refereeProcess.paymentsQuantity += 1;
             // forward whole payment
             forwardPayment(msg.value);
         }
@@ -330,10 +291,8 @@ contract V2ReferralMultilevelRewardsUpgradable is
         // evaluate updated referral process
         evaluateReferralProcess(msg.sender);
 
-        uint256 rewardPercentageValue = (msg.value.mul(rewardPercentage)).div(
-            100
-        );
-        uint256 paymentValueAfterReward = msg.value.sub(rewardPercentageValue);
+        uint256 rewardPercentageValue = (msg.value * rewardPercentage) / 100;
+        uint256 paymentValueAfterReward = msg.value - rewardPercentageValue;
 
         // forward value to the receiver address
         forwardPayment(paymentValueAfterReward);
