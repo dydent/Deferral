@@ -27,3 +27,5 @@ export const ROOT_ADDRESS_CANNOT_BE_REFEREE =
 export const NO_REWARDS_TO_CLAIM = "No rewards to claim";
 
 export const MIN_REWARD_LEVELS = "minimum reward levels is 1";
+
+export const NON_ZERO_ADDRESS = "address cannot be zero address";

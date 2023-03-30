@@ -1,7 +1,6 @@
 // -----------------------------------------------------------------------------------------------
 // UPGRADABLE CONTRACT
-// add two-sided rewards and make referee rewards claimable
-// add max level for multilevel reward payouts
+// use token for payments
 // -----------------------------------------------------------------------------------------------
 
 // SPDX-License-Identifier: GPL-3.0
@@ -14,20 +13,22 @@ import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {ReentrancyGuardUpgradeable} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
-import "hardhat/console.sol";
 
-contract V2ReferralMultilevelRewardsUpgradable is
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+
+contract V3ReferralMultilevelRewardsUpgradable is
     Initializable,
     OwnableUpgradeable,
     ReentrancyGuardUpgradeable
 {
-    // use safe maths for uni256
     using SafeMath for uint256;
 
     // -----------------------------------------------------------------------------------------------
     // VARS, STRUCTS & MAPPINGS
     // -----------------------------------------------------------------------------------------------
 
+    // token / currency that is accepted for payments
+    IERC20 public token;
     // address of the payment receiver wallet
     address payable public receiverAddress;
     // percentage (0 - 100) of the paid amount that is distributed as referral reward upon completion
@@ -63,6 +64,7 @@ contract V2ReferralMultilevelRewardsUpgradable is
 
     // creation of a payment referral contract
     event PaymentReferralCreated(
+        IERC20 token,
         address indexed owner,
         address indexed receiverAddress,
         uint256 referralPercentage
@@ -83,6 +85,7 @@ contract V2ReferralMultilevelRewardsUpgradable is
     event PaymentRegistered(address indexed sender, uint256 amount);
     event PaymentForwarded(address indexed receiverAddress, uint256 amount);
     // events when owner is updating contracts variables
+    event ReferralTokenUpdated(IERC20 _newToken);
     event ReceiverAddressChanged(address indexed newReceiver);
     event RewardPercentageChanged(uint256 newReward);
     event RefereeRewardPercentageChanged(uint256 newRefereeRewardPercentage);
@@ -154,12 +157,6 @@ contract V2ReferralMultilevelRewardsUpgradable is
             .paymentsValue
             .mul(rewardPercentage)
             .div(100);
-
-        require(
-            address(this).balance >= calculatedTotalReward,
-            "Contract has not enough funds to pay rewards"
-        );
-
         // calculate and distribute referee rewards
         uint256 refereeReward = calculatedTotalReward
             .mul(refereeRewardPercentage)
@@ -172,7 +169,7 @@ contract V2ReferralMultilevelRewardsUpgradable is
             SafeMath.sub(address(this).balance, refereeReward) >= 0,
             "Not enough balance to transfer referee reward"
         );
-        payable(_referee).transfer(refereeReward);
+        token.transfer(_referee, refereeReward);
         emit RefereeRewardsDistributed(_referee, refereeReward);
 
         // calculate remaining referrer rewards
@@ -193,12 +190,7 @@ contract V2ReferralMultilevelRewardsUpgradable is
 
         // distribute rewards to all eligible referrers
         for (uint256 i = 0; i < numberOfRewardAddresses; i++) {
-            require(
-                SafeMath.sub(address(this).balance, referrerRewardProportion) >=
-                    0,
-                "Not enough balance to transfer referrer reward"
-            );
-            rewardAddresses[i].transfer(referrerRewardProportion);
+            token.transfer(rewardAddresses[i], referrerRewardProportion);
             emit ReferralRewardsDistributed(
                 rewardAddresses[i],
                 referrerRewardProportion
@@ -231,7 +223,6 @@ contract V2ReferralMultilevelRewardsUpgradable is
             ].parentReferrerAddress;
             currentRefereeAddress = parentReferrerAddresses[i];
         }
-
         return parentReferrerAddresses;
     }
 
@@ -245,7 +236,9 @@ contract V2ReferralMultilevelRewardsUpgradable is
     // EXTERNAL FUNCTIONS
     // -----------------------------------------------------------------------------------------------
     // overload function for referral payments without a referrer address
-    function registerReferralPayment() external payable {
+    function registerReferralPayment(
+        uint256 _paymentValue
+    ) external nonReentrant {
         ReferralProcess storage refereeProcess = refereeProcessMapping[
             msg.sender
         ];
@@ -253,18 +246,27 @@ contract V2ReferralMultilevelRewardsUpgradable is
         if (
             !refereeProcess.isRoot && refereeProcess.referrerAddressHasBeenSet
         ) {
+            //            TODO fix this to:
+
+            // Transfer tokens directly to the receiver
+            //            token.transferFrom(msg.sender, receiverAddress, paymentValueAfterReward);
+
+            // ...            // Transfer tokens from user to the contract
+            token.transferFrom(msg.sender, address(this), _paymentValue);
+
             // update referral process with payment
             updateReferralProcess(
                 msg.sender,
                 refereeProcess.parentReferrerAddress,
-                msg.value
+                _paymentValue
             );
             // evaluate updated referral process
             evaluateReferralProcess(msg.sender);
 
             // forward value to the receiver address
-            uint256 reward = msg.value.mul(rewardPercentage).div(100);
-            uint256 netValue = msg.value.sub(reward);
+            uint256 reward = _paymentValue.mul(rewardPercentage).div(100);
+            uint256 netValue = _paymentValue.sub(reward);
+
             forwardPayment(netValue);
         }
         // else sender is root or new root referrer
@@ -280,27 +282,27 @@ contract V2ReferralMultilevelRewardsUpgradable is
             }
             // update data for root address
             refereeProcess.paymentsValue = refereeProcess.paymentsValue.add(
-                msg.value
+                _paymentValue
             );
             refereeProcess.paymentsQuantity = refereeProcess
                 .paymentsQuantity
                 .add(1);
             // forward whole payment
-            forwardPayment(msg.value);
+            forwardPayment(_paymentValue);
         }
-        emit PaymentRegistered(msg.sender, msg.value);
+        emit PaymentRegistered(msg.sender, _paymentValue);
     }
 
     // register & forward payment and update referral process data
     function registerReferralPayment(
-        address payable _referrerAddress
-    ) external payable {
+        address payable _referrerAddress,
+        uint256 _paymentValue
+    ) external nonReentrant {
         require(msg.sender != _referrerAddress, "Sender cannot be referrer");
         require(
             _referrerAddress != address(0),
             "address cannot be zero address"
         );
-
         // get current referrer process data
         ReferralProcess storage referrerProcess = refereeProcessMapping[
             _referrerAddress
@@ -324,25 +326,30 @@ contract V2ReferralMultilevelRewardsUpgradable is
             "Referral process has been completed for this address"
         );
 
+        // Transfer tokens from user to the contract
+        token.transferFrom(msg.sender, address(this), _paymentValue);
+
         // update referral process with payment
-        updateReferralProcess(msg.sender, _referrerAddress, msg.value);
+        updateReferralProcess(msg.sender, _referrerAddress, _paymentValue);
 
         // evaluate updated referral process
         evaluateReferralProcess(msg.sender);
 
-        uint256 rewardPercentageValue = (msg.value.mul(rewardPercentage)).div(
-            100
+        uint256 rewardPercentageValue = (_paymentValue.mul(rewardPercentage))
+            .div(100);
+        uint256 paymentValueAfterReward = _paymentValue.sub(
+            rewardPercentageValue
         );
-        uint256 paymentValueAfterReward = msg.value.sub(rewardPercentageValue);
 
         // forward value to the receiver address
         forwardPayment(paymentValueAfterReward);
 
-        emit PaymentRegistered(msg.sender, msg.value);
+        emit PaymentRegistered(msg.sender, _paymentValue);
     }
 
     // create upgradable contract
     function initialize(
+        IERC20 _token,
         address payable _receiverAddress,
         uint256 _rewardPercentage,
         uint256 _refereeRewardPercentage,
@@ -363,6 +370,7 @@ contract V2ReferralMultilevelRewardsUpgradable is
             "percentage value must be between 0 and 100"
         );
         __Ownable_init();
+        token = _token;
         receiverAddress = _receiverAddress;
         rewardPercentage = _rewardPercentage;
         refereeRewardPercentage = _refereeRewardPercentage;
@@ -371,6 +379,7 @@ contract V2ReferralMultilevelRewardsUpgradable is
         paymentsValueThreshold = _paymentsValueThreshold;
         maxRewardLevels = _maxRewardLevels;
         emit PaymentReferralCreated(
+            _token,
             msg.sender,
             _receiverAddress,
             _rewardPercentage
@@ -385,6 +394,11 @@ contract V2ReferralMultilevelRewardsUpgradable is
     // -----------------------------------------------------------------------------------------------
     // updating contract variables (only contract owner can update these)
     // -----------------------------------------------------------------------------------------------
+
+    function updateReferralToken(IERC20 _updatedToken) public onlyOwner {
+        token = _updatedToken;
+        emit ReferralTokenUpdated(_updatedToken);
+    }
 
     function updateReceiverAddress(
         address payable _updatedReceiverAddress
