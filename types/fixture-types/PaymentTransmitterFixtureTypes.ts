@@ -1,4 +1,4 @@
-import {BaseContract, BigNumber} from "ethers";
+import { BaseContract, BigNumber } from "ethers";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 
 export type PaymentTransmitterFixtureInputType = {

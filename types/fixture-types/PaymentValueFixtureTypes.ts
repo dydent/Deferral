@@ -1,5 +1,5 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import {BaseContract, BigNumber} from "ethers";
+import { BaseContract, BigNumber } from "ethers";
 import { PercentageType } from "../PercentageTypes";
 
 export type PaymentValueFixtureInputType = {
