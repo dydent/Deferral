@@ -7,7 +7,6 @@ import {
   PaymentValueFixtureReturnType,
   V3PaymentValueFixtureInputType,
 } from "../../types/fixture-types/PaymentValueFixtureTypes";
-import { ethConverter } from "../unit-converters";
 import { BaseContract } from "ethers";
 
 // -----------------------------------------------------------------------------------------------
@@ -26,11 +25,7 @@ export async function deployPaymentValueUpgradableFixture<
   // deploy upgradable contracts
   const proxyContract = await deployUpgradableContractHelper<T>({
     contractName: contractName,
-    initArgs: [
-      receiver.address,
-      referralPercentage,
-      ethConverter(valueThreshold),
-    ],
+    initArgs: [receiver.address, referralPercentage, valueThreshold],
   });
 
   return {
@@ -61,7 +56,7 @@ export async function deployV3PaymentValueUpgradableFixture({
         receiver.address,
         referralPercentage,
         refereeRewardPercentage,
-        ethConverter(valueThreshold),
+        valueThreshold,
       ],
     });
 

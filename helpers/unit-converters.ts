@@ -21,10 +21,10 @@ export const ethConverter = (
 };
 
 export const etherUnitConverter = {
-  [EtherUnits.Wei]: (value: BigNumber): BigNumber =>
+  [EtherUnits.Ether]: (value: BigNumber | number): BigNumber =>
     toBn(utils.formatUnits(value, 0)),
-  [EtherUnits.Gwei]: (value: BigNumber): BigNumber =>
+  [EtherUnits.Gwei]: (value: BigNumber | number): BigNumber =>
     toBn(utils.formatUnits(value, 9)),
-  [EtherUnits.Ether]: (value: BigNumber): BigNumber =>
+  [EtherUnits.Wei]: (value: BigNumber | number): BigNumber =>
     toBn(utils.formatUnits(value, 18)),
 };

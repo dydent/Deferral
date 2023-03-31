@@ -15,7 +15,6 @@ import { ethers, upgrades } from "hardhat";
 import { createReferralChain } from "../../helpers/test-helpers/create-referral-chain";
 import { getTransactionCosts } from "../../helpers/get-transaction-costs";
 import { BigNumber, constants } from "ethers";
-import { toBn } from "evm-bn";
 import { PercentageType } from "../../types/PercentageTypes";
 import { etherUnitConverter } from "../../helpers/unit-converters";
 import { EtherUnits } from "../../types/ValidUnitTypes";
@@ -49,7 +48,6 @@ describe(`Testing ${CONTRACT_NAME} Referral Contract`, async () => {
   const defaultFixture = async () => {
     return deployV2MultilevelReferralRewardFixture({
       contractName: CONTRACT_NAME,
-      unit: DEFAULT_UNIT,
       referralPercentage: DEFAULT_REFERRAL_PERCENTAGE,
       refereePercentage: DEFAULT_REFEREE_PERCENTAGE,
       paymentQuantityThreshold: DEFAULT_QUANTITY_THRESHOLD,
@@ -372,9 +370,7 @@ describe(`Testing ${CONTRACT_NAME} Referral Contract`, async () => {
   describe(`Testing Referral Process Functionality`, async () => {
     // referral conditions for process testing
     const ptUnit = EtherUnits.Ether;
-    const ptPaymentValue: BigNumber = etherUnitConverter[ptUnit](
-      toBn((10).toString())
-    );
+    const ptPaymentValue: BigNumber = etherUnitConverter[ptUnit](10);
     const ptReferralPercentage: PercentageType = 11;
     const ptRefereePercentage: PercentageType = 50;
     const ptPaymentsValueThreshold: BigNumber = BigNumber.from(100);
@@ -385,7 +381,6 @@ describe(`Testing ${CONTRACT_NAME} Referral Contract`, async () => {
     const processTestingFixture = async () => {
       return deployV2MultilevelReferralRewardFixture({
         contractName: CONTRACT_NAME,
-        unit: ptUnit,
         referralPercentage: ptReferralPercentage,
         refereePercentage: ptRefereePercentage,
         paymentQuantityThreshold: ptPaymentsQuantityThreshold,
@@ -847,9 +842,7 @@ describe(`Testing ${CONTRACT_NAME} Referral Contract`, async () => {
   describe(`Testing Distributing Two-Sided Multi Level Rewards Functionality`, async () => {
     // referral conditions for testing reward distribution (rd)
     const rdUnit = EtherUnits.Ether;
-    const rdPaymentValue: BigNumber = etherUnitConverter[rdUnit](
-      toBn((29.5).toString())
-    );
+    const rdPaymentValue: BigNumber = etherUnitConverter[rdUnit](29.5);
     const rdReferralPercentage: PercentageType = 11;
     const rdRefereePercentage: PercentageType = 50;
     const rdPaymentsValueThreshold: BigNumber = rdPaymentValue;
@@ -860,7 +853,6 @@ describe(`Testing ${CONTRACT_NAME} Referral Contract`, async () => {
     const rewardDistributionFixture = async () => {
       return deployV2MultilevelReferralRewardFixture({
         contractName: CONTRACT_NAME,
-        unit: rdUnit,
         referralPercentage: rdReferralPercentage,
         refereePercentage: rdRefereePercentage,
         paymentQuantityThreshold: rdPaymentsQuantityThreshold,
@@ -1569,9 +1561,7 @@ describe(`Testing ${CONTRACT_NAME} Referral Contract`, async () => {
     // referral conditions ONE SIDED Rewards
 
     const tsUnit = EtherUnits.Ether;
-    const tsPaymentValue: BigNumber = etherUnitConverter[tsUnit](
-      toBn((10).toString())
-    );
+    const tsPaymentValue: BigNumber = etherUnitConverter[tsUnit](10);
     const tsReferralPercentage: PercentageType = 20;
     const tsRefereePercentage: PercentageType = 0;
     const tsPaymentsValueThreshold: BigNumber = tsPaymentValue;
@@ -1582,7 +1572,6 @@ describe(`Testing ${CONTRACT_NAME} Referral Contract`, async () => {
     const twoSidedRewardDistributionFixture = async () => {
       return deployV2MultilevelReferralRewardFixture({
         contractName: CONTRACT_NAME,
-        unit: tsUnit,
         referralPercentage: tsReferralPercentage,
         refereePercentage: tsRefereePercentage,
         paymentQuantityThreshold: tsPaymentsQuantityThreshold,

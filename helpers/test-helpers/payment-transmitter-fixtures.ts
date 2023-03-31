@@ -1,6 +1,5 @@
 import { ethers, upgrades } from "hardhat";
 import { deployContractHelper } from "../deployer-functions/deploy-contract-helper";
-import { ethConverter } from "../unit-converters";
 import {
   V1ReferralPaymentTransmitter,
   V2ReferralPaymentTransmitterUpgradable,
@@ -36,11 +35,7 @@ export async function deployV1ReferralPaymentTransmitterFixture({
   const deployedContract =
     await deployContractHelper<V1ReferralPaymentTransmitter>({
       contractName: contractName,
-      constructorParams: [
-        receiver.address,
-        ethConverter(paymentAmount),
-        ethConverter(referralReward),
-      ],
+      constructorParams: [receiver.address, paymentAmount, referralReward],
     });
 
   return {
@@ -69,11 +64,7 @@ export async function deployUpgradableReferralPaymentTransmitter<
   const proxyContract =
     await deployUpgradableContractHelper<UpgradableContractType>({
       contractName: contractName,
-      initArgs: [
-        receiver.address,
-        ethConverter(paymentAmount),
-        ethConverter(referralReward),
-      ],
+      initArgs: [receiver.address, paymentAmount, referralReward],
     });
 
   return {
@@ -107,11 +98,7 @@ export async function deployAndUpgradeUpgradablePaymentTransmitterFixture({
     await deployUpgradableContractHelper<V2ReferralPaymentTransmitterUpgradable>(
       {
         contractName: contractName,
-        initArgs: [
-          receiver.address,
-          ethConverter(paymentAmount),
-          ethConverter(referralReward),
-        ],
+        initArgs: [receiver.address, paymentAmount, referralReward],
       }
     );
 

@@ -1,7 +1,6 @@
 // helper function to deploy the referral contract
 import { ethers } from "hardhat";
 import { deployUpgradableContractHelper } from "../deployer-functions/deploy-upgradable-contract-helper";
-import { etherUnitConverter } from "../unit-converters";
 import {
   MultilevelRewardReferralFixtureInputType,
   MultilevelRewardReferralFixtureReturnType,
@@ -18,7 +17,6 @@ export async function deployMultilevelReferralRewardFixture<
   T extends BaseContract
 >({
   contractName,
-  unit,
   referralPercentage,
   paymentQuantityThreshold,
   paymentValueThreshold,
@@ -45,7 +43,7 @@ export async function deployMultilevelReferralRewardFixture<
       receiver.address,
       referralPercentage,
       paymentQuantityThreshold,
-      etherUnitConverter[unit](paymentValueThreshold),
+      paymentValueThreshold,
     ],
   });
 
@@ -66,7 +64,6 @@ export async function deployMultilevelReferralRewardFixture<
 
 export async function deployV2MultilevelReferralRewardFixture({
   contractName,
-  unit,
   referralPercentage,
   refereePercentage,
   paymentQuantityThreshold,
@@ -98,7 +95,7 @@ export async function deployV2MultilevelReferralRewardFixture({
           referralPercentage,
           refereePercentage,
           paymentQuantityThreshold,
-          etherUnitConverter[unit](paymentValueThreshold),
+          paymentValueThreshold,
           maxRewardLevels,
         ],
       }

@@ -1,5 +1,5 @@
 import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
-import { ethConverter } from "../../helpers/unit-converters";
+import { etherUnitConverter } from "../../helpers/unit-converters";
 import { expect } from "chai";
 import {
   EXACT_AMOUNT_ERROR,
@@ -11,16 +11,26 @@ import { deployUpgradableReferralPaymentTransmitter } from "../../helpers/test-h
 import { ethers, upgrades } from "hardhat";
 import { getTransactionCosts } from "../../helpers/get-transaction-costs";
 import { V3ReferralPaymentTransmitterUpgradable } from "../../typechain-types";
+import { BigNumber, ContractTransaction } from "ethers";
+import { EtherUnits } from "../../types/ValidUnitTypes";
+
+// -----------------------------------------------------------------------------------------------
+// TEST CONFIG VALUES
+// -----------------------------------------------------------------------------------------------
+const TEST_PRECISION_DELTA = 0;
 
 const CONTRACT_NAME = "V3ReferralPaymentTransmitterUpgradable";
 
 // -----------------------------------------------------------------------------------------------
 // TEST DEFAULT VALUES
 // -----------------------------------------------------------------------------------------------
-const DEFAULT_PAYMENT_AMOUNT: number = 10;
+const DEFAULT_UNIT: EtherUnits = EtherUnits.Ether;
+const DEFAULT_PAYMENT_AMOUNT: BigNumber = etherUnitConverter[DEFAULT_UNIT](10);
 // must be smaller than payment amount
-const DEFAULT_REFERRAL_REWARD = 1;
-const DEFAULT_PRIZE = DEFAULT_PAYMENT_AMOUNT - DEFAULT_REFERRAL_REWARD;
+const DEFAULT_REFERRAL_REWARD: BigNumber = etherUnitConverter[DEFAULT_UNIT](1);
+const DEFAULT_PRICE: BigNumber = DEFAULT_PAYMENT_AMOUNT.sub(
+  DEFAULT_REFERRAL_REWARD
+);
 
 describe(`Testing ${CONTRACT_NAME} Referral Contract`, async () => {
   // helper function to deploy the referral contract
@@ -42,10 +52,9 @@ describe(`Testing ${CONTRACT_NAME} Referral Contract`, async () => {
     it(`${CONTRACT_NAME} should throw if deployed with incorrect params`, async () => {
       const [receiver] = await ethers.getSigners();
 
-      const paymentAmountParam = ethConverter(DEFAULT_PAYMENT_AMOUNT);
-      const incorrectReferralRewardParam = ethConverter(
-        DEFAULT_PAYMENT_AMOUNT + 1
-      );
+      const paymentAmountParam: BigNumber = DEFAULT_PAYMENT_AMOUNT;
+      const incorrectReferralRewardParam: BigNumber =
+        DEFAULT_PAYMENT_AMOUNT.add(etherUnitConverter[DEFAULT_UNIT](1));
 
       const referralContract = await ethers.getContractFactory(CONTRACT_NAME);
 
@@ -62,46 +71,52 @@ describe(`Testing ${CONTRACT_NAME} Referral Contract`, async () => {
   // -----------------------------------------------------------------------------------------------
   // Testing Updating Contract Values
   // -----------------------------------------------------------------------------------------------
-
-  describe(`Testing Updating Contract Values`, async () => {
+  describe(`Updating Contract Values`, async () => {
     it(`${CONTRACT_NAME} should update receiver address`, async () => {
       const { admin, updatedReceiver, proxyContract } = await loadFixture(
         defaultFixture
       );
       // assert addresses are not the same at the start
-      const initialAddress = await proxyContract.receiver();
-      const updateAddress = await updatedReceiver.getAddress();
+      const initialAddress: string = await proxyContract.receiver();
+      const updateAddress: string = await updatedReceiver.getAddress();
       expect(initialAddress).to.not.equal(updateAddress);
 
       // update & assert receiver address
       await proxyContract.connect(admin).updateReceiverAddress(updateAddress);
-      const contractReceiverAddress = await proxyContract.receiver();
+      const contractReceiverAddress: string = await proxyContract.receiver();
       expect(updateAddress).to.equal(contractReceiverAddress);
     });
+
     it(`${CONTRACT_NAME} should update payment amount`, async () => {
       const { admin, proxyContract } = await loadFixture(defaultFixture);
 
-      const updatedPaymentAmount = ethConverter(5);
+      const updatedPaymentAmount: BigNumber = DEFAULT_PAYMENT_AMOUNT.add(
+        etherUnitConverter[DEFAULT_UNIT](2)
+      );
 
       // update payment amount
       await proxyContract
         .connect(admin)
         .updatePaymentAmount(updatedPaymentAmount);
 
-      const contractPaymentAmount = await proxyContract.paymentAmount();
+      const contractPaymentAmount: BigNumber =
+        await proxyContract.paymentAmount();
 
       // assertions
-      expect(contractPaymentAmount.toBigInt()).to.equal(
-        updatedPaymentAmount.toBigInt()
+      expect(contractPaymentAmount).to.be.closeTo(
+        updatedPaymentAmount,
+        TEST_PRECISION_DELTA
       );
     });
 
     it(`${CONTRACT_NAME} should throw if updated payment amount is smaller than reward`, async () => {
       const { admin, proxyContract } = await loadFixture(defaultFixture);
 
-      const updatedPaymentAmount = ethConverter(DEFAULT_REFERRAL_REWARD - 1);
+      const updatedPaymentAmount: BigNumber = DEFAULT_REFERRAL_REWARD.sub(
+        etherUnitConverter[DEFAULT_UNIT](1)
+      );
 
-      const expectedError = REWARD_AMOUNT_PROPORTION_ERROR;
+      const expectedError: string = REWARD_AMOUNT_PROPORTION_ERROR;
 
       const paymentAmountUpdatePromise = proxyContract
         .connect(admin)
@@ -116,27 +131,31 @@ describe(`Testing ${CONTRACT_NAME} Referral Contract`, async () => {
     it(`${CONTRACT_NAME} should update referral reward`, async () => {
       const { admin, proxyContract } = await loadFixture(defaultFixture);
 
-      const updatedReferralReward = ethConverter(3);
-
+      const updatedReferralReward: BigNumber = DEFAULT_REFERRAL_REWARD.add(
+        etherUnitConverter[DEFAULT_UNIT](1)
+      );
       // update payment amount
       await proxyContract
         .connect(admin)
         .updateReferralReward(updatedReferralReward);
 
-      const contractReferralReward = await proxyContract.referralReward();
+      const contractReferralReward: BigNumber =
+        await proxyContract.referralReward();
 
       // assertions
-      expect(contractReferralReward.toBigInt()).to.equal(
-        updatedReferralReward.toBigInt()
+      expect(contractReferralReward).to.be.closeTo(
+        updatedReferralReward,
+        TEST_PRECISION_DELTA
       );
     });
 
     it(`${CONTRACT_NAME} should throw if updated referral reward is bigger than payment`, async () => {
       const { admin, proxyContract } = await loadFixture(defaultFixture);
 
-      const updatedReferralReward = ethConverter(DEFAULT_PAYMENT_AMOUNT + 1);
-
-      const expectedError = REWARD_AMOUNT_PROPORTION_ERROR;
+      const updatedReferralReward: BigNumber = DEFAULT_PAYMENT_AMOUNT.add(
+        etherUnitConverter[DEFAULT_UNIT](1)
+      );
+      const expectedError: string = REWARD_AMOUNT_PROPORTION_ERROR;
 
       const referralRewardUpdatePromise = proxyContract
         .connect(admin)
@@ -157,20 +176,25 @@ describe(`Testing ${CONTRACT_NAME} Referral Contract`, async () => {
     it(`${CONTRACT_NAME} should throw if non-admin tries to update contract`, async () => {
       const { referrer, proxyContract } = await loadFixture(defaultFixture);
 
-      const updatedReferralReward = ethConverter(3);
-      const updatedReceiverAddress = await referrer.getAddress();
+      const updatedReferralReward: BigNumber = DEFAULT_REFERRAL_REWARD.add(
+        etherUnitConverter[DEFAULT_UNIT](1)
+      );
+      const updatedReceiverAddress: string = await referrer.getAddress();
 
-      const expectedError = OWNABLE_ERROR_STRING;
+      const expectedError: string = OWNABLE_ERROR_STRING;
 
-      const referralRewardUpdatePromise = proxyContract
-        .connect(referrer)
-        .updateReferralReward(updatedReferralReward);
-      const paymentAmountUpdatePromise = proxyContract
-        .connect(referrer)
-        .updatePaymentAmount(updatedReferralReward);
-      const receiverAddressUpdatePromise = proxyContract
-        .connect(referrer)
-        .updateReceiverAddress(updatedReceiverAddress);
+      const referralRewardUpdatePromise: Promise<ContractTransaction> =
+        proxyContract
+          .connect(referrer)
+          .updateReferralReward(updatedReferralReward);
+      const paymentAmountUpdatePromise: Promise<ContractTransaction> =
+        proxyContract
+          .connect(referrer)
+          .updatePaymentAmount(updatedReferralReward);
+      const receiverAddressUpdatePromise: Promise<ContractTransaction> =
+        proxyContract
+          .connect(referrer)
+          .updateReceiverAddress(updatedReceiverAddress);
 
       // await calls to be rejected since they are not owner of the contract
       await expect(referralRewardUpdatePromise).to.be.rejectedWith(
@@ -182,6 +206,25 @@ describe(`Testing ${CONTRACT_NAME} Referral Contract`, async () => {
       await expect(receiverAddressUpdatePromise).to.be.rejectedWith(
         expectedError
       );
+    });
+
+    it(`${CONTRACT_NAME} should throw if payment value is not exact`, async () => {
+      const { referrer, referee, proxyContract } = await loadFixture(
+        defaultFixture
+      );
+
+      const expectedError: string = EXACT_AMOUNT_ERROR;
+      // await referral process
+      const referralProcessPromise: Promise<ContractTransaction> = proxyContract
+        .connect(referee)
+        .forwardReferralPayment(referrer.address, {
+          value: DEFAULT_PAYMENT_AMOUNT.add(
+            etherUnitConverter[DEFAULT_UNIT](1)
+          ),
+        });
+
+      // await calls to be rejected since they are not owner of the contract
+      await expect(referralProcessPromise).to.be.rejectedWith(expectedError);
     });
   });
 
@@ -195,7 +238,7 @@ describe(`Testing ${CONTRACT_NAME} Referral Contract`, async () => {
       const referralTxPromise = proxyContract
         .connect(referee)
         .forwardReferralPayment(referee.address, {
-          value: ethConverter(DEFAULT_PAYMENT_AMOUNT),
+          value: DEFAULT_PAYMENT_AMOUNT,
         });
       await expect(referralTxPromise).to.be.rejectedWith(
         SENDER_CANNOT_BE_REFERRER
@@ -208,23 +251,25 @@ describe(`Testing ${CONTRACT_NAME} Referral Contract`, async () => {
       );
 
       // get initial balances
-      const initialReceiverBalance = await receiver.getBalance();
+      const initialReceiverBalance: BigNumber = await receiver.getBalance();
 
       // execute referral process
       await proxyContract
         .connect(referee)
         .forwardReferralPayment(referrer.address, {
-          value: ethConverter(DEFAULT_PAYMENT_AMOUNT),
+          value: DEFAULT_PAYMENT_AMOUNT,
         });
 
       // results
-      const afterReceiverBalance = await receiver.getBalance();
-      const receiverResult =
-        initialReceiverBalance.toBigInt() +
-        ethConverter(DEFAULT_PRIZE).toBigInt();
+      const afterReceiverBalance: BigNumber = await receiver.getBalance();
+      const receiverResult: BigNumber =
+        initialReceiverBalance.add(DEFAULT_PRICE);
 
       // assertions
-      expect(afterReceiverBalance.toBigInt()).to.equal(receiverResult);
+      expect(afterReceiverBalance).to.be.closeTo(
+        receiverResult,
+        TEST_PRECISION_DELTA
+      );
     });
 
     it(`${CONTRACT_NAME} should send the reward to the referrer account`, async () => {
@@ -233,23 +278,26 @@ describe(`Testing ${CONTRACT_NAME} Referral Contract`, async () => {
       );
 
       // get initial balances
-      const initialReferrerBalance = await referrer.getBalance();
+      const initialReferrerBalance: BigNumber = await referrer.getBalance();
 
       // await referral process
       await proxyContract
         .connect(referee)
         .forwardReferralPayment(referrer.address, {
-          value: ethConverter(DEFAULT_PAYMENT_AMOUNT),
+          value: DEFAULT_PAYMENT_AMOUNT,
         });
 
       // results
-      const afterReferrerBalance = await referrer.getBalance();
-      const referrerResult =
-        initialReferrerBalance.toBigInt() +
-        ethConverter(DEFAULT_REFERRAL_REWARD).toBigInt();
+      const afterReferrerBalance: BigNumber = await referrer.getBalance();
+      const referrerResult: BigNumber = initialReferrerBalance.add(
+        DEFAULT_REFERRAL_REWARD
+      );
 
       // assertions
-      expect(afterReferrerBalance.toBigInt()).to.equal(referrerResult);
+      expect(afterReferrerBalance).to.be.closeTo(
+        referrerResult,
+        TEST_PRECISION_DELTA
+      );
     });
 
     it(`${CONTRACT_NAME} should subtract payment amount from referee account`, async () => {
@@ -258,43 +306,28 @@ describe(`Testing ${CONTRACT_NAME} Referral Contract`, async () => {
       );
 
       // get initial balances
-      const initialRefereeBalance = await referee.getBalance();
+      const initialRefereeBalance: BigNumber = await referee.getBalance();
 
       // await referral process transaction
       const referralTx = await proxyContract
         .connect(referee)
         .forwardReferralPayment(referrer.address, {
-          value: ethConverter(DEFAULT_PAYMENT_AMOUNT),
+          value: DEFAULT_PAYMENT_AMOUNT,
         });
 
-      const txCost = await getTransactionCosts(referralTx);
+      const txCost: BigNumber = await getTransactionCosts(referralTx);
 
       // results
-      const afterRefereeBalance = await referee.getBalance();
-      const refereeResult =
-        initialRefereeBalance.toBigInt() -
-        txCost.toBigInt() -
-        ethConverter(DEFAULT_PAYMENT_AMOUNT).toBigInt();
+      const afterRefereeBalance: BigNumber = await referee.getBalance();
+      const refereeResult: BigNumber = initialRefereeBalance
+        .sub(txCost)
+        .sub(DEFAULT_PAYMENT_AMOUNT);
 
       // assertions
-      expect(afterRefereeBalance.toBigInt()).to.equal(refereeResult);
-    });
-
-    it(`${CONTRACT_NAME} should throw if payment value is not exact`, async () => {
-      const { referrer, referee, proxyContract } = await loadFixture(
-        defaultFixture
+      expect(afterRefereeBalance).to.be.closeTo(
+        refereeResult,
+        TEST_PRECISION_DELTA
       );
-
-      const expectedError = EXACT_AMOUNT_ERROR;
-      // await referral process
-      const referralProcessPromise = proxyContract
-        .connect(referee)
-        .forwardReferralPayment(referrer.address, {
-          value: ethConverter(DEFAULT_PAYMENT_AMOUNT / 2),
-        });
-
-      // await calls to be rejected since they are not owner of the contract
-      await expect(referralProcessPromise).to.be.rejectedWith(expectedError);
     });
   });
 });

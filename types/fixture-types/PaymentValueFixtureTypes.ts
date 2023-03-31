@@ -1,15 +1,16 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { BaseContract } from "ethers";
+import { BaseContract, BigNumber } from "ethers";
+import { PercentageType } from "../PercentageTypes";
 
 export type PaymentValueFixtureInputType = {
   contractName: string;
-  referralPercentage: number;
+  referralPercentage: PercentageType;
   // value in ETHER
-  valueThreshold: number;
+  valueThreshold: BigNumber;
 };
 
 export type V3PaymentValueFixtureInputType = PaymentValueFixtureInputType & {
-  refereeRewardPercentage: number;
+  refereeRewardPercentage: PercentageType;
 };
 
 export type PaymentValueFixtureReturnType<T extends BaseContract> = {
