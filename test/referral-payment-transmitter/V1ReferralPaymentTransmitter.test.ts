@@ -23,13 +23,9 @@ const CONTRACT_NAME = "V1ReferralPaymentTransmitter";
 // TEST DEFAULT VALUES
 // -----------------------------------------------------------------------------------------------
 const DEFAULT_UNIT: EtherUnits = EtherUnits.Ether;
-const DEFAULT_PAYMENT_AMOUNT: BigNumber = etherUnitConverter[DEFAULT_UNIT](
-  BigNumber.from(10)
-);
+const DEFAULT_PAYMENT_AMOUNT: BigNumber = etherUnitConverter[DEFAULT_UNIT](10);
 // must be smaller than payment amount
-const DEFAULT_REFERRAL_REWARD: BigNumber = etherUnitConverter[DEFAULT_UNIT](
-  BigNumber.from(2)
-);
+const DEFAULT_REFERRAL_REWARD: BigNumber = etherUnitConverter[DEFAULT_UNIT](2);
 const DEFAULT_PRICE: BigNumber = DEFAULT_PAYMENT_AMOUNT.sub(
   DEFAULT_REFERRAL_REWARD
 );
@@ -54,9 +50,7 @@ describe(`Testing ${CONTRACT_NAME} Referral Contract`, async () => {
 
       const paymentAmountParam: BigNumber = DEFAULT_PAYMENT_AMOUNT;
       const incorrectReferralRewardParam: BigNumber =
-        DEFAULT_PAYMENT_AMOUNT.add(
-          etherUnitConverter[DEFAULT_UNIT](BigNumber.from(1))
-        );
+        DEFAULT_PAYMENT_AMOUNT.add(etherUnitConverter[DEFAULT_UNIT](1));
 
       const referralContract = await ethers.getContractFactory(CONTRACT_NAME);
 
@@ -98,7 +92,7 @@ describe(`Testing ${CONTRACT_NAME} Referral Contract`, async () => {
       const { admin, deployedContract } = await loadFixture(defaultFixture);
 
       const updatedPaymentAmount: BigNumber = DEFAULT_PAYMENT_AMOUNT.add(
-        etherUnitConverter[DEFAULT_UNIT](BigNumber.from(2))
+        etherUnitConverter[DEFAULT_UNIT](2)
       );
 
       // update payment amount
@@ -120,7 +114,7 @@ describe(`Testing ${CONTRACT_NAME} Referral Contract`, async () => {
       const { admin, deployedContract } = await loadFixture(defaultFixture);
 
       const updatedPaymentAmount: BigNumber = DEFAULT_REFERRAL_REWARD.sub(
-        etherUnitConverter[DEFAULT_UNIT](BigNumber.from(1))
+        etherUnitConverter[DEFAULT_UNIT](1)
       );
 
       const expectedError: string = REWARD_AMOUNT_PROPORTION_ERROR;
@@ -139,7 +133,7 @@ describe(`Testing ${CONTRACT_NAME} Referral Contract`, async () => {
       const { admin, deployedContract } = await loadFixture(defaultFixture);
 
       const updatedReferralReward: BigNumber = DEFAULT_REFERRAL_REWARD.add(
-        etherUnitConverter[DEFAULT_UNIT](BigNumber.from(1))
+        etherUnitConverter[DEFAULT_UNIT](1)
       );
       // update payment amount
       await deployedContract
@@ -160,7 +154,7 @@ describe(`Testing ${CONTRACT_NAME} Referral Contract`, async () => {
       const { admin, deployedContract } = await loadFixture(defaultFixture);
 
       const updatedReferralReward: BigNumber = DEFAULT_PAYMENT_AMOUNT.add(
-        etherUnitConverter[DEFAULT_UNIT](BigNumber.from(1))
+        etherUnitConverter[DEFAULT_UNIT](1)
       );
       const expectedError: string = REWARD_AMOUNT_PROPORTION_ERROR;
 
@@ -184,7 +178,7 @@ describe(`Testing ${CONTRACT_NAME} Referral Contract`, async () => {
       const { referrer, deployedContract } = await loadFixture(defaultFixture);
 
       const updatedReferralReward: BigNumber = DEFAULT_REFERRAL_REWARD.add(
-        etherUnitConverter[DEFAULT_UNIT](BigNumber.from(1))
+        etherUnitConverter[DEFAULT_UNIT](1)
       );
       const updatedReceiverAddress: string = await referrer.getAddress();
 
@@ -227,7 +221,7 @@ describe(`Testing ${CONTRACT_NAME} Referral Contract`, async () => {
           .connect(referee)
           .forwardReferralPayment(referrer.address, {
             value: DEFAULT_PAYMENT_AMOUNT.add(
-              etherUnitConverter[DEFAULT_UNIT](BigNumber.from(1))
+              etherUnitConverter[DEFAULT_UNIT](1)
             ),
           });
 

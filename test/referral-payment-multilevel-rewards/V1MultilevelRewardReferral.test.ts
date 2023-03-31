@@ -17,7 +17,6 @@ import { BigNumber } from "ethers";
 import { EtherUnits } from "../../types/ValidUnitTypes";
 import { PercentageType } from "../../types/PercentageTypes";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { toBn } from "evm-bn";
 import { getTransactionCosts } from "../../helpers/get-transaction-costs";
 
 // -----------------------------------------------------------------------------------------------
@@ -46,7 +45,6 @@ describe(`Testing ${CONTRACT_NAME} Referral Contract`, async () => {
     return deployMultilevelReferralRewardFixture<V1ReferralMultilevelRewardsUpgradable>(
       {
         contractName: CONTRACT_NAME,
-        unit: DEFAULT_UNIT,
         referralPercentage: DEFAULT_REFERRAL_PERCENTAGE,
         paymentQuantityThreshold: DEFAULT_QUANTITY_THRESHOLD,
         paymentValueThreshold: DEFAULT_VALUE_THRESHOLD,
@@ -218,9 +216,7 @@ describe(`Testing ${CONTRACT_NAME} Referral Contract`, async () => {
   describe(`Testing Referral Process Functionality`, async () => {
     // referral conditions for process testing
     const ptUnit = EtherUnits.Ether;
-    const ptPaymentValue: BigNumber = etherUnitConverter[ptUnit](
-      toBn((10).toString())
-    );
+    const ptPaymentValue: BigNumber = etherUnitConverter[ptUnit](10);
     const ptReferralPercentage: PercentageType = 11;
     const ptPaymentsValueThreshold: BigNumber = BigNumber.from(100);
     const ptPaymentsQuantityThreshold: BigNumber = BigNumber.from(5);
@@ -230,7 +226,6 @@ describe(`Testing ${CONTRACT_NAME} Referral Contract`, async () => {
       return deployMultilevelReferralRewardFixture<V1ReferralMultilevelRewardsUpgradable>(
         {
           contractName: CONTRACT_NAME,
-          unit: ptUnit,
           referralPercentage: ptReferralPercentage,
           paymentQuantityThreshold: ptPaymentsQuantityThreshold,
           paymentValueThreshold: ptPaymentsValueThreshold,
@@ -673,9 +668,7 @@ describe(`Testing ${CONTRACT_NAME} Referral Contract`, async () => {
   describe(`Testing Distributing Multi Level Rewards Functionality`, async () => {
     // referral conditions for testing reward distribution (rd)
     const rdUnit = EtherUnits.Ether;
-    const rdPaymentValue: BigNumber = etherUnitConverter[rdUnit](
-      toBn((10).toString())
-    );
+    const rdPaymentValue: BigNumber = etherUnitConverter[rdUnit](10);
     const rdPaymentsValueThreshold: BigNumber = rdPaymentValue;
     const rdPaymentsQuantityThreshold: BigNumber = BigNumber.from(1);
     const rdReferralPercentage: PercentageType = 10;
@@ -685,7 +678,6 @@ describe(`Testing ${CONTRACT_NAME} Referral Contract`, async () => {
       return deployMultilevelReferralRewardFixture<V1ReferralMultilevelRewardsUpgradable>(
         {
           contractName: CONTRACT_NAME,
-          unit: rdUnit,
           referralPercentage: rdReferralPercentage,
           paymentQuantityThreshold: rdPaymentsQuantityThreshold,
           paymentValueThreshold: rdPaymentsValueThreshold,

@@ -1,11 +1,12 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import {} from "../../typechain-types";
-import { BaseContract } from "ethers";
+import {BaseContract, BigNumber} from "ethers";
+import { PercentageType } from "../PercentageTypes";
 
 export type PaymentQuantityFixtureInputType = {
   contractName: string;
-  referralPercentage: number;
-  quantityThreshold: number;
+  referralPercentage: PercentageType;
+  quantityThreshold: BigNumber;
 };
 
 export type PaymentQuantityFixtureReturnType<T extends BaseContract> = {

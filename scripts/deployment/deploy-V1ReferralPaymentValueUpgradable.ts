@@ -1,22 +1,20 @@
 import { ethers, upgrades } from "hardhat";
-import { ethConverter } from "../helpers/unit-converters";
-import { getNetworkInfo } from "../helpers/get-network-info";
-import { LogJsonInputType, writeLogFile } from "../helpers/write-files";
-import { resolveNetworkIds } from "../helpers/resolve-network-ids";
+import { getNetworkInfo } from "../../helpers/get-network-info";
+import { LogJsonInputType, writeLogFile } from "../../helpers/write-files";
+import { resolveNetworkIds } from "../../helpers/resolve-network-ids";
 
 // ------------------------------------------------------------------
 // deployment script for upgradable referral payment proxy contracts
 // ------------------------------------------------------------------
 
-const LOG_FILE_NAME =
-  "upgradable-payment-transmitter-contract-deployments.json";
+const LOG_FILE_NAME = "payment-quantity-contract-deployments.json";
 
 // const INITIAL_CONTRACT = "UpgradableV1ReferralPaymentProxy";
-const CONTRACT = "UpgradableV2ReferralPaymentTransmitter";
+const CONTRACT = "V1ReferralPaymentValueUpgradable";
 
-// values for referral conditions
-const PAYMENT_AMOUNT = ethConverter(10);
-const REFERRAL_REWARD = ethConverter(1);
+// percentage of payments that will be distributed as referral rewards after successfull referral process
+const REFERRAL_PERCENTAGE = 50;
+const REQUIRED__VALUE_OF_PAYMENTS = 3;
 
 async function main() {
   // measure time for logs
@@ -33,15 +31,15 @@ async function main() {
   // log message
 
   console.log(
-    `Deploying upgradable payment transmitter referral contracts to ${networkName} network...\n`
+    `Deploying payment value referral contracts to ${networkName} network...\n`
   );
 
   // deploy upgradable-contracts contract --> has to be an upgradable-contracts contract
   const initialReferralContract = await ethers.getContractFactory(CONTRACT);
   const proxyContract = await upgrades.deployProxy(initialReferralContract, [
     receiver.address,
-    PAYMENT_AMOUNT,
-    REFERRAL_REWARD,
+    REFERRAL_PERCENTAGE,
+    REQUIRED__VALUE_OF_PAYMENTS,
   ]);
 
   // calculate deployment transaction costs

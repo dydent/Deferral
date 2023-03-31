@@ -19,13 +19,9 @@ const CONTRACT_NAME = "V2ReferralPaymentTransmitterUpgradable";
 // TEST DEFAULT VALUES
 // -----------------------------------------------------------------------------------------------
 const DEFAULT_UNIT: EtherUnits = EtherUnits.Ether;
-const DEFAULT_PAYMENT_AMOUNT: BigNumber = etherUnitConverter[DEFAULT_UNIT](
-  BigNumber.from(10)
-);
+const DEFAULT_PAYMENT_AMOUNT: BigNumber = etherUnitConverter[DEFAULT_UNIT](10);
 // must be smaller than payment amount
-const DEFAULT_REFERRAL_REWARD: BigNumber = etherUnitConverter[DEFAULT_UNIT](
-  BigNumber.from(1)
-);
+const DEFAULT_REFERRAL_REWARD: BigNumber = etherUnitConverter[DEFAULT_UNIT](1);
 
 describe(`Testing ${CONTRACT_NAME} Referral Contract`, async () => {
   // helper function to deploy the referral contract
@@ -69,9 +65,7 @@ describe(`Testing ${CONTRACT_NAME} Referral Contract`, async () => {
 
       const paymentAmountParam: BigNumber = DEFAULT_PAYMENT_AMOUNT;
       const incorrectReferralRewardParam: BigNumber =
-        DEFAULT_PAYMENT_AMOUNT.add(
-          etherUnitConverter[DEFAULT_UNIT](BigNumber.from(1))
-        );
+        DEFAULT_PAYMENT_AMOUNT.add(etherUnitConverter[DEFAULT_UNIT](1));
 
       const referralContract = await ethers.getContractFactory(CONTRACT_NAME);
 

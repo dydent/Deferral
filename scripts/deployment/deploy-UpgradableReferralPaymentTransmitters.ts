@@ -1,23 +1,22 @@
 import { ethers, upgrades } from "hardhat";
-import { getNetworkInfo } from "../helpers/get-network-info";
-import { LogJsonInputType, writeLogFile } from "../helpers/write-files";
-import { resolveNetworkIds } from "../helpers/resolve-network-ids";
+import { ethConverter } from "../../helpers/unit-converters";
+import { getNetworkInfo } from "../../helpers/get-network-info";
+import { LogJsonInputType, writeLogFile } from "../../helpers/write-files";
+import { resolveNetworkIds } from "../../helpers/resolve-network-ids";
 
 // ------------------------------------------------------------------
 // deployment script for upgradable referral payment proxy contracts
 // ------------------------------------------------------------------
 
-const LOG_FILE_NAME = "referral-payment-evaluator-contract.json";
+const LOG_FILE_NAME =
+  "upgradable-payment-transmitter-contract-deployments.json";
 
 // const INITIAL_CONTRACT = "UpgradableV1ReferralPaymentProxy";
-const CONTRACT = "ReferralPaymentEvaluatorUpgradable";
+const CONTRACT = "UpgradableV2ReferralPaymentTransmitter";
 
-// percentage of payments that will be distributed as referral rewards after successful referral process
-const REFERRAL_PERCENTAGE = 5;
-
-// threshold values for payments quantity and payment values
-const QUANTITY_THRESHOLD = 5;
-const VALUE_THRESHOLD = 100;
+// values for referral conditions
+const PAYMENT_AMOUNT = ethConverter(10);
+const REFERRAL_REWARD = ethConverter(1);
 
 async function main() {
   // measure time for logs
@@ -34,16 +33,15 @@ async function main() {
   // log message
 
   console.log(
-    `Deploying referral payment evaluator contracts to ${networkName} network...\n`
+    `Deploying upgradable payment transmitter referral contracts to ${networkName} network...\n`
   );
 
   // deploy upgradable-contracts contract --> has to be an upgradable-contracts contract
   const initialReferralContract = await ethers.getContractFactory(CONTRACT);
   const proxyContract = await upgrades.deployProxy(initialReferralContract, [
     receiver.address,
-    REFERRAL_PERCENTAGE,
-    QUANTITY_THRESHOLD,
-    VALUE_THRESHOLD,
+    PAYMENT_AMOUNT,
+    REFERRAL_REWARD,
   ]);
 
   // calculate deployment transaction costs

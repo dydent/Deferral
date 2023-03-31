@@ -1,20 +1,23 @@
 import { ethers, upgrades } from "hardhat";
-import { getNetworkInfo } from "../helpers/get-network-info";
-import { LogJsonInputType, writeLogFile } from "../helpers/write-files";
-import { resolveNetworkIds } from "../helpers/resolve-network-ids";
+import { getNetworkInfo } from "../../helpers/get-network-info";
+import { LogJsonInputType, writeLogFile } from "../../helpers/write-files";
+import { resolveNetworkIds } from "../../helpers/resolve-network-ids";
 
 // ------------------------------------------------------------------
 // deployment script for upgradable referral payment proxy contracts
 // ------------------------------------------------------------------
 
-const LOG_FILE_NAME = "payment-quantity-contract-deployments.json";
+const LOG_FILE_NAME = "referral-payment-evaluator-contract.json";
 
 // const INITIAL_CONTRACT = "UpgradableV1ReferralPaymentProxy";
-const CONTRACT = "V1ReferralPaymentValueUpgradable";
+const CONTRACT = "ReferralPaymentEvaluatorUpgradable";
 
-// percentage of payments that will be distributed as referral rewards after successfull referral process
-const REFERRAL_PERCENTAGE = 50;
-const REQUIRED__VALUE_OF_PAYMENTS = 3;
+// percentage of payments that will be distributed as referral rewards after successful referral process
+const REFERRAL_PERCENTAGE = 5;
+
+// threshold values for payments quantity and payment values
+const QUANTITY_THRESHOLD = 5;
+const VALUE_THRESHOLD = 100;
 
 async function main() {
   // measure time for logs
@@ -31,7 +34,7 @@ async function main() {
   // log message
 
   console.log(
-    `Deploying payment value referral contracts to ${networkName} network...\n`
+    `Deploying referral payment evaluator contracts to ${networkName} network...\n`
   );
 
   // deploy upgradable-contracts contract --> has to be an upgradable-contracts contract
@@ -39,7 +42,8 @@ async function main() {
   const proxyContract = await upgrades.deployProxy(initialReferralContract, [
     receiver.address,
     REFERRAL_PERCENTAGE,
-    REQUIRED__VALUE_OF_PAYMENTS,
+    QUANTITY_THRESHOLD,
+    VALUE_THRESHOLD,
   ]);
 
   // calculate deployment transaction costs
