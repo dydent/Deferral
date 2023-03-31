@@ -1,6 +1,10 @@
 import { ethers } from "hardhat";
 import { BaseContract } from "ethers";
 
+// -----------------------------------------------------------------------------------------------
+// helper function for deploying smart contracts
+// -----------------------------------------------------------------------------------------------
+
 type DeploymentInputType = {
   contractName: string;
   constructorParams: any[];

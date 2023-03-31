@@ -1,6 +1,10 @@
 import { config as dotenvConfig } from "dotenv";
 import { resolve } from "path";
 
+// -----------------------------------------------------------------------------------------------
+// constants and helpers for generating and using accounts
+// -----------------------------------------------------------------------------------------------
+
 const dotenvConfigPath: string = process.env.DOTENV_CONFIG_PATH || "../../.env";
 dotenvConfig({ path: resolve(__dirname, dotenvConfigPath) });
 

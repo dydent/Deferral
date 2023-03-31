@@ -1,5 +1,5 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { V1ReferralPaymentValueUpgradable } from "../../typechain-types";
+import { BaseContract } from "ethers";
 
 export type PaymentValueFixtureInputType = {
   contractName: string;
@@ -8,11 +8,15 @@ export type PaymentValueFixtureInputType = {
   valueThreshold: number;
 };
 
-export type PaymentValueFixtureReturnType = {
+export type V3PaymentValueFixtureInputType = PaymentValueFixtureInputType & {
+  refereeRewardPercentage: number;
+};
+
+export type PaymentValueFixtureReturnType<T extends BaseContract> = {
   admin: SignerWithAddress;
   receiver: SignerWithAddress;
   updatedReceiver: SignerWithAddress;
   referrer: SignerWithAddress;
   referee: SignerWithAddress;
-  proxyContract: V1ReferralPaymentValueUpgradable;
+  proxyContract: T;
 };

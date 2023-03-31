@@ -6,6 +6,10 @@ import {
   METAMASK_ACCOUNTS,
 } from "./constants/accounts";
 
+// -----------------------------------------------------------------------------------------------
+// helper functions for configuring the different chains in the hardhat.config.ts file
+// -----------------------------------------------------------------------------------------------
+
 const GANACHE_URL = "HTTP://127.0.0.1:7545";
 
 const infuraApiKey: string | undefined = process.env.INFURA_API_KEY;

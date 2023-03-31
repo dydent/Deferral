@@ -1,19 +1,23 @@
-import { ethers } from "hardhat";
-import { ethConverter } from "../helpers/unit-converters";
+import { ethers, upgrades } from "hardhat";
 import { getNetworkInfo } from "../helpers/get-network-info";
 import { LogJsonInputType, writeLogFile } from "../helpers/write-files";
 import { resolveNetworkIds } from "../helpers/resolve-network-ids";
 
-// -----------------------------------------------------
-// deployment script for V1ReferralPaymentProxy Contract
-// -----------------------------------------------------
+// ------------------------------------------------------------------
+// deployment script for upgradable referral payment proxy contracts
+// ------------------------------------------------------------------
 
-const LOG_FILE_NAME = "payment-transmitter-contract-deployments.json";
+const LOG_FILE_NAME = "referral-payment-evaluator-contract.json";
 
-const CONTRACT = "V1ReferralPaymentTransmitter";
+// const INITIAL_CONTRACT = "UpgradableV1ReferralPaymentProxy";
+const CONTRACT = "ReferralPaymentEvaluatorUpgradable";
 
-const PAYMENT_AMOUNT = ethConverter(10);
-const REFERRAL_REWARD = ethConverter(1);
+// percentage of payments that will be distributed as referral rewards after successful referral process
+const REFERRAL_PERCENTAGE = 5;
+
+// threshold values for payments quantity and payment values
+const QUANTITY_THRESHOLD = 5;
+const VALUE_THRESHOLD = 100;
 
 async function main() {
   // measure time for logs
@@ -28,33 +32,31 @@ async function main() {
   const networkName = resolveNetworkIds(networkInfo.name, networkInfo.id);
   const networkId = networkInfo.id;
   // log message
-  console.log(`Deploying ${CONTRACT} contract to ${networkName} network...\n`);
 
-  // deploy contract --> deployer account signs this transaction
-  const referralContract = await ethers.getContractFactory(CONTRACT);
-
-  // deploy contract
-  const deployedReferralContract = await referralContract.deploy(
-    receiver.address,
-    PAYMENT_AMOUNT,
-    REFERRAL_REWARD
+  console.log(
+    `Deploying referral payment evaluator contracts to ${networkName} network...\n`
   );
 
-  // wait for contract to be deployed
-  await deployedReferralContract.deployed();
+  // deploy upgradable-contracts contract --> has to be an upgradable-contracts contract
+  const initialReferralContract = await ethers.getContractFactory(CONTRACT);
+  const proxyContract = await upgrades.deployProxy(initialReferralContract, [
+    receiver.address,
+    REFERRAL_PERCENTAGE,
+    QUANTITY_THRESHOLD,
+    VALUE_THRESHOLD,
+  ]);
 
   // calculate deployment transaction costs
-  const deploymentTxReceipt =
-    await deployedReferralContract.deployTransaction.wait();
+  const deploymentTxReceipt = await proxyContract.deployTransaction.wait();
   const txGasUsed = await deploymentTxReceipt.gasUsed;
   const txEffectiveGasPrice = await deploymentTxReceipt.effectiveGasPrice;
   const txCost = txGasUsed.mul(txEffectiveGasPrice);
 
   // get deployer / signer address that deploys the contract
-  const adminAddress = await deployedReferralContract.signer.getAddress();
+  const adminAddress = await proxyContract.signer.getAddress();
 
   // wait for contract to be deployed
-  const deployedProxyContract = await deployedReferralContract.deployed();
+  const deployedProxyContract = await proxyContract.deployed();
 
   // time measuring
   const endTime = performance.now();

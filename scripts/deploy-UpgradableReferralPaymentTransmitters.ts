@@ -1,5 +1,5 @@
 import { ethers, upgrades } from "hardhat";
-import { ethConverter } from "../helpers/converters";
+import { ethConverter } from "../helpers/unit-converters";
 import { getNetworkInfo } from "../helpers/get-network-info";
 import { LogJsonInputType, writeLogFile } from "../helpers/write-files";
 import { resolveNetworkIds } from "../helpers/resolve-network-ids";
@@ -14,6 +14,7 @@ const LOG_FILE_NAME =
 // const INITIAL_CONTRACT = "UpgradableV1ReferralPaymentProxy";
 const CONTRACT = "UpgradableV2ReferralPaymentTransmitter";
 
+// values for referral conditions
 const PAYMENT_AMOUNT = ethConverter(10);
 const REFERRAL_REWARD = ethConverter(1);
 
@@ -32,7 +33,7 @@ async function main() {
   // log message
 
   console.log(
-    `Deploying upgradable referral contracts to ${networkName} network...\n`
+    `Deploying upgradable payment transmitter referral contracts to ${networkName} network...\n`
   );
 
   // deploy upgradable-contracts contract --> has to be an upgradable-contracts contract

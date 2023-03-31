@@ -1,18 +1,24 @@
 // helper function to execute payments to the referral contract n times
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { ethConverter } from "../converters";
+import { ethConverter } from "../unit-converters";
 import {
+  V1ReferralPaymentEvaluatorUpgradable,
+  V1ReferralPaymentQuantityUpgradable,
   V1ReferralPaymentValueUpgradable,
-  V1ReferralQuantityPaymentUpgradable,
-  V2ReferralQuantityPaymentUpgradable,
+  V2ReferralPaymentQuantityUpgradable,
+  V2ReferralPaymentValueUpgradable,
 } from "../../typechain-types";
+import { V3ReferralPaymentValueUpgradable } from "../../typechain-types/contracts/referral-evaluators/referral-payment-value/V3ReferralPaymentValueUpgradable";
 
 type ValidContractType =
   | V1ReferralPaymentValueUpgradable
-  | V2ReferralQuantityPaymentUpgradable
-  | V1ReferralQuantityPaymentUpgradable;
+  | V2ReferralPaymentValueUpgradable
+  | V3ReferralPaymentValueUpgradable
+  | V1ReferralPaymentQuantityUpgradable
+  | V2ReferralPaymentQuantityUpgradable
+  | V1ReferralPaymentEvaluatorUpgradable;
 
-// helper functions for executing N payment transactions to referral contracts
+// helper functions for executing N payment transactions to different referral contracts
 export async function executeReferralPayment({
   executions,
   referee,

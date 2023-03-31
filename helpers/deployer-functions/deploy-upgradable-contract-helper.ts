@@ -2,6 +2,10 @@ import { ethers, upgrades } from "hardhat";
 import { BaseContract, ContractFactory } from "ethers";
 import { ContractAddressOrInstance } from "@openzeppelin/hardhat-upgrades/dist/utils";
 
+// -----------------------------------------------------------------------------------------------
+// helper function for deploying upgradable smart contracts
+// -----------------------------------------------------------------------------------------------
+
 type DeploymentInputType = {
   contractName: string;
   initArgs: any[];

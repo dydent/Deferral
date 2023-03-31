@@ -50,6 +50,11 @@ const config: HardhatUserConfig = {
       },
       chainId: CHAIN_IDS.hardhat,
     },
+    // GOERLI TESTNET
+    goerli: getChainConfig({
+      chain: "goerli",
+      hdWalletAccounts: USE_HD_WALLET_ACCOUNTS,
+    }),
     // LOCAL GANACHE NETWORK
     ganache: getChainConfig({
       chain: "ganache",
@@ -103,7 +108,19 @@ const config: HardhatUserConfig = {
     enabled: !!process.env.REPORT_GAS,
     currency: "USD",
     // !!! for accurate gas reporter output --> run test files one by one and exclude not needed contracts here !!!
-    // excludeContracts: ["V1ReferralPaymentProxy"],
+    excludeContracts: [
+      "V1ReferralPaymentTransmitter",
+      "UpgradableV1ReferralPaymentTransmitter",
+      "UpgradableV2ReferralPaymentTransmitter",
+      "V2MultilevelRewardReferralUpgradable",
+      "V1ReferralPaymentEvaluatorUpgradable",
+      "V1ReferralQuantityPaymentUpgradable",
+      "V2ReferralQuantityPaymentUpgradable",
+      "V1ReferralPaymentValueUpgradable",
+      "V2ReferralPaymentValueUpgradable",
+      "V1MultilevelRewardReferralUpgradable",
+      // "V2MultilevelRewardReferralUpgradable",
+    ],
     coinmarketcap: process.env.COINMARKETCAP_API_KEY,
     gasPriceApi: GAS_PRICE_API,
     // proxyResolver,

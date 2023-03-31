@@ -9,6 +9,62 @@ By using the [Hardhat](https://hardhat.org/) project setup, all necessary contra
 Hardhat is currently configured for deployment on three chains,
 either the local Harhdat, your local [Ganache](https://trufflesuite.com/ganache/) or the Goerli Testnet are configured.
 
+## Getting Started
+
+1. Clone this repository.
+2. Install dependencies:
+   - Using Yarn: `yarn install`
+   - Using NPM: `npm install`
+3. Compile contracts: `npx hardhat compile`
+4. Run tests: `npx hardhat test`
+
+## Running Deployment Scripts
+
+This project includes deployment scripts for deploying the contracts to a local network or a testnet.
+
+### Local Network
+
+To deploy the contracts to a local Hardhat network, run the following command:
+
+bashCopy code
+
+`npx hardhat run scripts/deploy-local.ts`
+
+### Testnet
+
+To deploy the contracts to a testnet, such as Rinkeby, first set up your network in `hardhat.config.ts`:
+
+typescriptCopy code
+
+``import { HardhatUserConfig } from "hardhat/types";
+
+const config: HardhatUserConfig = {
+// ...
+networks: {
+rinkeby: {
+url: "https://rinkeby.infura.io/v3/your-infura-api-key",
+accounts: [`0x${process.env.RINKEBY_PRIVATE_KEY}`],
+},
+// ...
+},
+};``
+
+Then run the deployment script for the desired network, passing in any necessary arguments:
+
+bashCopy code
+
+`npx hardhat run scripts/deploy-testnet.ts --network rinkeby`
+
+## Project Structure
+
+- `contracts/`: Solidity smart contracts.
+- `scripts/`: Deployment scripts for deploying contracts.
+- `test/`: Mocha tests for the contracts.
+- `types/`: TypeScript type definitions for the contracts and Hardhat.
+- `hardhat.config.ts`: Hardhat configuration file.
+- `tsconfig.json`: TypeScript configuration file.
+- `README.md`: This file.
+
 ## Setup
 
 In the root folder, create a `.env` file with at least the following values:
@@ -40,7 +96,7 @@ After a successful setup, you start deploying the contracts yourself.
 To deploy all smart contracts related to Uniswap functionalities, you can run the following command:
 
 ```
-hardhat run scripts/deploy-V1ReferralPaymentTransmitter.ts --network ...
+hardhat run scripts/deploy-contracts.ts --network ...
 ```
 
 ## Logging

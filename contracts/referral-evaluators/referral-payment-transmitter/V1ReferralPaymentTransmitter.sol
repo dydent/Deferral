@@ -78,7 +78,7 @@ contract V1ReferralPaymentTransmitter is Ownable {
     // function to update the referral payment amount
     function updatePaymentAmount(uint256 _newPaymentAmount) public onlyOwner {
         require(
-            paymentAmount > _newPaymentAmount,
+            referralReward < _newPaymentAmount,
             "reward must be portion of paymentAmount"
         );
         uint256 oldPaymentAmount = paymentAmount;
