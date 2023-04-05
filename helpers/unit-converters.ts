@@ -16,12 +16,6 @@ export const weiToEthConverter = (weiInputValue: BigNumber): BigNumber => {
   return toBn(utils.formatUnits(weiInputValue, 18));
 };
 
-export const ethConverter = (
-  ethInputValue: BigNumberish | number
-): BigNumber => {
-  return utils.parseUnits(ethInputValue.toString(), "ether");
-};
-
 export const etherUnitConverter = {
   [EtherUnits.Ether]: (value: BigNumber | number): BigNumber => {
     // if input is decimal number use toBn from evm-bn library

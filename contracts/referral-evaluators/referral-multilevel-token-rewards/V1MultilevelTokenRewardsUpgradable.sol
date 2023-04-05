@@ -287,9 +287,6 @@ contract V1ReferralMultilevelTokenRewardsUpgradable is
             "Referrer must be a registered address"
         );
 
-        // transfer tokens from payment to this contract
-        token.transferFrom(msg.sender, address(this), _paymentValue);
-
         // check preconditions for sender address (referee)
 
         // get current referee process data
@@ -303,7 +300,7 @@ contract V1ReferralMultilevelTokenRewardsUpgradable is
             "Referral process has been completed for this address"
         );
 
-        // Transfer tokens from user to the contract
+        // transfer token from sender to this contract
         token.transferFrom(msg.sender, address(this), _paymentValue);
 
         // update referral process with payment
@@ -319,7 +316,6 @@ contract V1ReferralMultilevelTokenRewardsUpgradable is
         // forward value to the receiver address
 
         forwardPayment(paymentValueAfterReward);
-
         emit PaymentRegistered(msg.sender, _paymentValue);
     }
 

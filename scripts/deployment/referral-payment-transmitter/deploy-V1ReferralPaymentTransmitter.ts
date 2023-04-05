@@ -1,21 +1,23 @@
-import { ethers, upgrades } from "hardhat";
-import { getNetworkInfo } from "../../helpers/get-network-info";
-import { LogJsonInputType, writeLogFile } from "../../helpers/write-files";
-import { resolveNetworkIds } from "../../helpers/resolve-network-ids";
+import { ethers } from "hardhat";
+import { etherUnitConverter } from "../../../helpers/unit-converters";
+import { getNetworkInfo } from "../../../helpers/get-network-info";
+import { LogJsonInputType, writeLogFile } from "../../../helpers/write-files";
+import { resolveNetworkIds } from "../../../helpers/resolve-network-ids";
+import { EtherUnits } from "../../../types/ValidUnitTypes";
 
-// ------------------------------------------------------------------
-// deployment script for upgradable referral payment proxy contracts
-// ------------------------------------------------------------------
+// -----------------------------------------------------
+// deployment script for V1ReferralPaymentTransmitter Contract
+// -----------------------------------------------------
 
-const LOG_FILE_NAME = "payment-quantity-contract-deployments.json";
+const CONTRACT = "V1ReferralPaymentTransmitter";
 
-// const INITIAL_CONTRACT = "UpgradableV1ReferralPaymentProxy";
-const CONTRACT = "V1ReferralQuantityPaymentUpgradable";
+const LOG_FILE_NAME = `${CONTRACT}-contract-deployments`;
 
-// percentage of payments that will be distributed as referral rewards after successful referral process
-const REFERRAL_PERCENTAGE = 50;
-// threshold value for quantity of required payments
-const REQUIRED_AMOUNT_OF_PAYMENTS = 3;
+const ETHER_UNIT = EtherUnits.Ether;
+
+// CONTRACT PARAMETERS
+const PAYMENT_AMOUNT = etherUnitConverter[ETHER_UNIT](2);
+const REFERRAL_REWARD = etherUnitConverter[ETHER_UNIT](0.5);
 
 async function main() {
   // measure time for logs
@@ -30,30 +32,33 @@ async function main() {
   const networkName = resolveNetworkIds(networkInfo.name, networkInfo.id);
   const networkId = networkInfo.id;
   // log message
+  console.log(`Deploying ${CONTRACT} contract to ${networkName} network...\n`);
 
-  console.log(
-    `Deploying payment quantity referral contracts to ${networkName} network...\n`
+  // deploy contract --> deployer account signs this transaction
+  const referralContract = await ethers.getContractFactory(CONTRACT);
+
+  // deploy contract
+  const deployedReferralContract = await referralContract.deploy(
+    receiver.address,
+    PAYMENT_AMOUNT,
+    REFERRAL_REWARD
   );
 
-  // deploy upgradable-contracts contract --> has to be an upgradable-contracts contract
-  const initialReferralContract = await ethers.getContractFactory(CONTRACT);
-  const proxyContract = await upgrades.deployProxy(initialReferralContract, [
-    receiver.address,
-    REFERRAL_PERCENTAGE,
-    REQUIRED_AMOUNT_OF_PAYMENTS,
-  ]);
+  // wait for contract to be deployed
+  await deployedReferralContract.deployed();
 
   // calculate deployment transaction costs
-  const deploymentTxReceipt = await proxyContract.deployTransaction.wait();
+  const deploymentTxReceipt =
+    await deployedReferralContract.deployTransaction.wait();
   const txGasUsed = await deploymentTxReceipt.gasUsed;
   const txEffectiveGasPrice = await deploymentTxReceipt.effectiveGasPrice;
   const txCost = txGasUsed.mul(txEffectiveGasPrice);
 
   // get deployer / signer address that deploys the contract
-  const adminAddress = await proxyContract.signer.getAddress();
+  const adminAddress = await deployedReferralContract.signer.getAddress();
 
   // wait for contract to be deployed
-  const deployedProxyContract = await proxyContract.deployed();
+  const deployedProxyContract = await deployedReferralContract.deployed();
 
   // time measuring
   const endTime = performance.now();
@@ -62,7 +67,7 @@ async function main() {
 
   // log message
   console.log(
-    ` ${adminAddress} deployed ${CONTRACT} contract to ${deployedProxyContract.address}`
+    `${adminAddress} deployed ${CONTRACT} contract to ${deployedProxyContract.address}`
   );
   console.log(` Gas Used: ${txGasUsed}`);
   console.log(` Tx Cost: ${txCost} (gas used * gas price)`);

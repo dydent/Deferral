@@ -11,7 +11,6 @@ import {
   SENDER_CANNOT_BE_REFERRER,
 } from "../../helpers/constants/error-strings";
 import { ethers, upgrades } from "hardhat";
-import { getTransactionCosts } from "../../helpers/get-transaction-costs";
 import { BigNumber, constants, Contract, ContractFactory } from "ethers";
 import { PercentageType } from "../../types/PercentageTypes";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
@@ -26,7 +25,7 @@ import { deployMultilevelTokenReferralRewardFixture } from "../../helpers/test-h
 // -----------------------------------------------------------------------------------------------
 // TEST CONFIG VALUES
 // -----------------------------------------------------------------------------------------------
-const TEST_PRECISION_DELTA = 1e1;
+const TEST_PRECISION_DELTA = 1;
 
 const CONTRACT_NAME = "V1ReferralMultilevelTokenRewardsUpgradable";
 
@@ -474,7 +473,7 @@ describe(testDescribeTitle, async () => {
     describe(testingReferralProcessDescribeTitle, async () => {
       try {
         // referral conditions for process testing
-        const ptPaymentValue: BigNumber = BigNumber.from(10);
+        const ptPaymentValue: BigNumber = BigNumber.from(50);
         const ptReferralPercentage: PercentageType = 11;
         const ptRefereePercentage: PercentageType = 50;
         const ptPaymentsValueThreshold: BigNumber = BigNumber.from(100);
@@ -776,29 +775,30 @@ describe(testDescribeTitle, async () => {
         });
 
         it(`${CONTRACT_NAME} should forward root referrer payment correctly`, async () => {
-          const { receiver, rootReferrer, proxyContract } = await loadFixture(
-            processTestingFixture
+          const { receiver, rootReferrer, proxyContract, token } =
+            await loadFixture(processTestingFixture);
+          const initialRootReferrerBalance: BigNumber = await token.balanceOf(
+            rootReferrer.address
           );
-          const initialRootReferrerBalance: BigNumber =
-            await rootReferrer.getBalance();
-          const initialReceiverBalance: BigNumber = await receiver.getBalance();
+          const initialReceiverBalance: BigNumber = await token.balanceOf(
+            receiver.address
+          );
 
           // root referrer payment registers address as root
-          const rootReferrerPaymentTx = await proxyContract
+          await proxyContract
             .connect(rootReferrer)
             ["registerReferralPayment(uint256)"](ptPaymentValue);
 
-          // calculate referral transaction costs
-          const txCost: BigNumber = await getTransactionCosts(
-            rootReferrerPaymentTx
-          );
-
           // calculate result values
-          const finalContractBalance: BigNumber =
-            await proxyContract.getBalance();
-          const afterReceiverBalance: BigNumber = await receiver.getBalance();
-          const afterRootReferrerBalance: BigNumber =
-            await rootReferrer.getBalance();
+          const finalContractBalance: BigNumber = await token.balanceOf(
+            proxyContract.address
+          );
+          const afterReceiverBalance: BigNumber = await token.balanceOf(
+            receiver.address
+          );
+          const afterRootReferrerBalance: BigNumber = await token.balanceOf(
+            rootReferrer.address
+          );
 
           // assert balances are correct
           expect(afterReceiverBalance).to.be.closeTo(
@@ -806,44 +806,46 @@ describe(testDescribeTitle, async () => {
             TEST_PRECISION_DELTA
           );
           expect(afterRootReferrerBalance).to.be.closeTo(
-            initialRootReferrerBalance.sub(ptPaymentValue).sub(txCost),
+            initialRootReferrerBalance.sub(ptPaymentValue),
             TEST_PRECISION_DELTA
           );
           expect(finalContractBalance).to.equal(0);
         });
 
         it(`${CONTRACT_NAME} should forward multiple root referrer payments and update data correctly`, async () => {
-          const { receiver, rootReferrer, proxyContract } = await loadFixture(
-            processTestingFixture
-          );
+          const { receiver, rootReferrer, proxyContract, token } =
+            await loadFixture(processTestingFixture);
 
           // register root referrer with payment
           await proxyContract
             .connect(rootReferrer)
             ["registerReferralPayment(uint256)"](ptPaymentValue);
 
-          const initialRootReferrerBalance: BigNumber =
-            await rootReferrer.getBalance();
-          const initialReceiverBalance: BigNumber = await receiver.getBalance();
+          const initialRootReferrerBalance: BigNumber = await token.balanceOf(
+            rootReferrer.address
+          );
+          const initialReceiverBalance: BigNumber = await token.balanceOf(
+            receiver.address
+          );
 
           // second root referrer payment
-          const rootReferrerPaymentTx = await proxyContract
+          await proxyContract
             .connect(rootReferrer)
             ["registerReferralPayment(uint256)"](ptPaymentValue);
-          // calculate referral transaction costs
-          const txCost: BigNumber = await getTransactionCosts(
-            rootReferrerPaymentTx
-          );
 
           // calculate result values
           const rootReferrerMapping = await proxyContract.refereeProcessMapping(
             rootReferrer.address
           );
-          const finalContractBalance: BigNumber =
-            await proxyContract.getBalance();
-          const afterReceiverBalance: BigNumber = await receiver.getBalance();
-          const afterRootReferrerBalance: BigNumber =
-            await rootReferrer.getBalance();
+          const finalContractBalance: BigNumber = await token.balanceOf(
+            proxyContract.address
+          );
+          const afterReceiverBalance: BigNumber = await token.balanceOf(
+            receiver.address
+          );
+          const afterRootReferrerBalance: BigNumber = await token.balanceOf(
+            rootReferrer.address
+          );
 
           // assert balances are correct
           expect(afterReceiverBalance).to.be.closeTo(
@@ -851,7 +853,7 @@ describe(testDescribeTitle, async () => {
             TEST_PRECISION_DELTA
           );
           expect(afterRootReferrerBalance).to.be.closeTo(
-            initialRootReferrerBalance.sub(ptPaymentValue).sub(txCost),
+            initialRootReferrerBalance.sub(ptPaymentValue),
             TEST_PRECISION_DELTA
           );
           expect(finalContractBalance).to.equal(0);
@@ -870,7 +872,7 @@ describe(testDescribeTitle, async () => {
         });
 
         it(`${CONTRACT_NAME} should forward referee payment with referrer address param correctly`, async () => {
-          const { receiver, referee, rootReferrer, proxyContract } =
+          const { receiver, referee, rootReferrer, proxyContract, token } =
             await loadFixture(processTestingFixture);
 
           // root referrer payment registers address as root
@@ -878,21 +880,23 @@ describe(testDescribeTitle, async () => {
             .connect(rootReferrer)
             ["registerReferralPayment(uint256)"](ptPaymentValue);
 
-          const initialRefereeBalance: BigNumber = await referee.getBalance();
-          const initialReceiverBalance: BigNumber = await receiver.getBalance();
-          const initialContractValue: BigNumber =
-            await proxyContract.getBalance();
+          const initialRefereeBalance: BigNumber = await token.balanceOf(
+            referee.address
+          );
+          const initialReceiverBalance: BigNumber = await token.balanceOf(
+            receiver.address
+          );
+          const initialContractValue: BigNumber = await token.balanceOf(
+            proxyContract.address
+          );
 
           // execute referee payment with root referrer as referrer address
-          const refereePaymentTx = await proxyContract
+          await proxyContract
             .connect(referee)
             ["registerReferralPayment(address,uint256)"](
               rootReferrer.address,
               ptPaymentValue
             );
-
-          // calculate referral transaction costs
-          const txCost: BigNumber = await getTransactionCosts(refereePaymentTx);
 
           // calculate result values
           const reward: BigNumber = ptPaymentValue
@@ -900,10 +904,15 @@ describe(testDescribeTitle, async () => {
             .div(100);
           const receiverAmount: BigNumber = ptPaymentValue.sub(reward);
 
-          const finalContractBalance: BigNumber =
-            await proxyContract.getBalance();
-          const afterReceiverBalance: BigNumber = await receiver.getBalance();
-          const afterRefereeBalance: BigNumber = await referee.getBalance();
+          const finalContractBalance: BigNumber = await token.balanceOf(
+            proxyContract.address
+          );
+          const afterReceiverBalance: BigNumber = await token.balanceOf(
+            receiver.address
+          );
+          const afterRefereeBalance: BigNumber = await token.balanceOf(
+            referee.address
+          );
 
           // assert balances are correct
           expect(afterReceiverBalance).to.be.closeTo(
@@ -911,7 +920,7 @@ describe(testDescribeTitle, async () => {
             TEST_PRECISION_DELTA
           );
           expect(afterRefereeBalance).to.be.closeTo(
-            initialRefereeBalance.sub(ptPaymentValue).sub(txCost),
+            initialRefereeBalance.sub(ptPaymentValue),
             TEST_PRECISION_DELTA
           );
           expect(finalContractBalance).to.be.closeTo(
@@ -921,7 +930,7 @@ describe(testDescribeTitle, async () => {
         });
 
         it(`${CONTRACT_NAME} should forward referee payment with empty referrer address param correctly`, async () => {
-          const { receiver, referee, rootReferrer, proxyContract } =
+          const { receiver, referee, rootReferrer, proxyContract, token } =
             await loadFixture(processTestingFixture);
 
           // root referrer payment registers address as root
@@ -937,18 +946,20 @@ describe(testDescribeTitle, async () => {
               ptPaymentValue
             );
 
-          const initialRefereeBalance: BigNumber = await referee.getBalance();
-          const initialReceiverBalance: BigNumber = await receiver.getBalance();
-          const initialContractValue: BigNumber =
-            await proxyContract.getBalance();
+          const initialRefereeBalance: BigNumber = await token.balanceOf(
+            referee.address
+          );
+          const initialReceiverBalance: BigNumber = await token.balanceOf(
+            receiver.address
+          );
+          const initialContractValue: BigNumber = await token.balanceOf(
+            proxyContract.address
+          );
 
           // execute referee payment empty address param
-          const refereePaymentTx = await proxyContract
+          await proxyContract
             .connect(referee)
             ["registerReferralPayment(uint256)"](ptPaymentValue);
-
-          // calculate referral transaction costs
-          const txCost: BigNumber = await getTransactionCosts(refereePaymentTx);
 
           // calculate result values
           const reward: BigNumber = ptPaymentValue
@@ -957,10 +968,15 @@ describe(testDescribeTitle, async () => {
 
           const receiverAmount: BigNumber = ptPaymentValue.sub(reward);
 
-          const finalContractBalance: BigNumber =
-            await proxyContract.getBalance();
-          const afterReceiverBalance: BigNumber = await receiver.getBalance();
-          const afterRefereeBalance: BigNumber = await referee.getBalance();
+          const finalContractBalance: BigNumber = await token.balanceOf(
+            proxyContract.address
+          );
+          const afterReceiverBalance: BigNumber = await token.balanceOf(
+            receiver.address
+          );
+          const afterRefereeBalance: BigNumber = await token.balanceOf(
+            referee.address
+          );
 
           // assert balances are correct
           expect(afterReceiverBalance).to.be.closeTo(
@@ -968,7 +984,7 @@ describe(testDescribeTitle, async () => {
             TEST_PRECISION_DELTA
           );
           expect(afterRefereeBalance).to.be.closeTo(
-            initialRefereeBalance.sub(ptPaymentValue).sub(txCost),
+            initialRefereeBalance.sub(ptPaymentValue),
             TEST_PRECISION_DELTA
           );
           expect(finalContractBalance).to.be.closeTo(

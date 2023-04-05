@@ -1,22 +1,23 @@
 import { ethers, upgrades } from "hardhat";
-import { ethConverter } from "../../helpers/unit-converters";
-import { getNetworkInfo } from "../../helpers/get-network-info";
-import { LogJsonInputType, writeLogFile } from "../../helpers/write-files";
-import { resolveNetworkIds } from "../../helpers/resolve-network-ids";
+import { etherUnitConverter } from "../../../helpers/unit-converters";
+import { getNetworkInfo } from "../../../helpers/get-network-info";
+import { LogJsonInputType, writeLogFile } from "../../../helpers/write-files";
+import { resolveNetworkIds } from "../../../helpers/resolve-network-ids";
+import { EtherUnits } from "../../../types/ValidUnitTypes";
 
-// ------------------------------------------------------------------
-// deployment script for upgradable referral payment proxy contracts
-// ------------------------------------------------------------------
+// -----------------------------------------------------
+// deployment script for V2ReferralPaymentTransmitterUpgradable Contract
+// -----------------------------------------------------
 
-const LOG_FILE_NAME =
-  "upgradable-payment-transmitter-contract-deployments.json";
+const CONTRACT = "V2ReferralPaymentTransmitterUpgradable";
 
-// const INITIAL_CONTRACT = "UpgradableV1ReferralPaymentProxy";
-const CONTRACT = "UpgradableV2ReferralPaymentTransmitter";
+const LOG_FILE_NAME = `${CONTRACT}-contract-deployments`;
 
-// values for referral conditions
-const PAYMENT_AMOUNT = ethConverter(10);
-const REFERRAL_REWARD = ethConverter(1);
+const ETHER_UNIT = EtherUnits.Ether;
+
+// CONTRACT PARAMETERS
+const PAYMENT_AMOUNT = etherUnitConverter[ETHER_UNIT](2);
+const REFERRAL_REWARD = etherUnitConverter[ETHER_UNIT](0.5);
 
 async function main() {
   // measure time for logs
@@ -31,12 +32,9 @@ async function main() {
   const networkName = resolveNetworkIds(networkInfo.name, networkInfo.id);
   const networkId = networkInfo.id;
   // log message
+  console.log(`Deploying ${CONTRACT} contract to ${networkName} network...\n`);
 
-  console.log(
-    `Deploying upgradable payment transmitter referral contracts to ${networkName} network...\n`
-  );
-
-  // deploy upgradable-contracts contract --> has to be an upgradable-contracts contract
+  // deploy upgradable-contract
   const initialReferralContract = await ethers.getContractFactory(CONTRACT);
   const proxyContract = await upgrades.deployProxy(initialReferralContract, [
     receiver.address,
@@ -63,7 +61,7 @@ async function main() {
 
   // log message
   console.log(
-    ` ${adminAddress} deployed ${CONTRACT} contract to ${deployedProxyContract.address}`
+    `${adminAddress} deployed ${CONTRACT} contract to ${deployedProxyContract.address}`
   );
   console.log(` Gas Used: ${txGasUsed}`);
   console.log(` Tx Cost: ${txCost} (gas used * gas price)`);

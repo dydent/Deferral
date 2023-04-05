@@ -1,19 +1,25 @@
-import { ethers } from "hardhat";
-import { ethConverter } from "../../helpers/unit-converters";
-import { getNetworkInfo } from "../../helpers/get-network-info";
-import { LogJsonInputType, writeLogFile } from "../../helpers/write-files";
-import { resolveNetworkIds } from "../../helpers/resolve-network-ids";
+import { ethers, upgrades } from "hardhat";
+import { etherUnitConverter } from "../../../helpers/unit-converters";
+import { getNetworkInfo } from "../../../helpers/get-network-info";
+import { LogJsonInputType, writeLogFile } from "../../../helpers/write-files";
+import { resolveNetworkIds } from "../../../helpers/resolve-network-ids";
+import { EtherUnits } from "../../../types/ValidUnitTypes";
+import { BigNumber } from "ethers";
+import { PercentageType } from "../../../types/PercentageTypes";
 
 // -----------------------------------------------------
-// deployment script for V1ReferralPaymentProxy Contract
+// deployment script for V2ReferralPaymentValueUpgradable Contract
 // -----------------------------------------------------
 
-const LOG_FILE_NAME = "payment-transmitter-contract-deployments.json";
+const CONTRACT = "V2ReferralPaymentValueUpgradable";
 
-const CONTRACT = "V1ReferralPaymentTransmitter";
+const LOG_FILE_NAME = `${CONTRACT}-contract-deployments`;
 
-const PAYMENT_AMOUNT = ethConverter(10);
-const REFERRAL_REWARD = ethConverter(1);
+const ETHER_UNIT = EtherUnits.Ether;
+
+// CONTRACT PARAMETERS
+const REWARD_PERCENTAGE: PercentageType = 30;
+const PAYMENTS_VALUE_THRESHOLD: BigNumber = etherUnitConverter[ETHER_UNIT](10);
 
 async function main() {
   // measure time for logs
@@ -30,31 +36,25 @@ async function main() {
   // log message
   console.log(`Deploying ${CONTRACT} contract to ${networkName} network...\n`);
 
-  // deploy contract --> deployer account signs this transaction
-  const referralContract = await ethers.getContractFactory(CONTRACT);
-
-  // deploy contract
-  const deployedReferralContract = await referralContract.deploy(
+  // deploy upgradable-contract
+  const initialReferralContract = await ethers.getContractFactory(CONTRACT);
+  const proxyContract = await upgrades.deployProxy(initialReferralContract, [
     receiver.address,
-    PAYMENT_AMOUNT,
-    REFERRAL_REWARD
-  );
-
-  // wait for contract to be deployed
-  await deployedReferralContract.deployed();
+    REWARD_PERCENTAGE,
+    PAYMENTS_VALUE_THRESHOLD,
+  ]);
 
   // calculate deployment transaction costs
-  const deploymentTxReceipt =
-    await deployedReferralContract.deployTransaction.wait();
+  const deploymentTxReceipt = await proxyContract.deployTransaction.wait();
   const txGasUsed = await deploymentTxReceipt.gasUsed;
   const txEffectiveGasPrice = await deploymentTxReceipt.effectiveGasPrice;
   const txCost = txGasUsed.mul(txEffectiveGasPrice);
 
   // get deployer / signer address that deploys the contract
-  const adminAddress = await deployedReferralContract.signer.getAddress();
+  const adminAddress = await proxyContract.signer.getAddress();
 
   // wait for contract to be deployed
-  const deployedProxyContract = await deployedReferralContract.deployed();
+  const deployedProxyContract = await proxyContract.deployed();
 
   // time measuring
   const endTime = performance.now();
@@ -63,7 +63,7 @@ async function main() {
 
   // log message
   console.log(
-    ` ${adminAddress} deployed ${CONTRACT} contract to ${deployedProxyContract.address}`
+    `${adminAddress} deployed ${CONTRACT} contract to ${deployedProxyContract.address}`
   );
   console.log(` Gas Used: ${txGasUsed}`);
   console.log(` Tx Cost: ${txCost} (gas used * gas price)`);
