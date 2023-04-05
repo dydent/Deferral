@@ -102,8 +102,8 @@ contract V2ReferralPaymentValueUpgradable is Initializable, OwnableUpgradeable {
     function claimRewards() public {
         uint256 rewards = claimableRewardMapping[msg.sender];
         require(rewards > 0, "No rewards to claim");
-        payable(msg.sender).transfer(rewards);
         claimableRewardMapping[msg.sender] = 0;
+        payable(msg.sender).transfer(rewards);
         emit ClaimedRewards(msg.sender, rewards);
     }
 

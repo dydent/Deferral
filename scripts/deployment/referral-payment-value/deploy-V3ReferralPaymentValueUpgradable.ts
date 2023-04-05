@@ -1,23 +1,26 @@
 import { ethers, upgrades } from "hardhat";
-import { getNetworkInfo } from "../../helpers/get-network-info";
-import { LogJsonInputType, writeLogFile } from "../../helpers/write-files";
-import { resolveNetworkIds } from "../../helpers/resolve-network-ids";
+import { etherUnitConverter } from "../../../helpers/unit-converters";
+import { getNetworkInfo } from "../../../helpers/get-network-info";
+import { LogJsonInputType, writeLogFile } from "../../../helpers/write-files";
+import { resolveNetworkIds } from "../../../helpers/resolve-network-ids";
+import { EtherUnits } from "../../../types/ValidUnitTypes";
+import { BigNumber } from "ethers";
+import { PercentageType } from "../../../types/PercentageTypes";
 
-// ------------------------------------------------------------------
-// deployment script for upgradable referral payment proxy contracts
-// ------------------------------------------------------------------
+// -----------------------------------------------------
+// deployment script for V3ReferralPaymentValueUpgradable Contract
+// -----------------------------------------------------
 
-const LOG_FILE_NAME = "referral-payment-evaluator-contract.json";
+const CONTRACT = "V3ReferralPaymentValueUpgradable";
 
-// const INITIAL_CONTRACT = "UpgradableV1ReferralPaymentProxy";
-const CONTRACT = "ReferralPaymentEvaluatorUpgradable";
+const LOG_FILE_NAME = `${CONTRACT}-contract-deployments`;
 
-// percentage of payments that will be distributed as referral rewards after successful referral process
-const REFERRAL_PERCENTAGE = 5;
+const ETHER_UNIT = EtherUnits.Ether;
 
-// threshold values for payments quantity and payment values
-const QUANTITY_THRESHOLD = 5;
-const VALUE_THRESHOLD = 100;
+// CONTRACT PARAMETERS
+const REWARD_PERCENTAGE: PercentageType = 20;
+const REFEREE_REWARD_PERCENTAGE: PercentageType = 10;
+const PAYMENTS_VALUE_THRESHOLD: BigNumber = etherUnitConverter[ETHER_UNIT](10);
 
 async function main() {
   // measure time for logs
@@ -32,18 +35,15 @@ async function main() {
   const networkName = resolveNetworkIds(networkInfo.name, networkInfo.id);
   const networkId = networkInfo.id;
   // log message
+  console.log(`Deploying ${CONTRACT} contract to ${networkName} network...\n`);
 
-  console.log(
-    `Deploying referral payment evaluator contracts to ${networkName} network...\n`
-  );
-
-  // deploy upgradable-contracts contract --> has to be an upgradable-contracts contract
+  // deploy upgradable-contract
   const initialReferralContract = await ethers.getContractFactory(CONTRACT);
   const proxyContract = await upgrades.deployProxy(initialReferralContract, [
     receiver.address,
-    REFERRAL_PERCENTAGE,
-    QUANTITY_THRESHOLD,
-    VALUE_THRESHOLD,
+    REWARD_PERCENTAGE,
+    REFEREE_REWARD_PERCENTAGE,
+    PAYMENTS_VALUE_THRESHOLD,
   ]);
 
   // calculate deployment transaction costs
@@ -65,7 +65,7 @@ async function main() {
 
   // log message
   console.log(
-    ` ${adminAddress} deployed ${CONTRACT} contract to ${deployedProxyContract.address}`
+    `${adminAddress} deployed ${CONTRACT} contract to ${deployedProxyContract.address}`
   );
   console.log(` Gas Used: ${txGasUsed}`);
   console.log(` Tx Cost: ${txCost} (gas used * gas price)`);
