@@ -28,6 +28,7 @@
     "test": "npx hardhat test --network hardhat",
     "test-multilevel-v1": "npx hardhat test test/referral-payment-multilevel-rewards/V1MultilevelRewardReferral.test.ts",
     "test-multilevel-v2": "npx hardhat test test/referral-payment-multilevel-rewards/V2MultilevelRewardReferral.test.ts",
+    "test-token-multilevel-v1": "npx hardhat test test/referral-multilevel-token-rewards/V1MultilevelTokenRewardReferral.test.ts",
     "test-transmitter-v1": "npx hardhat test test/referral-payment-transmitter/V1ReferralPaymentTransmitter.test.ts",
     "test-transmitter-v2": "npx hardhat test test/referral-payment-transmitter/V2ReferralPaymentTransmitter.test.ts",
     "test-transmitter-v3": "npx hardhat test test/referral-payment-transmitter/V3ReferralPaymentTransmitter.test.ts",

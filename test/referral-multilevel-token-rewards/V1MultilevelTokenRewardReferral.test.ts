@@ -10,36 +10,40 @@ import {
   ROOT_ADDRESS_CANNOT_BE_REFEREE,
   SENDER_CANNOT_BE_REFERRER,
 } from "../../helpers/constants/error-strings";
-import { deployV2MultilevelReferralRewardFixture } from "../../helpers/test-helpers/multilevel-reward-referral-fixtures";
 import { ethers, upgrades } from "hardhat";
-import { createReferralChain } from "../../helpers/test-helpers/create-referral-chain";
 import { getTransactionCosts } from "../../helpers/get-transaction-costs";
-import { BigNumber, constants } from "ethers";
+import { BigNumber, constants, Contract, ContractFactory } from "ethers";
 import { PercentageType } from "../../types/PercentageTypes";
-import { etherUnitConverter } from "../../helpers/unit-converters";
-import { EtherUnits } from "../../types/ValidUnitTypes";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import {
+  Deferral,
+  TwinDeferral,
+  V1ReferralMultilevelTokenRewardsUpgradable,
+} from "../../typechain-types";
+import { createTokenReferralChain } from "../../helpers/test-helpers/create-token-referral-chain";
+import { deployMultilevelTokenReferralRewardFixture } from "../../helpers/test-helpers/multilevel-token-reward-referral-fixtures";
 
 // -----------------------------------------------------------------------------------------------
 // TEST CONFIG VALUES
 // -----------------------------------------------------------------------------------------------
 const TEST_PRECISION_DELTA = 1e1;
 
-const CONTRACT_NAME = "V2ReferralMultilevelRewardsUpgradable";
+const CONTRACT_NAME = "V1ReferralMultilevelTokenRewardsUpgradable";
 
 // -----------------------------------------------------------------------------------------------
 // TEST DEFAULT VALUES
 // -----------------------------------------------------------------------------------------------
 
-const DEFAULT_UNIT: EtherUnits = EtherUnits.Ether;
+const DEFAULT_TOKEN: string = "Deferral";
+type DEFAULT_TOKEN_TYPE = Deferral;
+const DEFAULT_TOKEN_SUPPLY: BigNumber = BigNumber.from(1000000000);
+const DEFAULT_TOKEN_SUPPLY_PER_ACCOUNT: BigNumber = BigNumber.from(1000);
 // must be between 0 and 100!
 const DEFAULT_REFERRAL_PERCENTAGE: PercentageType = 30;
 const DEFAULT_REFEREE_PERCENTAGE: PercentageType = 40;
 // number of payment transactions for a referral process to be complete = thresholds + 1
 const DEFAULT_QUANTITY_THRESHOLD: BigNumber = BigNumber.from(2);
-const DEFAULT_VALUE_THRESHOLD: BigNumber = etherUnitConverter[DEFAULT_UNIT](
-  BigNumber.from(20)
-);
+const DEFAULT_VALUE_THRESHOLD: BigNumber = BigNumber.from(100);
 const DEFAULT_MAX_REWARD_LEVEL: BigNumber = BigNumber.from(4);
 
 const testDescribeTitle = `Testing ${CONTRACT_NAME} Referral Contract`;
@@ -48,7 +52,13 @@ describe(testDescribeTitle, async () => {
   try {
     // get fixture function for testing
     const defaultFixture = async () => {
-      return deployV2MultilevelReferralRewardFixture({
+      return deployMultilevelTokenReferralRewardFixture<
+        V1ReferralMultilevelTokenRewardsUpgradable,
+        DEFAULT_TOKEN_TYPE
+      >({
+        tokenName: DEFAULT_TOKEN,
+        initialTokenSupply: DEFAULT_TOKEN_SUPPLY,
+        tokenSupplyPerAccount: DEFAULT_TOKEN_SUPPLY_PER_ACCOUNT,
         contractName: CONTRACT_NAME,
         referralPercentage: DEFAULT_REFERRAL_PERCENTAGE,
         refereePercentage: DEFAULT_REFEREE_PERCENTAGE,
@@ -66,6 +76,15 @@ describe(testDescribeTitle, async () => {
       it(`${CONTRACT_NAME} should throw if deployed with incorrect referral reward param`, async () => {
         const [receiver] = await ethers.getSigners();
 
+        // deploy token contract
+        const TokenContract: ContractFactory = await ethers.getContractFactory(
+          DEFAULT_TOKEN
+        );
+        const deployedTokenContract: Contract = await TokenContract.deploy(
+          DEFAULT_TOKEN_SUPPLY
+        );
+        const tokenAddress: string = deployedTokenContract.address;
+
         const incorrectRewardPercentage: number = 105;
         const correctRewardPercentage: PercentageType = 60;
 
@@ -74,6 +93,7 @@ describe(testDescribeTitle, async () => {
         const deployedProxyContractPromise = upgrades.deployProxy(
           referralContract,
           [
+            tokenAddress,
             receiver.address,
             correctRewardPercentage,
             incorrectRewardPercentage,
@@ -86,9 +106,17 @@ describe(testDescribeTitle, async () => {
           REWARD_PERCENTAGE_OUT_OF_BOUNDS
         );
       });
-
       it(`${CONTRACT_NAME} should throw if deployed with incorrect referee reward param`, async () => {
         const [receiver] = await ethers.getSigners();
+        // deploy token contract
+        const TokenContract: ContractFactory = await ethers.getContractFactory(
+          DEFAULT_TOKEN
+        );
+        const deployedTokenContract: Contract = await TokenContract.deploy(
+          DEFAULT_TOKEN_SUPPLY
+        );
+
+        const tokenAddress: string = deployedTokenContract.address;
 
         const incorrectRewardPercentage: number = 105;
         const correctRewardPercentage: PercentageType = 50;
@@ -98,6 +126,7 @@ describe(testDescribeTitle, async () => {
         const deployedProxyContractPromise = upgrades.deployProxy(
           referralContract,
           [
+            tokenAddress,
             receiver.address,
             incorrectRewardPercentage,
             correctRewardPercentage,
@@ -113,6 +142,15 @@ describe(testDescribeTitle, async () => {
       it(`${CONTRACT_NAME} should throw if deployed with incorrect maxRewardLevels param`, async () => {
         const [receiver] = await ethers.getSigners();
 
+        // deploy token contract
+        const TokenContract: ContractFactory = await ethers.getContractFactory(
+          DEFAULT_TOKEN
+        );
+        const deployedTokenContract: Contract = await TokenContract.deploy(
+          DEFAULT_TOKEN_SUPPLY
+        );
+        const tokenAddress: string = deployedTokenContract.address;
+
         const incorrectMaxRewardLevelsParam: number = 0;
         const correctRewardPercentage: PercentageType = 50;
 
@@ -121,6 +159,7 @@ describe(testDescribeTitle, async () => {
         const deployedProxyContractPromise = upgrades.deployProxy(
           referralContract,
           [
+            tokenAddress,
             receiver.address,
             correctRewardPercentage,
             correctRewardPercentage,
@@ -133,13 +172,42 @@ describe(testDescribeTitle, async () => {
           MIN_REWARD_LEVELS
         );
       });
+      it(`${CONTRACT_NAME} should throw if deployed with zero address for receiver`, async () => {
+        const referralContract = await ethers.getContractFactory(CONTRACT_NAME);
 
-      it(`${CONTRACT_NAME} should throw if deployed with zero address`, async () => {
+        // deploy token contract
+        const TokenContract: ContractFactory = await ethers.getContractFactory(
+          DEFAULT_TOKEN
+        );
+        const deployedTokenContract: Contract = await TokenContract.deploy(
+          DEFAULT_TOKEN_SUPPLY
+        );
+
+        const tokenAddress: string = deployedTokenContract.address;
+
+        const deployedProxyContractPromise = upgrades.deployProxy(
+          referralContract,
+          [
+            tokenAddress,
+            constants.AddressZero,
+            DEFAULT_REFERRAL_PERCENTAGE,
+            DEFAULT_REFEREE_PERCENTAGE,
+            DEFAULT_QUANTITY_THRESHOLD,
+            DEFAULT_VALUE_THRESHOLD,
+            DEFAULT_MAX_REWARD_LEVEL,
+          ]
+        );
+        await expect(deployedProxyContractPromise).to.be.rejectedWith(
+          NON_ZERO_ADDRESS
+        );
+      });
+      it(`${CONTRACT_NAME} should throw if deployed with invalid token address`, async () => {
         const referralContract = await ethers.getContractFactory(CONTRACT_NAME);
 
         const deployedProxyContractPromise = upgrades.deployProxy(
           referralContract,
           [
+            constants.AddressZero,
             constants.AddressZero,
             DEFAULT_REFERRAL_PERCENTAGE,
             DEFAULT_REFEREE_PERCENTAGE,
@@ -263,9 +331,9 @@ describe(testDescribeTitle, async () => {
         const { admin, proxyContract } = await loadFixture(defaultFixture);
         // test with regular and inbound boundary values
         const validUpdateValues: BigNumber[] = [
-          etherUnitConverter[DEFAULT_UNIT](BigNumber.from(10)),
-          etherUnitConverter[DEFAULT_UNIT](BigNumber.from(50)),
-          etherUnitConverter[DEFAULT_UNIT](BigNumber.from(100)),
+          BigNumber.from(10),
+          BigNumber.from(50),
+          BigNumber.from(100),
         ];
         // update values and assert they are updated
         for (const updatedValue of validUpdateValues) {
@@ -305,6 +373,24 @@ describe(testDescribeTitle, async () => {
           await expect(updatePromise).to.be.rejectedWith(MIN_REWARD_LEVELS);
         }
       });
+
+      it(`${CONTRACT_NAME} should update reward token`, async () => {
+        const { admin, proxyContract } = await loadFixture(defaultFixture);
+
+        // deploy second erc20 token
+        const TokenContract = await ethers.getContractFactory("TwinDeferral");
+        const deployedToken: TwinDeferral = (await TokenContract.deploy(
+          DEFAULT_TOKEN_SUPPLY
+        )) as TwinDeferral;
+        const updatedTokenAddress: string = deployedToken.address;
+
+        // update values and assert they are updated
+        await proxyContract
+          .connect(admin)
+          .updateReferralToken(updatedTokenAddress);
+        const token = await proxyContract.token();
+        expect(token).to.equal(updatedTokenAddress);
+      });
     });
 
     // -----------------------------------------------------------------------------------------------
@@ -315,18 +401,30 @@ describe(testDescribeTitle, async () => {
       it(`${CONTRACT_NAME} should throw if non-admin tries to update contract`, async () => {
         const { rootReferrer, updatedReceiver, proxyContract } =
           await loadFixture(defaultFixture);
+
+        // deploy token contract
+        const TokenContract: ContractFactory = await ethers.getContractFactory(
+          DEFAULT_TOKEN
+        );
+        const deployedTokenContract: Contract = await TokenContract.deploy(
+          DEFAULT_TOKEN_SUPPLY
+        );
+
+        // get valid values for updating
+        const tokenAddress: string = deployedTokenContract.address;
         const nonAdminSigner: SignerWithAddress = rootReferrer;
         const validReferralReward: PercentageType = 50;
         const validRefereeReward: PercentageType = 40;
         const validReceiverAddress: string = await updatedReceiver.getAddress();
         const validPaymentQuantity: BigNumber = BigNumber.from(100);
-        const validPaymentsValue: BigNumber = etherUnitConverter[DEFAULT_UNIT](
-          BigNumber.from(50)
-        );
+        const validPaymentsValue: BigNumber = BigNumber.from(50);
         const validMaxRewardLevels: BigNumber = BigNumber.from(20);
         const expectedError: string = OWNABLE_ERROR_STRING;
 
         // execute tx with valid values and non-admin signer
+        const tokenUpdatedPromise = proxyContract
+          .connect(nonAdminSigner)
+          .updateReferralToken(tokenAddress);
         const referralRewardUpdatePromise = proxyContract
           .connect(nonAdminSigner)
           .updateReferralReward(validReferralReward);
@@ -346,6 +444,7 @@ describe(testDescribeTitle, async () => {
           .connect(nonAdminSigner)
           .updateMaxRewardLevels(validMaxRewardLevels);
         // await tx calls to be rejected since they are not owner of the contract
+        await expect(tokenUpdatedPromise).to.be.rejectedWith(expectedError);
         await expect(referralRewardUpdatePromise).to.be.rejectedWith(
           expectedError
         );
@@ -375,18 +474,22 @@ describe(testDescribeTitle, async () => {
     describe(testingReferralProcessDescribeTitle, async () => {
       try {
         // referral conditions for process testing
-        const ptUnit = EtherUnits.Ether;
-        const ptPaymentValue: BigNumber = etherUnitConverter[ptUnit](10);
+        const ptPaymentValue: BigNumber = BigNumber.from(10);
         const ptReferralPercentage: PercentageType = 11;
         const ptRefereePercentage: PercentageType = 50;
-        const ptPaymentsValueThreshold: BigNumber =
-          etherUnitConverter[ptUnit](100);
+        const ptPaymentsValueThreshold: BigNumber = BigNumber.from(100);
         const ptPaymentsQuantityThreshold: BigNumber = BigNumber.from(5);
         const ptMaxRewardLevels: BigNumber = BigNumber.from(2);
 
         // get fixture function for testing
         const processTestingFixture = async () => {
-          return deployV2MultilevelReferralRewardFixture({
+          return deployMultilevelTokenReferralRewardFixture<
+            V1ReferralMultilevelTokenRewardsUpgradable,
+            DEFAULT_TOKEN_TYPE
+          >({
+            tokenName: DEFAULT_TOKEN,
+            initialTokenSupply: DEFAULT_TOKEN_SUPPLY,
+            tokenSupplyPerAccount: DEFAULT_TOKEN_SUPPLY_PER_ACCOUNT,
             contractName: CONTRACT_NAME,
             referralPercentage: ptReferralPercentage,
             refereePercentage: ptRefereePercentage,
@@ -404,9 +507,10 @@ describe(testDescribeTitle, async () => {
           // register referee with root referrer as referee
           const refereePaymentTxPromise = proxyContract
             .connect(referee)
-            ["registerReferralPayment(address)"](referee.address, {
-              value: ptPaymentValue,
-            });
+            ["registerReferralPayment(address,uint256)"](
+              referee.address,
+              ptPaymentValue
+            );
 
           // await calls to be rejected since referral has been completed
           await expect(refereePaymentTxPromise).to.be.rejectedWith(
@@ -422,10 +526,12 @@ describe(testDescribeTitle, async () => {
           // execute root referrer payment with no referrer param --> registers address as root
           await proxyContract
             .connect(rootReferrer)
-            ["registerReferralPayment()"]({ value: ptPaymentValue });
+            ["registerReferralPayment(uint256)"](ptPaymentValue);
+
           const rootReferrerMapping = await proxyContract.refereeProcessMapping(
             rootReferrer.address
           );
+
           // assert root referrer data is updated and registered correctly
           expect(rootReferrerMapping.isRoot).to.equal(true);
           expect(rootReferrerMapping.referralProcessCompleted).to.equal(false);
@@ -444,13 +550,14 @@ describe(testDescribeTitle, async () => {
           // register root referrer
           await proxyContract
             .connect(rootReferrer)
-            ["registerReferralPayment()"]({ value: ptPaymentValue });
+            ["registerReferralPayment(uint256)"](ptPaymentValue);
           // register referee with root referrer as referee
           await proxyContract
             .connect(referee)
-            ["registerReferralPayment(address)"](rootReferrer.address, {
-              value: ptPaymentValue,
-            });
+            ["registerReferralPayment(address,uint256)"](
+              rootReferrer.address,
+              ptPaymentValue
+            );
           const refereeProcessMapping =
             await proxyContract.refereeProcessMapping(referee.address);
           // assert data is updated correctly
@@ -471,9 +578,10 @@ describe(testDescribeTitle, async () => {
           // register another referee payment with empty referral address param
           await proxyContract
             .connect(referee)
-            ["registerReferralPayment(address)"](rootReferrer.address, {
-              value: ptPaymentValue,
-            });
+            ["registerReferralPayment(address,uint256)"](
+              rootReferrer.address,
+              ptPaymentValue
+            );
 
           const updatedRefereeProcessMapping =
             await proxyContract.refereeProcessMapping(referee.address);
@@ -500,16 +608,17 @@ describe(testDescribeTitle, async () => {
           // register root referrer
           await proxyContract
             .connect(rootReferrer)
-            ["registerReferralPayment()"]({ value: ptPaymentValue });
+            ["registerReferralPayment(uint256)"](ptPaymentValue);
           await proxyContract
             .connect(rootReferrer2)
-            ["registerReferralPayment()"]({ value: ptPaymentValue });
+            ["registerReferralPayment(uint256)"](ptPaymentValue);
           // register referee with root referrer as referee
           await proxyContract
             .connect(referee)
-            ["registerReferralPayment(address)"](rootReferrer.address, {
-              value: ptPaymentValue,
-            });
+            ["registerReferralPayment(address,uint256)"](
+              rootReferrer.address,
+              ptPaymentValue
+            );
           const refereeProcessMapping =
             await proxyContract.refereeProcessMapping(referee.address);
           // assert data is updated correctly
@@ -528,9 +637,10 @@ describe(testDescribeTitle, async () => {
           // register another referee payment with different registered referral address param
           await proxyContract
             .connect(referee)
-            ["registerReferralPayment(address)"](rootReferrer2.address, {
-              value: ptPaymentValue,
-            });
+            ["registerReferralPayment(address,uint256)"](
+              rootReferrer2.address,
+              ptPaymentValue
+            );
           const updatedRefereeProcessMapping =
             await proxyContract.refereeProcessMapping(referee.address);
           // assert data is updated correctly
@@ -555,13 +665,14 @@ describe(testDescribeTitle, async () => {
           // register root referrer
           await proxyContract
             .connect(rootReferrer)
-            ["registerReferralPayment()"]({ value: ptPaymentValue });
+            ["registerReferralPayment(uint256)"](ptPaymentValue);
           // register referee with root referrer as referee
           await proxyContract
             .connect(referee)
-            ["registerReferralPayment(address)"](rootReferrer.address, {
-              value: ptPaymentValue,
-            });
+            ["registerReferralPayment(address,uint256)"](
+              rootReferrer.address,
+              ptPaymentValue
+            );
           const refereeProcessMapping =
             await proxyContract.refereeProcessMapping(referee.address);
           // assert data is updated correctly
@@ -580,9 +691,10 @@ describe(testDescribeTitle, async () => {
           // register new referee with higher level referee as referrer
           await proxyContract
             .connect(referee2)
-            ["registerReferralPayment(address)"](referee.address, {
-              value: ptPaymentValue,
-            });
+            ["registerReferralPayment(address,uint256)"](
+              referee.address,
+              ptPaymentValue
+            );
           const referee2ProcessMapping =
             await proxyContract.refereeProcessMapping(referee2.address);
           // assert data is updated correctly
@@ -607,9 +719,10 @@ describe(testDescribeTitle, async () => {
           // register referee with root referrer as referee
           const refereePaymentTxPromise = proxyContract
             .connect(referee)
-            ["registerReferralPayment(address)"](constants.AddressZero, {
-              value: ptPaymentValue,
-            });
+            ["registerReferralPayment(address,uint256)"](
+              constants.AddressZero,
+              ptPaymentValue
+            );
 
           // await calls to be rejected since referral has been completed
           await expect(refereePaymentTxPromise).to.be.rejectedWith(
@@ -625,9 +738,10 @@ describe(testDescribeTitle, async () => {
           // register referee with root referrer as referee
           const refereePaymentTxPromise = proxyContract
             .connect(referee)
-            ["registerReferralPayment(address)"](rootReferrer.address, {
-              value: ptPaymentValue,
-            });
+            ["registerReferralPayment(address,uint256)"](
+              rootReferrer.address,
+              ptPaymentValue
+            );
 
           // await calls to be rejected since referral has been completed
           await expect(refereePaymentTxPromise).to.be.rejectedWith(
@@ -642,17 +756,18 @@ describe(testDescribeTitle, async () => {
           // register root referrers
           await proxyContract
             .connect(rootReferrer)
-            ["registerReferralPayment()"]({ value: ptPaymentValue });
+            ["registerReferralPayment(uint256)"](ptPaymentValue);
           await proxyContract
             .connect(rootReferrer2)
-            ["registerReferralPayment()"]({ value: ptPaymentValue });
+            ["registerReferralPayment(uint256)"](ptPaymentValue);
 
           // try register root referrer with other referrer address
           const rootAsRefereePaymentTx = proxyContract
             .connect(rootReferrer)
-            ["registerReferralPayment(address)"](rootReferrer2.address, {
-              value: ptPaymentValue,
-            });
+            ["registerReferralPayment(address,uint256)"](
+              rootReferrer2.address,
+              ptPaymentValue
+            );
 
           // await calls to be rejected since referral has been completed
           await expect(rootAsRefereePaymentTx).to.be.rejectedWith(
@@ -671,7 +786,7 @@ describe(testDescribeTitle, async () => {
           // root referrer payment registers address as root
           const rootReferrerPaymentTx = await proxyContract
             .connect(rootReferrer)
-            ["registerReferralPayment()"]({ value: ptPaymentValue });
+            ["registerReferralPayment(uint256)"](ptPaymentValue);
 
           // calculate referral transaction costs
           const txCost: BigNumber = await getTransactionCosts(
@@ -705,7 +820,7 @@ describe(testDescribeTitle, async () => {
           // register root referrer with payment
           await proxyContract
             .connect(rootReferrer)
-            ["registerReferralPayment()"]({ value: ptPaymentValue });
+            ["registerReferralPayment(uint256)"](ptPaymentValue);
 
           const initialRootReferrerBalance: BigNumber =
             await rootReferrer.getBalance();
@@ -714,7 +829,7 @@ describe(testDescribeTitle, async () => {
           // second root referrer payment
           const rootReferrerPaymentTx = await proxyContract
             .connect(rootReferrer)
-            ["registerReferralPayment()"]({ value: ptPaymentValue });
+            ["registerReferralPayment(uint256)"](ptPaymentValue);
           // calculate referral transaction costs
           const txCost: BigNumber = await getTransactionCosts(
             rootReferrerPaymentTx
@@ -761,7 +876,7 @@ describe(testDescribeTitle, async () => {
           // root referrer payment registers address as root
           await proxyContract
             .connect(rootReferrer)
-            ["registerReferralPayment()"]({ value: ptPaymentValue });
+            ["registerReferralPayment(uint256)"](ptPaymentValue);
 
           const initialRefereeBalance: BigNumber = await referee.getBalance();
           const initialReceiverBalance: BigNumber = await receiver.getBalance();
@@ -771,9 +886,10 @@ describe(testDescribeTitle, async () => {
           // execute referee payment with root referrer as referrer address
           const refereePaymentTx = await proxyContract
             .connect(referee)
-            ["registerReferralPayment(address)"](rootReferrer.address, {
-              value: ptPaymentValue,
-            });
+            ["registerReferralPayment(address,uint256)"](
+              rootReferrer.address,
+              ptPaymentValue
+            );
 
           // calculate referral transaction costs
           const txCost: BigNumber = await getTransactionCosts(refereePaymentTx);
@@ -811,14 +927,15 @@ describe(testDescribeTitle, async () => {
           // root referrer payment registers address as root
           await proxyContract
             .connect(rootReferrer)
-            ["registerReferralPayment()"]({ value: ptPaymentValue });
+            ["registerReferralPayment(uint256)"](ptPaymentValue);
 
           // execute referee payment to register referee as referee with root referrer
           await proxyContract
             .connect(referee)
-            ["registerReferralPayment(address)"](rootReferrer.address, {
-              value: ptPaymentValue,
-            });
+            ["registerReferralPayment(address,uint256)"](
+              rootReferrer.address,
+              ptPaymentValue
+            );
 
           const initialRefereeBalance: BigNumber = await referee.getBalance();
           const initialReceiverBalance: BigNumber = await receiver.getBalance();
@@ -828,9 +945,7 @@ describe(testDescribeTitle, async () => {
           // execute referee payment empty address param
           const refereePaymentTx = await proxyContract
             .connect(referee)
-            ["registerReferralPayment()"]({
-              value: ptPaymentValue,
-            });
+            ["registerReferralPayment(uint256)"](ptPaymentValue);
 
           // calculate referral transaction costs
           const txCost: BigNumber = await getTransactionCosts(refereePaymentTx);
@@ -876,9 +991,7 @@ describe(testDescribeTitle, async () => {
     const testingDistributingTwoSidedRewardsDescribeTitle = `Testing Distributing Two-Sided Multi Level Rewards Functionality`;
     describe(testingDistributingTwoSidedRewardsDescribeTitle, async () => {
       try {
-        // referral conditions for testing reward distribution (rd)
-        const rdUnit = EtherUnits.Ether;
-        const rdPaymentValue: BigNumber = etherUnitConverter[rdUnit](29.5);
+        const rdPaymentValue: BigNumber = BigNumber.from(30);
         const rdReferralPercentage: PercentageType = 11;
         const rdRefereePercentage: PercentageType = 50;
         const rdPaymentsValueThreshold: BigNumber = rdPaymentValue;
@@ -887,7 +1000,13 @@ describe(testDescribeTitle, async () => {
 
         // get fixture function for testing
         const rewardDistributionFixture = async () => {
-          return deployV2MultilevelReferralRewardFixture({
+          return deployMultilevelTokenReferralRewardFixture<
+            V1ReferralMultilevelTokenRewardsUpgradable,
+            DEFAULT_TOKEN_TYPE
+          >({
+            tokenName: DEFAULT_TOKEN,
+            initialTokenSupply: DEFAULT_TOKEN_SUPPLY,
+            tokenSupplyPerAccount: DEFAULT_TOKEN_SUPPLY_PER_ACCOUNT,
             contractName: CONTRACT_NAME,
             referralPercentage: rdReferralPercentage,
             refereePercentage: rdRefereePercentage,
@@ -910,10 +1029,11 @@ describe(testDescribeTitle, async () => {
             referee4,
             finalReferee,
             proxyContract,
+            token,
           } = await loadFixture(rewardDistributionFixture);
 
           // create referral chain payments
-          const chain = await createReferralChain({
+          const chain = await createTokenReferralChain<DEFAULT_TOKEN_TYPE>({
             rootReferrer,
             referee,
             referee2,
@@ -922,18 +1042,13 @@ describe(testDescribeTitle, async () => {
             finalReferee,
             proxyContract,
             paymentValue: rdPaymentValue,
+            token,
           });
 
           // complete referral process for referee 1
-          const completionPayment = await chain.proxyContract
+          await chain.proxyContract
             .connect(chain.referee)
-            ["registerReferralPayment()"]({
-              value: rdPaymentValue,
-            });
-
-          const txCost: BigNumber = await getTransactionCosts(
-            completionPayment
-          );
+            ["registerReferralPayment(uint256)"](rdPaymentValue);
 
           const numberOfRewardLevels: BigNumber = BigNumber.from(1);
 
@@ -946,13 +1061,15 @@ describe(testDescribeTitle, async () => {
           const completionPaymentContractRewardProportion: BigNumber =
             rdPaymentValue.mul(rdReferralPercentage).div(100);
 
-          // account balances
-          const afterRefereeBalance: BigNumber =
-            await chain.referee.getBalance();
-          const afterRootReferralBalance: BigNumber =
-            await chain.rootReferrer.getBalance();
-          const afterContractBalance: BigNumber =
-            await chain.proxyContract.getBalance();
+          const afterRefereeBalance: BigNumber = await token.balanceOf(
+            chain.referee.address
+          );
+          const afterRootReferralBalance: BigNumber = await token.balanceOf(
+            rootReferrer.address
+          );
+          const afterContractBalance: BigNumber = await token.balanceOf(
+            proxyContract.address
+          );
 
           // calculate reward values
           const expectedTotalPaidOutReward: BigNumber = registeredPaidValue
@@ -977,7 +1094,6 @@ describe(testDescribeTitle, async () => {
           expect(afterRefereeBalance).to.be.closeTo(
             chain.initialRefereeBalance
               .sub(rdPaymentValue)
-              .sub(txCost)
               .add(expectedRefereeReward),
             TEST_PRECISION_DELTA
           );
@@ -1010,10 +1126,11 @@ describe(testDescribeTitle, async () => {
             referee4,
             finalReferee,
             proxyContract,
+            token,
           } = await loadFixture(rewardDistributionFixture);
 
           // create referral chain payments
-          const chain = await createReferralChain({
+          const chain = await createTokenReferralChain<DEFAULT_TOKEN_TYPE>({
             rootReferrer,
             referee,
             referee2,
@@ -1022,18 +1139,13 @@ describe(testDescribeTitle, async () => {
             finalReferee,
             proxyContract,
             paymentValue: rdPaymentValue,
+            token,
           });
 
           // complete referral process for referee 2
-          const completionPayment = await chain.proxyContract
+          await chain.proxyContract
             .connect(chain.referee2)
-            ["registerReferralPayment()"]({
-              value: rdPaymentValue,
-            });
-
-          const txCost: BigNumber = await getTransactionCosts(
-            completionPayment
-          );
+            ["registerReferralPayment(uint256)"](rdPaymentValue);
 
           const numberOfRewardLevels: BigNumber = BigNumber.from(2);
 
@@ -1047,14 +1159,18 @@ describe(testDescribeTitle, async () => {
             rdPaymentValue.mul(rdReferralPercentage).div(100);
 
           // account balances
-          const afterReferee2Balance: BigNumber =
-            await chain.referee2.getBalance();
-          const afterRootReferralBalance: BigNumber =
-            await chain.rootReferrer.getBalance();
-          const afterRefereeBalance: BigNumber =
-            await chain.referee.getBalance();
-          const afterContractBalance: BigNumber =
-            await chain.proxyContract.getBalance();
+          const afterReferee2Balance: BigNumber = await token.balanceOf(
+            referee2.address
+          );
+          const afterRootReferralBalance: BigNumber = await token.balanceOf(
+            rootReferrer.address
+          );
+          const afterRefereeBalance: BigNumber = await token.balanceOf(
+            referee.address
+          );
+          const afterContractBalance: BigNumber = await token.balanceOf(
+            proxyContract.address
+          );
 
           // calculate reward values
           const expectedTotalPaidOutReward: BigNumber = registeredPaidValue
@@ -1079,7 +1195,6 @@ describe(testDescribeTitle, async () => {
           expect(afterReferee2Balance).to.be.closeTo(
             chain.initialReferee2Balance
               .sub(rdPaymentValue)
-              .sub(txCost)
               .add(expectedRefereeReward),
             TEST_PRECISION_DELTA
           );
@@ -1118,10 +1233,11 @@ describe(testDescribeTitle, async () => {
             referee4,
             finalReferee,
             proxyContract,
+            token,
           } = await loadFixture(rewardDistributionFixture);
 
           // create referral chain payments
-          const chain = await createReferralChain({
+          const chain = await createTokenReferralChain<DEFAULT_TOKEN_TYPE>({
             rootReferrer,
             referee,
             referee2,
@@ -1130,18 +1246,13 @@ describe(testDescribeTitle, async () => {
             finalReferee,
             proxyContract,
             paymentValue: rdPaymentValue,
+            token,
           });
 
           // complete referral process for referee 3
-          const completionPayment = await chain.proxyContract
+          await chain.proxyContract
             .connect(chain.referee3)
-            ["registerReferralPayment()"]({
-              value: rdPaymentValue,
-            });
-
-          const txCost: BigNumber = await getTransactionCosts(
-            completionPayment
-          );
+            ["registerReferralPayment(uint256)"](rdPaymentValue);
 
           const numberOfRewardLevels: BigNumber = BigNumber.from(3);
 
@@ -1155,16 +1266,21 @@ describe(testDescribeTitle, async () => {
             rdPaymentValue.mul(rdReferralPercentage).div(100);
 
           // account balances
-          const afterReferee3Balance: BigNumber =
-            await chain.referee3.getBalance();
-          const afterRootReferralBalance: BigNumber =
-            await chain.rootReferrer.getBalance();
-          const afterRefereeBalance: BigNumber =
-            await chain.referee.getBalance();
-          const afterReferee2Balance: BigNumber =
-            await chain.referee2.getBalance();
-          const afterContractBalance: BigNumber =
-            await chain.proxyContract.getBalance();
+          const afterReferee3Balance: BigNumber = await token.balanceOf(
+            referee3.address
+          );
+          const afterRootReferralBalance: BigNumber = await token.balanceOf(
+            rootReferrer.address
+          );
+          const afterRefereeBalance: BigNumber = await token.balanceOf(
+            referee.address
+          );
+          const afterReferee2Balance: BigNumber = await token.balanceOf(
+            referee2.address
+          );
+          const afterContractBalance: BigNumber = await token.balanceOf(
+            proxyContract.address
+          );
 
           // calculate reward values
           const expectedTotalPaidOutReward: BigNumber = registeredPaidValue
@@ -1189,7 +1305,6 @@ describe(testDescribeTitle, async () => {
           expect(afterReferee3Balance).to.be.closeTo(
             chain.initialReferee3Balance
               .sub(rdPaymentValue)
-              .sub(txCost)
               .add(expectedRefereeReward),
             TEST_PRECISION_DELTA
           );
@@ -1234,10 +1349,11 @@ describe(testDescribeTitle, async () => {
             referee4,
             finalReferee,
             proxyContract,
+            token,
           } = await loadFixture(rewardDistributionFixture);
 
           // create referral chain payments
-          const chain = await createReferralChain({
+          const chain = await createTokenReferralChain<DEFAULT_TOKEN_TYPE>({
             rootReferrer,
             referee,
             referee2,
@@ -1246,18 +1362,13 @@ describe(testDescribeTitle, async () => {
             finalReferee,
             proxyContract,
             paymentValue: rdPaymentValue,
+            token,
           });
 
           // complete referral process for referee 4
-          const completionPayment = await chain.proxyContract
+          await chain.proxyContract
             .connect(chain.referee4)
-            ["registerReferralPayment()"]({
-              value: rdPaymentValue,
-            });
-
-          const txCost: BigNumber = await getTransactionCosts(
-            completionPayment
-          );
+            ["registerReferralPayment(uint256)"](rdPaymentValue);
 
           // still 3 since rdMaxRewardLevel is 3 as well!!!
           const numberOfRewardLevels: BigNumber = BigNumber.from(3);
@@ -1272,18 +1383,24 @@ describe(testDescribeTitle, async () => {
             rdPaymentValue.mul(rdReferralPercentage).div(100);
 
           // account balances
-          const afterReferee4Balance: BigNumber =
-            await chain.referee4.getBalance();
-          const afterRootReferralBalance: BigNumber =
-            await chain.rootReferrer.getBalance();
-          const afterRefereeBalance: BigNumber =
-            await chain.referee.getBalance();
-          const afterReferee2Balance: BigNumber =
-            await chain.referee2.getBalance();
-          const afterReferee3Balance: BigNumber =
-            await chain.referee3.getBalance();
-          const afterContractBalance: BigNumber =
-            await chain.proxyContract.getBalance();
+          const afterReferee4Balance: BigNumber = await token.balanceOf(
+            referee4.address
+          );
+          const afterRootReferralBalance: BigNumber = await token.balanceOf(
+            rootReferrer.address
+          );
+          const afterRefereeBalance: BigNumber = await token.balanceOf(
+            referee.address
+          );
+          const afterReferee2Balance: BigNumber = await token.balanceOf(
+            referee2.address
+          );
+          const afterReferee3Balance: BigNumber = await token.balanceOf(
+            referee3.address
+          );
+          const afterContractBalance: BigNumber = await token.balanceOf(
+            proxyContract.address
+          );
 
           // calculate reward values
           const expectedTotalPaidOutReward: BigNumber = registeredPaidValue
@@ -1308,7 +1425,6 @@ describe(testDescribeTitle, async () => {
           expect(afterReferee4Balance).to.be.closeTo(
             chain.initialReferee4Balance
               .sub(rdPaymentValue)
-              .sub(txCost)
               .add(expectedRefereeReward),
             TEST_PRECISION_DELTA
           );
@@ -1357,10 +1473,11 @@ describe(testDescribeTitle, async () => {
             referee4,
             finalReferee,
             proxyContract,
+            token,
           } = await loadFixture(rewardDistributionFixture);
 
           // create referral chain payments
-          const chain = await createReferralChain({
+          const chain = await createTokenReferralChain<DEFAULT_TOKEN_TYPE>({
             rootReferrer,
             referee,
             referee2,
@@ -1369,18 +1486,13 @@ describe(testDescribeTitle, async () => {
             finalReferee,
             proxyContract,
             paymentValue: rdPaymentValue,
+            token,
           });
 
           // complete referral process for final referee
-          const completionPayment = await chain.proxyContract
+          await chain.proxyContract
             .connect(chain.finalReferee)
-            ["registerReferralPayment()"]({
-              value: rdPaymentValue,
-            });
-
-          const txCost: BigNumber = await getTransactionCosts(
-            completionPayment
-          );
+            ["registerReferralPayment(uint256)"](rdPaymentValue);
 
           // still 3 since rdMaxRewardLevel is 3 as well!!!
           const numberOfRewardLevels: BigNumber = BigNumber.from(3);
@@ -1395,20 +1507,27 @@ describe(testDescribeTitle, async () => {
             rdPaymentValue.mul(rdReferralPercentage).div(100);
 
           // account balances
-          const afterFinalRefereeBalance: BigNumber =
-            await chain.finalReferee.getBalance();
-          const afterRootReferralBalance: BigNumber =
-            await chain.rootReferrer.getBalance();
-          const afterRefereeBalance: BigNumber =
-            await chain.referee.getBalance();
-          const afterReferee2Balance: BigNumber =
-            await chain.referee2.getBalance();
-          const afterReferee3Balance: BigNumber =
-            await chain.referee3.getBalance();
-          const afterReferee4Balance: BigNumber =
-            await chain.referee4.getBalance();
-          const afterContractBalance: BigNumber =
-            await chain.proxyContract.getBalance();
+          const afterFinalRefereeBalance: BigNumber = await token.balanceOf(
+            finalReferee.address
+          );
+          const afterRootReferralBalance: BigNumber = await token.balanceOf(
+            rootReferrer.address
+          );
+          const afterRefereeBalance: BigNumber = await token.balanceOf(
+            referee.address
+          );
+          const afterReferee2Balance: BigNumber = await token.balanceOf(
+            referee2.address
+          );
+          const afterReferee3Balance: BigNumber = await token.balanceOf(
+            referee3.address
+          );
+          const afterReferee4Balance: BigNumber = await token.balanceOf(
+            referee4.address
+          );
+          const afterContractBalance: BigNumber = await token.balanceOf(
+            proxyContract.address
+          );
 
           // calculate reward values
           const expectedTotalPaidOutReward: BigNumber = registeredPaidValue
@@ -1433,7 +1552,6 @@ describe(testDescribeTitle, async () => {
           expect(afterFinalRefereeBalance).to.be.closeTo(
             chain.initialFinalRefereeBalance
               .sub(rdPaymentValue)
-              .sub(txCost)
               .add(expectedRefereeReward),
             TEST_PRECISION_DELTA
           );
@@ -1485,10 +1603,11 @@ describe(testDescribeTitle, async () => {
             referee4,
             finalReferee,
             proxyContract,
+            token,
           } = await loadFixture(rewardDistributionFixture);
 
           // create referral chain payments
-          const chain = await createReferralChain({
+          const chain = await createTokenReferralChain({
             rootReferrer,
             referee,
             referee2,
@@ -1497,24 +1616,21 @@ describe(testDescribeTitle, async () => {
             finalReferee,
             proxyContract,
             paymentValue: rdPaymentValue,
+            token,
           });
 
           // complete referral process for referee 1
           await chain.proxyContract
             .connect(chain.referee)
-            ["registerReferralPayment()"]({
-              value: rdPaymentValue,
-            });
+            ["registerReferralPayment(uint256)"](rdPaymentValue);
 
           const initialAfterCompletionPaymentRefereeBalance =
-            await chain.referee.getBalance();
+            await token.balanceOf(referee.address);
 
           // complete referral process for referee 2
           await chain.proxyContract
             .connect(chain.referee2)
-            ["registerReferralPayment()"]({
-              value: rdPaymentValue,
-            });
+            ["registerReferralPayment(uint256)"](rdPaymentValue);
 
           // calculate result values
           const referrerPercentage: BigNumber =
@@ -1526,12 +1642,15 @@ describe(testDescribeTitle, async () => {
             rdPaymentValue.mul(rdReferralPercentage).div(100);
 
           // account balances
-          const afterRootReferralBalance: BigNumber =
-            await chain.rootReferrer.getBalance();
-          const afterRefereeBalance: BigNumber =
-            await chain.referee.getBalance();
-          const afterContractBalance: BigNumber =
-            await chain.proxyContract.getBalance();
+          const afterRootReferralBalance: BigNumber = await token.balanceOf(
+            rootReferrer.address
+          );
+          const afterRefereeBalance: BigNumber = await token.balanceOf(
+            referee.address
+          );
+          const afterContractBalance: BigNumber = await token.balanceOf(
+            proxyContract.address
+          );
           // reward values
           const expectedTotalPaidOutReward: BigNumber = registeredPaidValue
             .mul(rdReferralPercentage)
@@ -1582,10 +1701,11 @@ describe(testDescribeTitle, async () => {
             referee4,
             finalReferee,
             proxyContract,
+            token,
           } = await loadFixture(rewardDistributionFixture);
 
           // create referral chain payments
-          const chain = await createReferralChain({
+          const chain = await createTokenReferralChain<DEFAULT_TOKEN_TYPE>({
             rootReferrer,
             referee,
             referee2,
@@ -1594,20 +1714,17 @@ describe(testDescribeTitle, async () => {
             finalReferee,
             proxyContract,
             paymentValue: rdPaymentValue,
+            token,
           });
 
           // complete referral process for referee 1
           await chain.proxyContract
             .connect(chain.referee)
-            ["registerReferralPayment()"]({
-              value: rdPaymentValue,
-            });
+            ["registerReferralPayment(uint256)"](rdPaymentValue);
 
           const completedRefereePaymentTxPromise = chain.proxyContract
             .connect(referee)
-            ["registerReferralPayment()"]({
-              value: rdPaymentValue,
-            });
+            ["registerReferralPayment(uint256)"](rdPaymentValue);
 
           // await calls to be rejected since referral has been completed
           await expect(completedRefereePaymentTxPromise).to.be.rejectedWith(
@@ -1630,8 +1747,7 @@ describe(testDescribeTitle, async () => {
     describe(testingSpecialCasesDescribeTitle, async () => {
       try {
         // referral conditions ONE SIDED Rewards
-        const tsUnit = EtherUnits.Ether;
-        const tsPaymentValue: BigNumber = etherUnitConverter[tsUnit](10);
+        const tsPaymentValue: BigNumber = BigNumber.from(10);
         const tsReferralPercentage: PercentageType = 20;
         const tsRefereePercentage: PercentageType = 0;
         const tsPaymentsValueThreshold: BigNumber = tsPaymentValue;
@@ -1640,7 +1756,13 @@ describe(testDescribeTitle, async () => {
 
         // get fixture function for testing
         const twoSidedRewardDistributionFixture = async () => {
-          return deployV2MultilevelReferralRewardFixture({
+          return deployMultilevelTokenReferralRewardFixture<
+            V1ReferralMultilevelTokenRewardsUpgradable,
+            DEFAULT_TOKEN_TYPE
+          >({
+            tokenName: DEFAULT_TOKEN,
+            initialTokenSupply: DEFAULT_TOKEN_SUPPLY,
+            tokenSupplyPerAccount: DEFAULT_TOKEN_SUPPLY_PER_ACCOUNT,
             contractName: CONTRACT_NAME,
             referralPercentage: tsReferralPercentage,
             refereePercentage: tsRefereePercentage,
@@ -1659,10 +1781,11 @@ describe(testDescribeTitle, async () => {
             referee4,
             finalReferee,
             proxyContract,
+            token,
           } = await loadFixture(twoSidedRewardDistributionFixture);
 
           // create referral chain payments
-          const chain = await createReferralChain({
+          const chain = await createTokenReferralChain<DEFAULT_TOKEN_TYPE>({
             rootReferrer,
             referee,
             referee2,
@@ -1671,18 +1794,13 @@ describe(testDescribeTitle, async () => {
             finalReferee,
             proxyContract,
             paymentValue: tsPaymentValue,
+            token,
           });
 
           // complete referral process for referee 1
-          const completionPayment = await chain.proxyContract
+          await chain.proxyContract
             .connect(chain.referee)
-            ["registerReferralPayment()"]({
-              value: tsPaymentValue,
-            });
-
-          const txCost: BigNumber = await getTransactionCosts(
-            completionPayment
-          );
+            ["registerReferralPayment(uint256)"](tsPaymentValue);
 
           // calculate result values
           const numberOfRewardLevels: BigNumber = BigNumber.from(1);
@@ -1697,12 +1815,15 @@ describe(testDescribeTitle, async () => {
             .div(100);
 
           // account balances
-          const afterRefereeBalance: BigNumber =
-            await chain.referee.getBalance();
-          const afterRootReferralBalance: BigNumber =
-            await chain.rootReferrer.getBalance();
-          const afterContractBalance: BigNumber =
-            await chain.proxyContract.getBalance();
+          const afterRefereeBalance: BigNumber = await token.balanceOf(
+            referee.address
+          );
+          const afterRootReferralBalance: BigNumber = await token.balanceOf(
+            rootReferrer.address
+          );
+          const afterContractBalance: BigNumber = await token.balanceOf(
+            proxyContract.address
+          );
 
           // reward values
           const expectedTotalPaidOutReward: BigNumber = registeredPaidValue
@@ -1728,7 +1849,6 @@ describe(testDescribeTitle, async () => {
           expect(afterRefereeBalance).to.be.closeTo(
             chain.initialRefereeBalance
               .sub(tsPaymentValue)
-              .sub(txCost)
               .add(expectedRefereeReward),
             TEST_PRECISION_DELTA
           );
@@ -1771,6 +1891,7 @@ describe(testDescribeTitle, async () => {
             referee4,
             finalReferee,
             proxyContract,
+            token,
           } = await loadFixture(twoSidedRewardDistributionFixture);
 
           // update referee percentage to be 100%
@@ -1780,7 +1901,7 @@ describe(testDescribeTitle, async () => {
             .updateRefereeReward(updatedRefereePercentage);
 
           // create referral chain payments
-          const chain = await createReferralChain({
+          const chain = await createTokenReferralChain<DEFAULT_TOKEN_TYPE>({
             rootReferrer,
             referee,
             referee2,
@@ -1789,18 +1910,13 @@ describe(testDescribeTitle, async () => {
             finalReferee,
             proxyContract,
             paymentValue: tsPaymentValue,
+            token,
           });
 
           // complete referral process for referee 1
-          const completionPayment = await chain.proxyContract
+          await chain.proxyContract
             .connect(chain.referee)
-            ["registerReferralPayment()"]({
-              value: tsPaymentValue,
-            });
-
-          const txCost: BigNumber = await getTransactionCosts(
-            completionPayment
-          );
+            ["registerReferralPayment(uint256)"](tsPaymentValue);
 
           // calculate result values
           const numberOfRewardLevels: BigNumber = BigNumber.from(1);
@@ -1816,12 +1932,15 @@ describe(testDescribeTitle, async () => {
             .div(100);
 
           // account balances
-          const afterRefereeBalance: BigNumber =
-            await chain.referee.getBalance();
-          const afterRootReferralBalance: BigNumber =
-            await chain.rootReferrer.getBalance();
-          const afterContractBalance: BigNumber =
-            await chain.proxyContract.getBalance();
+          const afterRefereeBalance: BigNumber = await token.balanceOf(
+            referee.address
+          );
+          const afterRootReferralBalance: BigNumber = await token.balanceOf(
+            rootReferrer.address
+          );
+          const afterContractBalance: BigNumber = await token.balanceOf(
+            proxyContract.address
+          );
 
           // reward values
           const expectedTotalPaidOutReward: BigNumber = registeredPaidValue
@@ -1850,7 +1969,6 @@ describe(testDescribeTitle, async () => {
           expect(afterRefereeBalance).to.be.closeTo(
             chain.initialRefereeBalance
               .sub(tsPaymentValue)
-              .sub(txCost)
               .add(expectedRefereeReward),
             TEST_PRECISION_DELTA
           );

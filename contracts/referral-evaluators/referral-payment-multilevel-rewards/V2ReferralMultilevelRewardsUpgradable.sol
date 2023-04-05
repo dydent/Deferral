@@ -327,7 +327,6 @@ contract V2ReferralMultilevelRewardsUpgradable is
         refereeRewardPercentage = _refereeRewardPercentage;
         paymentsQuantityThreshold = _paymentsQuantityThreshold;
         paymentsValueThreshold = _paymentsValueThreshold;
-        paymentsValueThreshold = _paymentsValueThreshold;
         maxRewardLevels = _maxRewardLevels;
         emit PaymentReferralCreated(
             msg.sender,

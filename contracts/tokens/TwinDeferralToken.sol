@@ -9,9 +9,9 @@ pragma solidity 0.8.9;
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
-contract Deferral is ERC20, Ownable {
+contract TwinDeferral is ERC20, Ownable {
     // Constructor initializes token name, symbol, initial supply, initial token pool, and token request limit
-    constructor(uint256 initialSupply) ERC20("Deferral", "DEF") {
+    constructor(uint256 initialSupply) ERC20("TwinDeferral", "TDEF") {
         _mint(msg.sender, initialSupply);
     }
 

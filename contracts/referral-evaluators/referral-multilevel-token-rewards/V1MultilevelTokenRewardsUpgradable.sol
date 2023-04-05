@@ -13,7 +13,9 @@ import {ReentrancyGuardUpgradeable} from "@openzeppelin/contracts-upgradeable/se
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-contract V3ReferralMultilevelRewardsUpgradable is
+import "hardhat/console.sol";
+
+contract V1ReferralMultilevelTokenRewardsUpgradable is
     Initializable,
     OwnableUpgradeable,
     ReentrancyGuardUpgradeable
@@ -141,7 +143,7 @@ contract V3ReferralMultilevelRewardsUpgradable is
         uint256 calculatedTotalReward = (refereeCompletedProcess.paymentsValue *
             rewardPercentage) / 100;
         require(
-            address(this).balance >= calculatedTotalReward,
+            token.balanceOf(address(this)) >= calculatedTotalReward,
             "Contract has not enough funds to pay rewards"
         );
 
@@ -201,33 +203,33 @@ contract V3ReferralMultilevelRewardsUpgradable is
     }
 
     function forwardPayment(uint256 _paymentValue) internal nonReentrant {
-        // forward payment value to receiver
-        receiverAddress.transfer(_paymentValue);
+        // Transfer tokens to the receiver address
+        token.transfer(receiverAddress, _paymentValue);
         emit PaymentForwarded(receiverAddress, _paymentValue);
     }
 
     // -----------------------------------------------------------------------------------------------
     // EXTERNAL FUNCTIONS
     // -----------------------------------------------------------------------------------------------
+
     // overload function for referral payments without a referrer address
-    function registerReferralPayment(
-        uint256 _paymentValue
-    ) external nonReentrant {
+    function registerReferralPayment(uint256 _paymentValue) external {
         ReferralProcess storage refereeProcess = refereeProcessMapping[
             msg.sender
         ];
+        // referral process must not be completed
+        require(
+            !refereeProcess.referralProcessCompleted,
+            "Referral process has been completed for this address"
+        );
+
+        // transfer tokens from payment to this contract
+        token.transferFrom(msg.sender, address(this), _paymentValue);
+
         // check if sender is validly registered as referee --> update referral process data and
         if (
             !refereeProcess.isRoot && refereeProcess.referrerAddressHasBeenSet
         ) {
-            //            TODO fix this to:
-
-            // Transfer tokens directly to the receiver
-            //            token.transferFrom(msg.sender, receiverAddress, paymentValueAfterReward);
-
-            // ...            // Transfer tokens from user to the contract
-            token.transferFrom(msg.sender, address(this), _paymentValue);
-
             // update referral process with payment
             updateReferralProcess(
                 msg.sender,
@@ -243,7 +245,6 @@ contract V3ReferralMultilevelRewardsUpgradable is
                 rewardPercentageValue;
 
             // forward value to the receiver address
-
             forwardPayment(paymentValueAfterReward);
         }
         // else sender is root or new root referrer
@@ -270,7 +271,7 @@ contract V3ReferralMultilevelRewardsUpgradable is
     function registerReferralPayment(
         address payable _referrerAddress,
         uint256 _paymentValue
-    ) external nonReentrant {
+    ) external {
         require(msg.sender != _referrerAddress, "Sender cannot be referrer");
         require(
             _referrerAddress != address(0),
@@ -285,6 +286,9 @@ contract V3ReferralMultilevelRewardsUpgradable is
             referrerProcess.isRoot || referrerProcess.referrerAddressHasBeenSet,
             "Referrer must be a registered address"
         );
+
+        // transfer tokens from payment to this contract
+        token.transferFrom(msg.sender, address(this), _paymentValue);
 
         // check preconditions for sender address (referee)
 
@@ -347,7 +351,6 @@ contract V3ReferralMultilevelRewardsUpgradable is
         rewardPercentage = _rewardPercentage;
         refereeRewardPercentage = _refereeRewardPercentage;
         paymentsQuantityThreshold = _paymentsQuantityThreshold;
-        paymentsValueThreshold = _paymentsValueThreshold;
         paymentsValueThreshold = _paymentsValueThreshold;
         maxRewardLevels = _maxRewardLevels;
         emit PaymentReferralCreated(
