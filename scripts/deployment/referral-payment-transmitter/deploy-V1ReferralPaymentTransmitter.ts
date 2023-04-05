@@ -13,11 +13,11 @@ const CONTRACT = "V1ReferralPaymentTransmitter";
 
 const LOG_FILE_NAME = `${CONTRACT}-contract-deployments`;
 
-const ETHER_UNIT = EtherUnits.Ether;
+const ETHER_UNIT = EtherUnits.Wei;
 
 // CONTRACT PARAMETERS
-const PAYMENT_AMOUNT = etherUnitConverter[ETHER_UNIT](2);
-const REFERRAL_REWARD = etherUnitConverter[ETHER_UNIT](0.5);
+const PAYMENT_AMOUNT = etherUnitConverter[ETHER_UNIT](50);
+const REFERRAL_REWARD = etherUnitConverter[ETHER_UNIT](10);
 
 async function main() {
   // measure time for logs
