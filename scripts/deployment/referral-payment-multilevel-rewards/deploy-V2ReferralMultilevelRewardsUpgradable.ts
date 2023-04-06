@@ -1,11 +1,12 @@
 import { ethers, upgrades } from "hardhat";
 import { etherUnitConverter } from "../../../helpers/unit-converters";
 import { getNetworkInfo } from "../../../helpers/get-network-info";
-import { LogJsonInputType, writeLogFile } from "../../../helpers/write-files";
+import { writeLogFile } from "../../../helpers/write-files";
 import { resolveNetworkIds } from "../../../helpers/resolve-network-ids";
 import { EtherUnits } from "../../../types/ValidUnitTypes";
 import { BigNumber } from "ethers";
 import { PercentageType } from "../../../types/PercentageTypes";
+import { DeploymentLogJsonInputType } from "../../../types/DeploymentTypes";
 
 // -----------------------------------------------------
 // deployment script for V2ReferralMultilevelRewardsUpgradable Contract
@@ -13,7 +14,9 @@ import { PercentageType } from "../../../types/PercentageTypes";
 
 const CONTRACT = "V2ReferralMultilevelRewardsUpgradable";
 
-const LOG_FILE_NAME = `${CONTRACT}-contract-deployments`;
+const LOG_DIRECTORY = "deployments/";
+
+const LOG_FILE_NAME = `${LOG_DIRECTORY}${CONTRACT}-contract-deployments`;
 
 const ETHER_UNIT = EtherUnits.Ether;
 
@@ -77,7 +80,7 @@ async function main() {
   console.log("\n");
 
   // create (write & store) log files of deployments for overview
-  const logInput: LogJsonInputType = {
+  const logInput: DeploymentLogJsonInputType = {
     date: new Date(),
     contract: CONTRACT,
     contractAddress: deployedProxyContract.address,
@@ -87,7 +90,8 @@ async function main() {
     cost: txCost.toString(),
     durationInMs: deploymentDuration,
   };
-  writeLogFile({
+  writeLogFile<DeploymentLogJsonInputType>({
+    directory: LOG_DIRECTORY,
     filePath: LOG_FILE_NAME,
     jsonInput: logInput,
     chainID: networkId,

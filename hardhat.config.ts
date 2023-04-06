@@ -9,9 +9,14 @@ import "hardhat-gas-reporter";
 import { CHAIN_IDS } from "./helpers/constants/chain-ids";
 import { getChainConfig } from "./helpers/get-chain-configs";
 import { resolve } from "path";
+import { HardhatNetworkHDAccountsUserConfig } from "hardhat/src/types/config";
 
-const RUNS = 10000;
+// Config for solidity optimizer
+// -----------------------------------------------------------------------------------------------
+const RUNS = 200;
 
+// Config for dotenv
+// -----------------------------------------------------------------------------------------------
 const dotenvConfigPath: string = process.env.DOTENV_CONFIG_PATH || "./.env";
 dotenvConfig({ path: resolve(__dirname, dotenvConfigPath) });
 // You need to export an object to set up your config
@@ -22,10 +27,22 @@ if (!mnemonic) {
   throw new Error("Please set the MNEMONIC in a .env file");
 }
 
-const USE_HD_WALLET_ACCOUNTS: boolean = true;
+// Config for accounts
+// -----------------------------------------------------------------------------------------------
+const USE_HD_WALLET_ACCOUNTS: boolean = !!process.env.USE_EVALUATION_ACCOUNTS;
 
-// API for gas prices
+// Config for Hardhat accounts
+// -----------------------------------------------------------------------------------------------
+export const HARDHAT_ACCOUNTS_COUNT =
+  process.env.USE_EVALUATION_ACCOUNTS === "true" ? 1000 : 20;
 
+const hardhatAccounts: HardhatNetworkHDAccountsUserConfig = {
+  count: HARDHAT_ACCOUNTS_COUNT,
+  mnemonic,
+};
+
+// Config APIs for gas prices
+// -----------------------------------------------------------------------------------------------
 // Ethereum -> Token: ETH
 const ETH_GAS_PRICE_API = `https://api.etherscan.io/api?module=proxy&action=eth_gasPrice`;
 // Polygon -> Token: MATIC
@@ -46,9 +63,7 @@ const config: HardhatUserConfig = {
   defaultNetwork: "hardhat",
   networks: {
     hardhat: {
-      accounts: {
-        mnemonic,
-      },
+      accounts: hardhatAccounts,
       chainId: CHAIN_IDS.hardhat,
     },
     // GOERLI TESTNET
@@ -136,13 +151,11 @@ const config: HardhatUserConfig = {
     coinmarketcap: process.env.COINMARKETCAP_API_KEY,
     gasPriceApi: ETH_GAS_PRICE_API,
     token: "ETH",
-    outputFile: `gas-reporter-logs/gasReporterOutput-${RUNS}.txt`,
+    // outputFile: `gas-reporter-logs/gasReporterOutput-${RUNS}.txt`,
     // gasPrice: 34,
-
     // proxyResolver,
   },
   // typechain: {
-  //   outDir: "types",
   //   target: "ethers-v5",
   // },
 };

@@ -890,6 +890,9 @@ describe(testDescribeTitle, async () => {
             proxyContract.address
           );
 
+          const initialEthContractValue: BigNumber =
+            await proxyContract.getBalance();
+
           // execute referee payment with root referrer as referrer address
           await proxyContract
             .connect(referee)
@@ -913,6 +916,8 @@ describe(testDescribeTitle, async () => {
           const afterRefereeBalance: BigNumber = await token.balanceOf(
             referee.address
           );
+          const finalEthContractValue: BigNumber =
+            await proxyContract.getBalance();
 
           // assert balances are correct
           expect(afterReceiverBalance).to.be.closeTo(
@@ -925,6 +930,14 @@ describe(testDescribeTitle, async () => {
           );
           expect(finalContractBalance).to.be.closeTo(
             initialContractValue.add(reward),
+            TEST_PRECISION_DELTA
+          );
+          expect(initialEthContractValue).to.be.closeTo(
+            0,
+            TEST_PRECISION_DELTA
+          );
+          expect(initialEthContractValue).to.be.closeTo(
+            finalEthContractValue,
             TEST_PRECISION_DELTA
           );
         });

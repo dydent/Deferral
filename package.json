@@ -49,7 +49,10 @@
     "deploy-multilevel-v1": "hardhat run scripts/deployment/referral-payment-multilevel-rewards/deploy-V1ReferralMultilevelRewardsUpgradable.ts ",
     "deploy-multilevel-v2": "hardhat run scripts/deployment/referral-payment-multilevel-rewards/deploy-V2ReferralMultilevelRewardsUpgradable.ts ",
     "deploy-token-multilevel-v1": "hardhat run scripts/deployment/referral-multilevel-token-rewards/deploy-V1MultilevelTokenRewardsUpgradable.ts ",
-    "evaluate-transmitter-v1": "hardhat run scripts/evaluation/evaluate-V1ReferralPaymentTransmitter.ts "
+    "evaluate-transmitter-v1": "USE_EVALUATION_ACCOUNTS=true hardhat run scripts/evaluation/referral-payment-transmitter/evaluate-V1ReferralPaymentTransmitter.ts",
+    "evaluate-transmitter-v3": "USE_EVALUATION_ACCOUNTS=true hardhat run scripts/evaluation/referral-payment-transmitter/evaluate-V3ReferralPaymentTransmitterUpgradable.ts ",
+    "evaluate-quantity-v1": "USE_EVALUATION_ACCOUNTS=true hardhat run scripts/evaluation/referral-payment-quantity/evaluate-V1ReferralPaymentQuantityUpgradable.ts",
+    "evaluate-quantity-v2": "USE_EVALUATION_ACCOUNTS=true hardhat run scripts/evaluation/referral-payment-quantity/evaluate-V2ReferralPaymentQuantityUpgradable.ts"
   },
   "license": "ISC",
   "devDependencies": {
