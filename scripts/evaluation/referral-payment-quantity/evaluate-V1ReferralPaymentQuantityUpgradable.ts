@@ -9,11 +9,15 @@ import {
   EvaluationLogJsonInputType,
   TransactionEvaluationType,
 } from "../../../types/EvaluationTypes";
-import { calculateEvaluationMetrics } from "../../../helpers/evaluation-helpers/calculate-evaluation-metrics";
+import {
+  calculateEvaluationMetrics,
+  getTxEvaluationData,
+} from "../../../helpers/evaluation-helpers/calculate-evaluation-metrics";
 import { BigNumber } from "ethers";
 import { PercentageType } from "../../../types/PercentageTypes";
 import { EvaluationPaymentQuantityContractParams } from "../../../types/EvaluationContractParameterTypes";
 import { V1ReferralPaymentQuantityUpgradable } from "../../../typechain-types";
+import { logEvaluationTx } from "../../../helpers/evaluation-helpers/evaluation-tx-logs";
 
 // -----------------------------------------------------
 // Evaluation script for V1ReferralPaymentQuantityUpgradable Contract
@@ -25,9 +29,9 @@ type CONTRACT_TYPE = V1ReferralPaymentQuantityUpgradable;
 
 type CONTRACT_PARAMS_TYPE = EvaluationPaymentQuantityContractParams;
 
-const LOG_DIRECTORY = "evaluations/";
+const LOG_DIRECTORY = "evaluations/referral-payment-quantity/";
 
-const LOG_FILE_NAME = `${LOG_DIRECTORY}${CONTRACT}-contract-evaluation`;
+const LOG_FILE_NAME = `${CONTRACT}-contract-evaluation`;
 
 const ETHER_UNIT = EtherUnits.Ether;
 
@@ -112,27 +116,27 @@ async function main() {
       );
       const referralCompleted: boolean = mapping.referralProcessCompleted;
 
-      // calculate tx evaluation metrics
-      const txDurationInMs = txEndTime - txStartTime;
-      const txReceipt = await referralPaymentTx.wait();
-      const txGasUsed = await txReceipt.gasUsed;
-      const txEffectiveGasPrice = await txReceipt.effectiveGasPrice;
-      const txCost = txGasUsed.mul(txEffectiveGasPrice);
+      // calculate tx evaluation metrics data
+      const { txDurationInMs, txCost, txEffectiveGasPrice, txGasUsed } =
+        await getTxEvaluationData(txStartTime, txEndTime, referralPaymentTx);
 
       // log values
-      console.log(" Iteration", i, "");
-      console.log(" User Tx Number", j, "");
-      console.log(" Referral Process Completed", referralCompleted, "");
-      console.log(` Gas Used: ${txGasUsed}`);
-      console.log(` Effective Gas Price: ${txGasUsed}`);
-      console.log(` Tx Cost: ${txCost} (gas used * gas price)`);
-      console.log(` Duration in Ms: ${txDurationInMs}`);
-      console.log("\n");
+      logEvaluationTx({
+        user: refereeUser,
+        userIteration: i,
+        userTxIteration: j,
+        referralCompleted,
+        txGasUsed,
+        txEffectiveGasPrice,
+        txCost,
+        txDurationInMs,
+      });
 
       // create result data
       const resultData: TransactionEvaluationType = {
-        iteration: i,
-        signerAddress: refereeUser.address,
+        userSignerAddress: refereeUser.address,
+        userIteration: i,
+        userTxIteration: j,
         gasUsed: txGasUsed.toNumber(),
         effectiveGasPrice: txEffectiveGasPrice.toNumber(),
         cost: txCost.toNumber(),
@@ -162,8 +166,8 @@ async function main() {
     durationInMs: evaluationDurationInMs,
     etherUnit: ETHER_UNIT,
     contractParameters: {
-      referralPercentage: REWARD_PERCENTAGE,
-      quantityThreshold: QUANTITY_THRESHOLD,
+      referralPercentage: REWARD_PERCENTAGE.toString(),
+      quantityThreshold: QUANTITY_THRESHOLD.toString(),
     },
     numberOfUsers: numberOfUsers,
     metrics: evaluationMetrics,
@@ -181,7 +185,7 @@ async function main() {
 // catch deployment errors
 main().catch((error) => {
   console.error(
-    `Something went wrong with the ${CONTRACT} deployment:\n`,
+    `Something went wrong with the ${CONTRACT} evaluation:\n`,
     error
   );
   process.exitCode = 1;

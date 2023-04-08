@@ -1,6 +1,24 @@
 import { BigNumber } from "ethers";
 import { EtherUnits } from "./ValidUnitTypes";
 
+export type TransactionEvaluationData = {
+  txDurationInMs: number;
+  txGasUsed: BigNumber;
+  txEffectiveGasPrice: BigNumber;
+  txCost: BigNumber;
+};
+
+// no big numbers for readability
+export type TransactionEvaluationType = {
+  userSignerAddress: string;
+  userIteration: number;
+  userTxIteration: number;
+  gasUsed: number;
+  effectiveGasPrice: number;
+  cost: number;
+  durationInMs: number;
+};
+
 export type TransactionMetrics = {
   // avg / mean
   avg: number;
@@ -24,15 +42,6 @@ export type TransactionEvaluationMetrics = {
   effectiveGasPrice: TransactionMetrics;
   cost: TransactionMetrics;
   durationInMs: TransactionMetrics;
-};
-
-export type TransactionEvaluationType = {
-  iteration: number;
-  signerAddress: string;
-  gasUsed: number;
-  effectiveGasPrice: number;
-  cost: number;
-  durationInMs: number;
 };
 
 export type EvaluationLogJsonInputType<T> = {

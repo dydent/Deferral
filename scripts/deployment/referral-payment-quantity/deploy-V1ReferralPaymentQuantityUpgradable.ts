@@ -12,9 +12,9 @@ import { DeploymentLogJsonInputType } from "../../../types/DeploymentTypes";
 
 const CONTRACT = "V1ReferralPaymentQuantityUpgradable";
 
-const LOG_DIRECTORY = "deployments/";
+const LOG_DIRECTORY = "deployments/referral-payment-quantity/";
 
-const LOG_FILE_NAME = `${LOG_DIRECTORY}${CONTRACT}-contract-deployments`;
+const LOG_FILE_NAME = `${CONTRACT}-contract-deployments`;
 
 // CONTRACT PARAMETERS
 const REWARD_PERCENTAGE: PercentageType = 30;

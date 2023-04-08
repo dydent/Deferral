@@ -17,7 +17,7 @@ const RUNS = 200;
 
 // Config for evaluation scripts
 // -----------------------------------------------------------------------------------------------
-const NR_OF_EVALUATION_ACCOUNTS = 50;
+const NR_OF_EVALUATION_ACCOUNTS = 52;
 
 // Config for dotenv
 // -----------------------------------------------------------------------------------------------

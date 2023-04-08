@@ -14,9 +14,9 @@ import { DeploymentLogJsonInputType } from "../../../types/DeploymentTypes";
 
 const CONTRACT = "V1ReferralMultilevelRewardsUpgradable";
 
-const LOG_DIRECTORY = "deployments/";
+const LOG_DIRECTORY = "deployments/referral-payment-multilevel-rewards/";
 
-const LOG_FILE_NAME = `${LOG_DIRECTORY}${CONTRACT}-contract-deployments`;
+const LOG_FILE_NAME = `${CONTRACT}-contract-deployments`;
 
 const ETHER_UNIT = EtherUnits.Ether;
 

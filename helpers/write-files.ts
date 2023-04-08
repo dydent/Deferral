@@ -41,7 +41,7 @@ export const writeLogFile = <InputType>({
     chainName +
     "_" +
     stringChainID.toString() +
-    "_" +
+    "/" +
     filePath +
     "." +
     fileTypeExtension;

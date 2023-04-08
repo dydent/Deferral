@@ -1,15 +1,13 @@
-// includes number for readability in  evaluation logs
-import { BigNumber } from "ethers";
-import { PercentageType } from "./PercentageTypes";
+// includes string for readability in evaluation logs
 
 // -----------------------------------------------------------------------------------------------
 // EvaluationPayment Transmitter Contract Params
 // -----------------------------------------------------------------------------------------------
 
-// includes number for readability in  evaluation logs
+// includes string for readability in  evaluation logs
 export type EvaluationPaymentTransmitterContractParams = {
-  paymentAmount: number;
-  referralReward: number;
+  paymentAmount: string;
+  referralReward: string;
 };
 
 // -----------------------------------------------------------------------------------------------
@@ -17,8 +15,8 @@ export type EvaluationPaymentTransmitterContractParams = {
 // -----------------------------------------------------------------------------------------------
 
 export type EvaluationPaymentQuantityContractParams = {
-  referralPercentage: PercentageType;
-  quantityThreshold: BigNumber;
+  referralPercentage: string;
+  quantityThreshold: string;
 };
 
 // -----------------------------------------------------------------------------------------------
@@ -26,13 +24,13 @@ export type EvaluationPaymentQuantityContractParams = {
 // -----------------------------------------------------------------------------------------------
 
 export type EvaluationPaymentValueContractParams = {
-  referralPercentage: PercentageType;
-  valueThreshold: number;
+  referralPercentage: string;
+  valueThreshold: string;
 };
 
 export type V3EvaluationPaymentValueContractParams =
   EvaluationPaymentValueContractParams & {
-    refereeRewardPercentage: PercentageType;
+    refereeRewardPercentage: string;
   };
 
 // -----------------------------------------------------------------------------------------------
@@ -40,17 +38,17 @@ export type V3EvaluationPaymentValueContractParams =
 // -----------------------------------------------------------------------------------------------
 
 export type EvaluationPaymentMultilevelRewardContractParams = {
-  referralPercentage: PercentageType;
-  quantityThreshold: number;
-  valueThreshold: number;
+  referralPercentage: string;
+  quantityThreshold: string;
+  valueThreshold: string;
 };
 
 export type V2EvaluationPaymentMultilevelRewardContractParams = {
-  referralPercentage: PercentageType;
-  refereePercentage: PercentageType;
-  quantityThreshold: number;
-  valueThreshold: number;
-  maxRewardLevel: number;
+  referralPercentage: string;
+  refereePercentage: string;
+  quantityThreshold: string;
+  valueThreshold: string;
+  maxRewardLevel: string;
 };
 
 // -----------------------------------------------------------------------------------------------
@@ -59,9 +57,9 @@ export type V2EvaluationPaymentMultilevelRewardContractParams = {
 
 export type EvaluationPaymentMultilevelTokenRewardContractParams = {
   token: string;
-  referralPercentage: PercentageType;
-  refereePercentage: PercentageType;
-  quantityThreshold: number;
-  valueThreshold: number;
-  maxRewardLevel: number;
+  referralPercentage: string;
+  refereePercentage: string;
+  quantityThreshold: string;
+  valueThreshold: string;
+  maxRewardLevel: string;
 };

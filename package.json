@@ -53,7 +53,11 @@
     "evaluate-transmitter-v3": "USE_EVALUATION_ACCOUNTS=true hardhat run scripts/evaluation/referral-payment-transmitter/evaluate-V3ReferralPaymentTransmitterUpgradable.ts ",
     "evaluate-quantity-v1": "USE_EVALUATION_ACCOUNTS=true hardhat run scripts/evaluation/referral-payment-quantity/evaluate-V1ReferralPaymentQuantityUpgradable.ts",
     "evaluate-quantity-v2": "USE_EVALUATION_ACCOUNTS=true hardhat run scripts/evaluation/referral-payment-quantity/evaluate-V2ReferralPaymentQuantityUpgradable.ts",
-    "evaluate-value-v1": "USE_EVALUATION_ACCOUNTS=true hardhat run scripts/evaluation/referral-payment-value/evaluate-V1ReferralPaymentValueUpgradable.ts"
+    "evaluate-value-v1": "USE_EVALUATION_ACCOUNTS=true hardhat run scripts/evaluation/referral-payment-value/evaluate-V1ReferralPaymentValueUpgradable.ts",
+    "evaluate-value-v2": "USE_EVALUATION_ACCOUNTS=true hardhat run scripts/evaluation/referral-payment-value/evaluate-V2ReferralPaymentValueUpgradable.ts",
+    "evaluate-value-v3": "USE_EVALUATION_ACCOUNTS=true hardhat run scripts/evaluation/referral-payment-value/evaluate-V3ReferralPaymentValueUpgradable.ts",
+    "evaluate-multilevel-v1": "USE_EVALUATION_ACCOUNTS=true hardhat run scripts/evaluation/referral-payment-multilevel-rewards/evaluate-V1ReferralMultilevelRewardsUpgradable.ts",
+    "evaluate-multilevel-v2": "USE_EVALUATION_ACCOUNTS=true hardhat run scripts/evaluation/referral-payment-multilevel-rewards/evaluate-V2ReferralMultilevelRewardsUpgradable.ts"
   },
   "license": "ISC",
   "devDependencies": {

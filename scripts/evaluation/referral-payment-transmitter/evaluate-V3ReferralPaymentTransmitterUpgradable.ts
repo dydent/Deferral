@@ -9,7 +9,10 @@ import {
   EvaluationLogJsonInputType,
   TransactionEvaluationType,
 } from "../../../types/EvaluationTypes";
-import { calculateEvaluationMetrics } from "../../../helpers/evaluation-helpers/calculate-evaluation-metrics";
+import {
+  calculateEvaluationMetrics,
+  getTxEvaluationData,
+} from "../../../helpers/evaluation-helpers/calculate-evaluation-metrics";
 import { EvaluationPaymentTransmitterContractParams } from "../../../types/EvaluationContractParameterTypes";
 import { V3ReferralPaymentTransmitterUpgradable } from "../../../typechain-types";
 import { logEvaluationTx } from "../../../helpers/evaluation-helpers/evaluation-tx-logs";
@@ -24,9 +27,9 @@ type CONTRACT_TYPE = V3ReferralPaymentTransmitterUpgradable;
 
 type CONTRACT_PARAMS_TYPE = EvaluationPaymentTransmitterContractParams;
 
-const LOG_DIRECTORY = "evaluations/";
+const LOG_DIRECTORY = "evaluations/referral-payment-transmitter/";
 
-const LOG_FILE_NAME = `${LOG_DIRECTORY}${CONTRACT}-contract-evaluation`;
+const LOG_FILE_NAME = `${CONTRACT}-contract-evaluation`;
 
 const ETHER_UNIT = EtherUnits.Ether;
 
@@ -97,12 +100,9 @@ async function main() {
       });
     const txEndTime = performance.now();
 
-    // calculate tx evaluation metrics
-    const txDurationInMs = txEndTime - txStartTime;
-    const txReceipt = await referralPaymentTx.wait();
-    const txGasUsed = await txReceipt.gasUsed;
-    const txEffectiveGasPrice = await txReceipt.effectiveGasPrice;
-    const txCost = txGasUsed.mul(txEffectiveGasPrice);
+    // calculate tx evaluation metrics data
+    const { txDurationInMs, txCost, txEffectiveGasPrice, txGasUsed } =
+      await getTxEvaluationData(txStartTime, txEndTime, referralPaymentTx);
 
     // log values
     logEvaluationTx({
@@ -115,14 +115,17 @@ async function main() {
       txDurationInMs,
     });
 
+    // create result data
     const resultData: TransactionEvaluationType = {
-      iteration: i,
-      signerAddress: refereeUser.address,
+      userSignerAddress: refereeUser.address,
+      userIteration: i,
+      userTxIteration: txsPerUser,
       gasUsed: txGasUsed.toNumber(),
       effectiveGasPrice: txEffectiveGasPrice.toNumber(),
       cost: txCost.toNumber(),
       durationInMs: txDurationInMs,
     };
+    // append result data to evaluation data
     evaluationResultData.push(resultData);
   }
 
@@ -145,8 +148,8 @@ async function main() {
     durationInMs: evaluationDurationInMs,
     etherUnit: ETHER_UNIT,
     contractParameters: {
-      paymentAmount: PAYMENT_AMOUNT.toNumber(),
-      referralReward: REFERRAL_REWARD.toNumber(),
+      paymentAmount: PAYMENT_AMOUNT.toString(),
+      referralReward: REFERRAL_REWARD.toString(),
     },
     numberOfUsers: numberOfUsers,
     metrics: evaluationMetrics,
@@ -164,7 +167,7 @@ async function main() {
 // catch deployment errors
 main().catch((error) => {
   console.error(
-    `Something went wrong with the ${CONTRACT} deployment:\n`,
+    `Something went wrong with the ${CONTRACT} evaluation:\n`,
     error
   );
   process.exitCode = 1;
