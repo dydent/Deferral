@@ -1,4 +1,4 @@
-import { ethers } from "hardhat";
+import { ethers, upgrades } from "hardhat";
 import { etherUnitConverter } from "../../../helpers/unit-converters";
 import { EtherUnits } from "../../../types/ValidUnitTypes";
 import { resolveNetworkIds } from "../../../helpers/resolve-network-ids";
@@ -10,29 +10,34 @@ import {
   TransactionEvaluationType,
 } from "../../../types/EvaluationTypes";
 import { calculateEvaluationMetrics } from "../../../helpers/evaluation-helpers/calculate-evaluation-metrics";
-import { EvaluationPaymentTransmitterContractParams } from "../../../types/EvaluationContractParameterTypes";
-import { V1ReferralPaymentTransmitter } from "../../../typechain-types";
+import { BigNumber } from "ethers";
+import { PercentageType } from "../../../types/PercentageTypes";
+import { EvaluationPaymentValueContractParams } from "../../../types/EvaluationContractParameterTypes";
+import { V1ReferralPaymentValueUpgradable } from "../../../typechain-types";
 import { logEvaluationTx } from "../../../helpers/evaluation-helpers/evaluation-tx-logs";
 
 // -----------------------------------------------------
-// Evaluation script for V1ReferralPaymentTransmitter Contract
+// Evaluation script for V1ReferralPaymentValueUpgradable Contract
 // -----------------------------------------------------
 
-const CONTRACT = "V1ReferralPaymentTransmitter";
+const CONTRACT = "V1ReferralPaymentValueUpgradable";
 
-type CONTRACT_TYPE = V1ReferralPaymentTransmitter;
+type CONTRACT_TYPE = V1ReferralPaymentValueUpgradable;
 
-type CONTRACT_PARAMS_TYPE = EvaluationPaymentTransmitterContractParams;
+type CONTRACT_PARAMS_TYPE = EvaluationPaymentValueContractParams;
 
 const LOG_DIRECTORY = "evaluations/";
 
 const LOG_FILE_NAME = `${LOG_DIRECTORY}${CONTRACT}-contract-evaluation`;
 
-const ETHER_UNIT = EtherUnits.Wei;
+const ETHER_UNIT = EtherUnits.Ether;
 
 // CONTRACT PARAMETERS
-const PAYMENT_AMOUNT = etherUnitConverter[ETHER_UNIT](15);
-const REFERRAL_REWARD = etherUnitConverter[ETHER_UNIT](5);
+const REWARD_PERCENTAGE: PercentageType = 30;
+const VALUE_THRESHOLD: BigNumber = etherUnitConverter[ETHER_UNIT](15);
+
+// TX / REFERRAL PROCESS PARAMS
+const PAYMENT_AMOUNT = etherUnitConverter[ETHER_UNIT](5);
 
 async function main() {
   const evaluationStartTime = performance.now();
@@ -53,13 +58,11 @@ async function main() {
   // deploy contract with receiver address --> deployer account signs this transaction
   // -----------------------------------------------------------------------------------------------
   const referralContract = await ethers.getContractFactory(CONTRACT);
-  const deployedReferralContract: CONTRACT_TYPE =
-    (await referralContract.deploy(
-      receiver.address,
-      PAYMENT_AMOUNT,
-      REFERRAL_REWARD
-    )) as CONTRACT_TYPE;
-  await deployedReferralContract.deployed();
+  const proxyContract: CONTRACT_TYPE = (await upgrades.deployProxy(
+    referralContract,
+    [receiver.address, REWARD_PERCENTAGE, VALUE_THRESHOLD]
+  )) as CONTRACT_TYPE;
+  await proxyContract.deployed();
 
   // evaluate referral transactions
   // -----------------------------------------------------------------------------------------------
@@ -72,63 +75,71 @@ async function main() {
   const evaluationResultData: TransactionEvaluationType[] = [];
 
   // number of txs per user to complete the referral process
-  const txsPerUser = 1;
+  const txsPerUser = VALUE_THRESHOLD.div(PAYMENT_AMOUNT).toNumber() + 1;
 
   console.log(
-    `${CONTRACT}: Executing ${txsPerUser} referral transactions per user for ${numberOfUsers} users on the ${networkName} network...\n`
+    `${CONTRACT}: Executing ${txsPerUser} referral transactions per users for ${numberOfUsers} users on the ${networkName} network...\n`
   );
 
   // -1 since we need a referrer for every referee
   const loopIterations = numberOfUsers - 1;
+
   // execute transactions for signers
   for (let i = 0; i < loopIterations; i++) {
-    // referee user (executes the txs)
     const refereeUser = users[i];
-    const refereeUserBalanceBefore = await refereeUser.getBalance();
-    console.log("Referee Balance Before:", refereeUserBalanceBefore);
 
     // referrer user (addressed used as referrer address)
     const referrerUser = users[i + 1];
-    const referrerBalanceBefore = await referrerUser.getBalance();
-    console.log("Referrer Balance Before:", referrerBalanceBefore);
-    console.log("\n");
+    // execute required amount of txs per user to complete referral
+    for (let j = 0; j < txsPerUser; j++) {
+      // referee user (executes the txs)
 
-    const txStartTime = performance.now();
+      const txStartTime = performance.now();
 
-    const referralPaymentTx = await deployedReferralContract
-      .connect(refereeUser)
-      .forwardReferralPayment(referrerUser.address, {
-        value: PAYMENT_AMOUNT,
+      const referralPaymentTx = await proxyContract
+        .connect(refereeUser)
+        .registerReferralPayment(referrerUser.address, {
+          value: PAYMENT_AMOUNT,
+        });
+      const txEndTime = performance.now();
+
+      // get referral process status
+      const mapping = await proxyContract.refereeProcessMapping(
+        refereeUser.address
+      );
+      const referralCompleted: boolean = mapping.referralProcessCompleted;
+
+      // calculate tx evaluation metrics
+      const txDurationInMs = txEndTime - txStartTime;
+      const txReceipt = await referralPaymentTx.wait();
+      const txGasUsed = await txReceipt.gasUsed;
+      const txEffectiveGasPrice = await txReceipt.effectiveGasPrice;
+      const txCost = txGasUsed.mul(txEffectiveGasPrice);
+
+      // log values
+      logEvaluationTx({
+        user: refereeUser,
+        userIteration: i,
+        userTxIteration: j,
+        referralCompleted,
+        txGasUsed,
+        txEffectiveGasPrice,
+        txCost,
+        txDurationInMs,
       });
-    const txEndTime = performance.now();
 
-    // calculate tx evaluation metrics
-    const txDurationInMs = txEndTime - txStartTime;
-    const txReceipt = await referralPaymentTx.wait();
-    const txGasUsed = await txReceipt.gasUsed;
-    const txEffectiveGasPrice = await txReceipt.effectiveGasPrice;
-    const txCost = txGasUsed.mul(txEffectiveGasPrice);
-
-    // log values
-    logEvaluationTx({
-      user: refereeUser,
-      userIteration: i,
-      userTxIteration: txsPerUser,
-      txGasUsed,
-      txEffectiveGasPrice,
-      txCost,
-      txDurationInMs,
-    });
-
-    const resultData: TransactionEvaluationType = {
-      iteration: i,
-      signerAddress: refereeUser.address,
-      gasUsed: txGasUsed.toNumber(),
-      effectiveGasPrice: txEffectiveGasPrice.toNumber(),
-      cost: txCost.toNumber(),
-      durationInMs: txDurationInMs,
-    };
-    evaluationResultData.push(resultData);
+      // create result data
+      const resultData: TransactionEvaluationType = {
+        iteration: i,
+        signerAddress: refereeUser.address,
+        gasUsed: txGasUsed.toNumber(),
+        effectiveGasPrice: txEffectiveGasPrice.toNumber(),
+        cost: txCost.toNumber(),
+        durationInMs: txDurationInMs,
+      };
+      // append result data to evaluation data
+      evaluationResultData.push(resultData);
+    }
   }
 
   console.log(`$ Calculating transaction metrics for evaluation...`);
@@ -150,8 +161,8 @@ async function main() {
     durationInMs: evaluationDurationInMs,
     etherUnit: ETHER_UNIT,
     contractParameters: {
-      paymentAmount: PAYMENT_AMOUNT.toNumber(),
-      referralReward: REFERRAL_REWARD.toNumber(),
+      referralPercentage: REWARD_PERCENTAGE,
+      valueThreshold: VALUE_THRESHOLD.toNumber(),
     },
     numberOfUsers: numberOfUsers,
     metrics: evaluationMetrics,

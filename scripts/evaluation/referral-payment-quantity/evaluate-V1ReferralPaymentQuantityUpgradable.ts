@@ -9,7 +9,7 @@ import {
   EvaluationLogJsonInputType,
   TransactionEvaluationType,
 } from "../../../types/EvaluationTypes";
-import { calculateEvaluationMetrics } from "../../../helpers/calculate-evaluation-metrics";
+import { calculateEvaluationMetrics } from "../../../helpers/evaluation-helpers/calculate-evaluation-metrics";
 import { BigNumber } from "ethers";
 import { PercentageType } from "../../../types/PercentageTypes";
 import { EvaluationPaymentQuantityContractParams } from "../../../types/EvaluationContractParameterTypes";
@@ -20,6 +20,10 @@ import { V1ReferralPaymentQuantityUpgradable } from "../../../typechain-types";
 // -----------------------------------------------------
 
 const CONTRACT = "V1ReferralPaymentQuantityUpgradable";
+
+type CONTRACT_TYPE = V1ReferralPaymentQuantityUpgradable;
+
+type CONTRACT_PARAMS_TYPE = EvaluationPaymentQuantityContractParams;
 
 const LOG_DIRECTORY = "evaluations/";
 
@@ -53,12 +57,10 @@ async function main() {
   // deploy contract with receiver address --> deployer account signs this transaction
   // -----------------------------------------------------------------------------------------------
   const referralContract = await ethers.getContractFactory(CONTRACT);
-  const proxyContract: V1ReferralPaymentQuantityUpgradable =
-    (await upgrades.deployProxy(referralContract, [
-      receiver.address,
-      REWARD_PERCENTAGE,
-      QUANTITY_THRESHOLD,
-    ])) as V1ReferralPaymentQuantityUpgradable;
+  const proxyContract: CONTRACT_TYPE = (await upgrades.deployProxy(
+    referralContract,
+    [receiver.address, REWARD_PERCENTAGE, QUANTITY_THRESHOLD]
+  )) as CONTRACT_TYPE;
   await proxyContract.deployed();
 
   // evaluate referral transactions
@@ -153,21 +155,20 @@ async function main() {
   );
 
   // create (write & store) log files of deployments for overview
-  const logInput: EvaluationLogJsonInputType<EvaluationPaymentQuantityContractParams> =
-    {
-      contractName: CONTRACT,
-      network: `${networkId}-${networkName}`,
-      date: new Date(),
-      durationInMs: evaluationDurationInMs,
-      etherUnit: ETHER_UNIT,
-      contractParameters: {
-        referralPercentage: REWARD_PERCENTAGE,
-        quantityThreshold: QUANTITY_THRESHOLD,
-      },
-      numberOfUsers: numberOfUsers,
-      metrics: evaluationMetrics,
-      data: evaluationResultData,
-    };
+  const logInput: EvaluationLogJsonInputType<CONTRACT_PARAMS_TYPE> = {
+    contractName: CONTRACT,
+    network: `${networkId}-${networkName}`,
+    date: new Date(),
+    durationInMs: evaluationDurationInMs,
+    etherUnit: ETHER_UNIT,
+    contractParameters: {
+      referralPercentage: REWARD_PERCENTAGE,
+      quantityThreshold: QUANTITY_THRESHOLD,
+    },
+    numberOfUsers: numberOfUsers,
+    metrics: evaluationMetrics,
+    data: evaluationResultData,
+  };
   writeLogFile({
     directory: LOG_DIRECTORY,
     filePath: LOG_FILE_NAME,

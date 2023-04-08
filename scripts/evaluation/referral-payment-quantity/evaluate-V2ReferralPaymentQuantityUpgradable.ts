@@ -9,17 +9,22 @@ import {
   EvaluationLogJsonInputType,
   TransactionEvaluationType,
 } from "../../../types/EvaluationTypes";
-import { calculateEvaluationMetrics } from "../../../helpers/calculate-evaluation-metrics";
+import { calculateEvaluationMetrics } from "../../../helpers/evaluation-helpers/calculate-evaluation-metrics";
 import { BigNumber } from "ethers";
 import { PercentageType } from "../../../types/PercentageTypes";
 import { EvaluationPaymentQuantityContractParams } from "../../../types/EvaluationContractParameterTypes";
 import { V2ReferralPaymentQuantityUpgradable } from "../../../typechain-types";
+import { logEvaluationTx } from "../../../helpers/evaluation-helpers/evaluation-tx-logs";
 
 // -----------------------------------------------------
 // Evaluation script for V2ReferralPaymentQuantityUpgradable Contract
 // -----------------------------------------------------
 
 const CONTRACT = "V2ReferralPaymentQuantityUpgradable";
+
+type CONTRACT_TYPE = V2ReferralPaymentQuantityUpgradable;
+
+type CONTRACT_PARAMS_TYPE = EvaluationPaymentQuantityContractParams;
 
 const LOG_DIRECTORY = "evaluations/";
 
@@ -53,12 +58,10 @@ async function main() {
   // deploy contract with receiver address --> deployer account signs this transaction
   // -----------------------------------------------------------------------------------------------
   const referralContract = await ethers.getContractFactory(CONTRACT);
-  const proxyContract: V2ReferralPaymentQuantityUpgradable =
-    (await upgrades.deployProxy(referralContract, [
-      receiver.address,
-      REWARD_PERCENTAGE,
-      QUANTITY_THRESHOLD,
-    ])) as V2ReferralPaymentQuantityUpgradable;
+  const proxyContract: CONTRACT_TYPE = (await upgrades.deployProxy(
+    referralContract,
+    [receiver.address, REWARD_PERCENTAGE, QUANTITY_THRESHOLD]
+  )) as CONTRACT_TYPE;
   await proxyContract.deployed();
 
   // evaluate referral transactions
@@ -69,18 +72,14 @@ async function main() {
   const networkName = resolveNetworkIds(networkInfo.name, networkInfo.id);
   const networkId = networkInfo.id;
 
-  console.log(
-    `Executing referral transactions for ${numberOfUsers} users on the ${networkName} network...\n`
-  );
-
   const evaluationResultData: TransactionEvaluationType[] = [];
-
-  console.log(
-    `Evaluating ${CONTRACT} referral transactions on the ${networkName} network...\n`
-  );
 
   // number of txs per user to complete the referral process
   const txsPerUser = QUANTITY_THRESHOLD.toNumber() + 1;
+
+  console.log(
+    `${CONTRACT}: Executing ${txsPerUser} referral transactions per user for ${numberOfUsers} users on the ${networkName} network...\n`
+  );
 
   // -1 since we need a referrer for every referee
   const loopIterations = numberOfUsers - 1;
@@ -118,14 +117,16 @@ async function main() {
       const txCost = txGasUsed.mul(txEffectiveGasPrice);
 
       // log values
-      console.log(" Iteration", i, "");
-      console.log(" User Tx Number", j, "");
-      console.log(" Referral Process Completed", referralCompleted, "");
-      console.log(` Gas Used: ${txGasUsed}`);
-      console.log(` Effective Gas Price: ${txGasUsed}`);
-      console.log(` Tx Cost: ${txCost} (gas used * gas price)`);
-      console.log(` Duration in Ms: ${txDurationInMs}`);
-      console.log("\n");
+      logEvaluationTx({
+        user: refereeUser,
+        userIteration: i,
+        userTxIteration: j,
+        referralCompleted,
+        txGasUsed,
+        txEffectiveGasPrice,
+        txCost,
+        txDurationInMs,
+      });
 
       // create result data
       const resultData: TransactionEvaluationType = {
@@ -153,21 +154,20 @@ async function main() {
   );
 
   // create (write & store) log files of deployments for overview
-  const logInput: EvaluationLogJsonInputType<EvaluationPaymentQuantityContractParams> =
-    {
-      contractName: CONTRACT,
-      network: `${networkId}-${networkName}`,
-      date: new Date(),
-      durationInMs: evaluationDurationInMs,
-      etherUnit: ETHER_UNIT,
-      contractParameters: {
-        referralPercentage: REWARD_PERCENTAGE,
-        quantityThreshold: QUANTITY_THRESHOLD,
-      },
-      numberOfUsers: numberOfUsers,
-      metrics: evaluationMetrics,
-      data: evaluationResultData,
-    };
+  const logInput: EvaluationLogJsonInputType<CONTRACT_PARAMS_TYPE> = {
+    contractName: CONTRACT,
+    network: `${networkId}-${networkName}`,
+    date: new Date(),
+    durationInMs: evaluationDurationInMs,
+    etherUnit: ETHER_UNIT,
+    contractParameters: {
+      referralPercentage: REWARD_PERCENTAGE,
+      quantityThreshold: QUANTITY_THRESHOLD,
+    },
+    numberOfUsers: numberOfUsers,
+    metrics: evaluationMetrics,
+    data: evaluationResultData,
+  };
   writeLogFile({
     directory: LOG_DIRECTORY,
     filePath: LOG_FILE_NAME,

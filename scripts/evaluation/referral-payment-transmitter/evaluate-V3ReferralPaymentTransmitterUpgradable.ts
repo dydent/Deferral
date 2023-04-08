@@ -9,15 +9,20 @@ import {
   EvaluationLogJsonInputType,
   TransactionEvaluationType,
 } from "../../../types/EvaluationTypes";
-import { calculateEvaluationMetrics } from "../../../helpers/calculate-evaluation-metrics";
+import { calculateEvaluationMetrics } from "../../../helpers/evaluation-helpers/calculate-evaluation-metrics";
 import { EvaluationPaymentTransmitterContractParams } from "../../../types/EvaluationContractParameterTypes";
 import { V3ReferralPaymentTransmitterUpgradable } from "../../../typechain-types";
+import { logEvaluationTx } from "../../../helpers/evaluation-helpers/evaluation-tx-logs";
 
 // -----------------------------------------------------
 // Evaluation script for V3ReferralPaymentValueUpgradable Contract
 // -----------------------------------------------------
 
 const CONTRACT = "V3ReferralPaymentTransmitterUpgradable";
+
+type CONTRACT_TYPE = V3ReferralPaymentTransmitterUpgradable;
+
+type CONTRACT_PARAMS_TYPE = EvaluationPaymentTransmitterContractParams;
 
 const LOG_DIRECTORY = "evaluations/";
 
@@ -48,12 +53,10 @@ async function main() {
   // deploy contract with receiver address --> deployer account signs this transaction
   // -----------------------------------------------------------------------------------------------
   const referralContract = await ethers.getContractFactory(CONTRACT);
-  const proxyContract: V3ReferralPaymentTransmitterUpgradable =
-    (await upgrades.deployProxy(referralContract, [
-      receiver.address,
-      PAYMENT_AMOUNT,
-      REFERRAL_REWARD,
-    ])) as V3ReferralPaymentTransmitterUpgradable;
+  const proxyContract: CONTRACT_TYPE = (await upgrades.deployProxy(
+    referralContract,
+    [receiver.address, PAYMENT_AMOUNT, REFERRAL_REWARD]
+  )) as CONTRACT_TYPE;
   await proxyContract.deployed();
 
   // evaluate referral transactions
@@ -64,14 +67,13 @@ async function main() {
   const networkName = resolveNetworkIds(networkInfo.name, networkInfo.id);
   const networkId = networkInfo.id;
 
-  console.log(
-    `Executing referral transactions for ${numberOfUsers} users on the ${networkName} network...\n`
-  );
-
   const evaluationResultData: TransactionEvaluationType[] = [];
 
+  // number of txs per user to complete the referral process
+  const txsPerUser = 1;
+
   console.log(
-    `Evaluating ${CONTRACT} referral transactions on the ${networkName} network...\n`
+    `${CONTRACT}: Executing ${txsPerUser} referral transactions per user for ${numberOfUsers} users on the ${networkName} network...\n`
   );
 
   // -1 since we need a referrer for every referee
@@ -101,12 +103,17 @@ async function main() {
     const txGasUsed = await txReceipt.gasUsed;
     const txEffectiveGasPrice = await txReceipt.effectiveGasPrice;
     const txCost = txGasUsed.mul(txEffectiveGasPrice);
-    console.log(" Iteration", i, "");
-    console.log(` Gas Used: ${txGasUsed}`);
-    console.log(` Effective Gas Price: ${txGasUsed}`);
-    console.log(` Tx Cost: ${txCost} (gas used * gas price)`);
-    console.log(` Duration in Ms: ${txDurationInMs}`);
-    console.log("\n");
+
+    // log values
+    logEvaluationTx({
+      user: refereeUser,
+      userIteration: i,
+      userTxIteration: txsPerUser,
+      txGasUsed,
+      txEffectiveGasPrice,
+      txCost,
+      txDurationInMs,
+    });
 
     const resultData: TransactionEvaluationType = {
       iteration: i,
@@ -131,21 +138,20 @@ async function main() {
   );
 
   // create (write & store) log files of deployments for overview
-  const logInput: EvaluationLogJsonInputType<EvaluationPaymentTransmitterContractParams> =
-    {
-      contractName: CONTRACT,
-      network: `${networkId}-${networkName}`,
-      date: new Date(),
-      durationInMs: evaluationDurationInMs,
-      etherUnit: ETHER_UNIT,
-      contractParameters: {
-        paymentAmount: PAYMENT_AMOUNT.toNumber(),
-        referralReward: REFERRAL_REWARD.toNumber(),
-      },
-      numberOfUsers: numberOfUsers,
-      metrics: evaluationMetrics,
-      data: evaluationResultData,
-    };
+  const logInput: EvaluationLogJsonInputType<CONTRACT_PARAMS_TYPE> = {
+    contractName: CONTRACT,
+    network: `${networkId}-${networkName}`,
+    date: new Date(),
+    durationInMs: evaluationDurationInMs,
+    etherUnit: ETHER_UNIT,
+    contractParameters: {
+      paymentAmount: PAYMENT_AMOUNT.toNumber(),
+      referralReward: REFERRAL_REWARD.toNumber(),
+    },
+    numberOfUsers: numberOfUsers,
+    metrics: evaluationMetrics,
+    data: evaluationResultData,
+  };
   writeLogFile({
     directory: LOG_DIRECTORY,
     filePath: LOG_FILE_NAME,

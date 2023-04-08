@@ -15,6 +15,10 @@ import { HardhatNetworkHDAccountsUserConfig } from "hardhat/src/types/config";
 // -----------------------------------------------------------------------------------------------
 const RUNS = 200;
 
+// Config for evaluation scripts
+// -----------------------------------------------------------------------------------------------
+const NR_OF_EVALUATION_ACCOUNTS = 50;
+
 // Config for dotenv
 // -----------------------------------------------------------------------------------------------
 const dotenvConfigPath: string = process.env.DOTENV_CONFIG_PATH || "./.env";
@@ -34,7 +38,9 @@ const USE_HD_WALLET_ACCOUNTS: boolean = !!process.env.USE_EVALUATION_ACCOUNTS;
 // Config for Hardhat accounts
 // -----------------------------------------------------------------------------------------------
 export const HARDHAT_ACCOUNTS_COUNT =
-  process.env.USE_EVALUATION_ACCOUNTS === "true" ? 1000 : 20;
+  process.env.USE_EVALUATION_ACCOUNTS === "true"
+    ? NR_OF_EVALUATION_ACCOUNTS
+    : 20;
 
 const hardhatAccounts: HardhatNetworkHDAccountsUserConfig = {
   count: HARDHAT_ACCOUNTS_COUNT,

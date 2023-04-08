@@ -52,7 +52,8 @@
     "evaluate-transmitter-v1": "USE_EVALUATION_ACCOUNTS=true hardhat run scripts/evaluation/referral-payment-transmitter/evaluate-V1ReferralPaymentTransmitter.ts",
     "evaluate-transmitter-v3": "USE_EVALUATION_ACCOUNTS=true hardhat run scripts/evaluation/referral-payment-transmitter/evaluate-V3ReferralPaymentTransmitterUpgradable.ts ",
     "evaluate-quantity-v1": "USE_EVALUATION_ACCOUNTS=true hardhat run scripts/evaluation/referral-payment-quantity/evaluate-V1ReferralPaymentQuantityUpgradable.ts",
-    "evaluate-quantity-v2": "USE_EVALUATION_ACCOUNTS=true hardhat run scripts/evaluation/referral-payment-quantity/evaluate-V2ReferralPaymentQuantityUpgradable.ts"
+    "evaluate-quantity-v2": "USE_EVALUATION_ACCOUNTS=true hardhat run scripts/evaluation/referral-payment-quantity/evaluate-V2ReferralPaymentQuantityUpgradable.ts",
+    "evaluate-value-v1": "USE_EVALUATION_ACCOUNTS=true hardhat run scripts/evaluation/referral-payment-value/evaluate-V1ReferralPaymentValueUpgradable.ts"
   },
   "license": "ISC",
   "devDependencies": {

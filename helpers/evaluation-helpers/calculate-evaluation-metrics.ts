@@ -2,7 +2,7 @@ import {
   TransactionEvaluationMetrics,
   TransactionEvaluationType,
   TransactionMetrics,
-} from "../types/EvaluationTypes";
+} from "../../types/EvaluationTypes";
 
 function calculateMetrics(values: number[]): TransactionMetrics {
   const sortedValues = values.slice().sort((a, b) => a - b);
