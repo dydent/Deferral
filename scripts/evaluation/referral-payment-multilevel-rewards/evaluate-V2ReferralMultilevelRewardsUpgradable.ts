@@ -43,7 +43,7 @@ const VALUE_THRESHOLD: BigNumber = etherUnitConverter[ETHER_UNIT](10);
 const MAX_REWARD_LEVEL: BigNumber = BigNumber.from(3);
 
 // TX / REFERRAL PROCESS PARAMS
-const PAYMENT_AMOUNT = etherUnitConverter[ETHER_UNIT](5);
+const PAYMENT_AMOUNT = VALUE_THRESHOLD.div(QUANTITY_THRESHOLD);
 
 async function main() {
   const evaluationStartTime = performance.now();

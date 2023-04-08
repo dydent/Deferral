@@ -57,7 +57,9 @@
     "evaluate-value-v2": "USE_EVALUATION_ACCOUNTS=true hardhat run scripts/evaluation/referral-payment-value/evaluate-V2ReferralPaymentValueUpgradable.ts",
     "evaluate-value-v3": "USE_EVALUATION_ACCOUNTS=true hardhat run scripts/evaluation/referral-payment-value/evaluate-V3ReferralPaymentValueUpgradable.ts",
     "evaluate-multilevel-v1": "USE_EVALUATION_ACCOUNTS=true hardhat run scripts/evaluation/referral-payment-multilevel-rewards/evaluate-V1ReferralMultilevelRewardsUpgradable.ts",
-    "evaluate-multilevel-v2": "USE_EVALUATION_ACCOUNTS=true hardhat run scripts/evaluation/referral-payment-multilevel-rewards/evaluate-V2ReferralMultilevelRewardsUpgradable.ts"
+    "evaluate-multilevel-v2": "USE_EVALUATION_ACCOUNTS=true hardhat run scripts/evaluation/referral-payment-multilevel-rewards/evaluate-V2ReferralMultilevelRewardsUpgradable.ts",
+    "evaluate-token-multilevel-v1": "USE_EVALUATION_ACCOUNTS=true hardhat run scripts/evaluation/referral-multilevel-token-rewards/evaluate-V1MultilevelTokenRewardsUpgradable.ts",
+    "evaluate-all": "yarn evaluate-transmitter-v1 && yarn evaluate-transmitter-v3 && yarn evaluate-quantity-v1 && yarn evaluate-quantity-v2 && yarn evaluate-value-v1 && yarn evaluate-value-v2 && yarn evaluate-value-v3 && yarn evaluate-multilevel-v1 && yarn evaluate-multilevel-v2 && yarn evaluate-token-multilevel-v1"
   },
   "license": "ISC",
   "devDependencies": {

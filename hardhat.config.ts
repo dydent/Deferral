@@ -15,10 +15,6 @@ import { HardhatNetworkHDAccountsUserConfig } from "hardhat/src/types/config";
 // -----------------------------------------------------------------------------------------------
 const RUNS = 200;
 
-// Config for evaluation scripts
-// -----------------------------------------------------------------------------------------------
-const NR_OF_EVALUATION_ACCOUNTS = 52;
-
 // Config for dotenv
 // -----------------------------------------------------------------------------------------------
 const dotenvConfigPath: string = process.env.DOTENV_CONFIG_PATH || "./.env";
@@ -31,16 +27,26 @@ if (!mnemonic) {
   throw new Error("Please set the MNEMONIC in a .env file");
 }
 
+// Config for evaluation scripts
+// -----------------------------------------------------------------------------------------------
+const NR_OF_EVALUATION_ACCOUNTS: string | undefined =
+  process.env.NUMBER_OF_EVALUATION_ACCOUNTS;
+
 // Config for accounts
 // -----------------------------------------------------------------------------------------------
 const USE_HD_WALLET_ACCOUNTS: boolean = !!process.env.USE_EVALUATION_ACCOUNTS;
 
 // Config for Hardhat accounts
 // -----------------------------------------------------------------------------------------------
-export const HARDHAT_ACCOUNTS_COUNT =
+
+const DEFAULT_NR_OF_HARDHAT_ACCOUNTS: number = 20;
+
+export const HARDHAT_ACCOUNTS_COUNT: number =
   process.env.USE_EVALUATION_ACCOUNTS === "true"
-    ? NR_OF_EVALUATION_ACCOUNTS
-    : 20;
+    ? NR_OF_EVALUATION_ACCOUNTS !== undefined
+      ? parseInt(NR_OF_EVALUATION_ACCOUNTS)
+      : DEFAULT_NR_OF_HARDHAT_ACCOUNTS
+    : DEFAULT_NR_OF_HARDHAT_ACCOUNTS;
 
 const hardhatAccounts: HardhatNetworkHDAccountsUserConfig = {
   count: HARDHAT_ACCOUNTS_COUNT,
