@@ -27,26 +27,26 @@ if (!mnemonic) {
   throw new Error("Please set the MNEMONIC in a .env file");
 }
 
+// Config for accounts
+// -----------------------------------------------------------------------------------------------
+const USE_HD_WALLET_ACCOUNTS: boolean = !!process.env.USE_EVALUATION_ACCOUNTS;
+
 // Config for evaluation scripts
 // -----------------------------------------------------------------------------------------------
 const NR_OF_EVALUATION_ACCOUNTS: string | undefined =
   process.env.NUMBER_OF_EVALUATION_ACCOUNTS;
 
-// Config for accounts
-// -----------------------------------------------------------------------------------------------
-const USE_HD_WALLET_ACCOUNTS: boolean = !!process.env.USE_EVALUATION_ACCOUNTS;
-
 // Config for Hardhat accounts
 // -----------------------------------------------------------------------------------------------
-
 const DEFAULT_NR_OF_HARDHAT_ACCOUNTS: number = 20;
+export let HARDHAT_ACCOUNTS_COUNT: number = DEFAULT_NR_OF_HARDHAT_ACCOUNTS;
 
-export const HARDHAT_ACCOUNTS_COUNT: number =
-  process.env.USE_EVALUATION_ACCOUNTS === "true"
-    ? NR_OF_EVALUATION_ACCOUNTS !== undefined
-      ? parseInt(NR_OF_EVALUATION_ACCOUNTS)
-      : DEFAULT_NR_OF_HARDHAT_ACCOUNTS
-    : DEFAULT_NR_OF_HARDHAT_ACCOUNTS;
+if (
+  process.env.USE_EVALUATION_ACCOUNTS === "true" &&
+  NR_OF_EVALUATION_ACCOUNTS !== undefined
+) {
+  HARDHAT_ACCOUNTS_COUNT = parseInt(NR_OF_EVALUATION_ACCOUNTS);
+}
 
 const hardhatAccounts: HardhatNetworkHDAccountsUserConfig = {
   count: HARDHAT_ACCOUNTS_COUNT,

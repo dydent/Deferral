@@ -7,6 +7,7 @@ import { writeLogFile } from "../../../helpers/write-files";
 import { HARDHAT_ACCOUNTS_COUNT } from "../../../hardhat.config";
 import {
   EvaluationLogJsonInputType,
+  TransactionEvaluationMetrics,
   TransactionEvaluationType,
 } from "../../../types/EvaluationTypes";
 import {
@@ -150,7 +151,8 @@ async function main() {
   }
 
   console.log(`$ Calculating transaction metrics for evaluation...`);
-  const evaluationMetrics = calculateEvaluationMetrics(evaluationResultData);
+  const evaluationMetrics: TransactionEvaluationMetrics =
+    calculateEvaluationMetrics(evaluationResultData);
 
   // time measuring
   const evaluationEndTime = performance.now();
