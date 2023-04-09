@@ -8,6 +8,8 @@ typechain-types
 
 # extras
 logs
+gas-reporter-logs
+
 
 # Hardhat files
 cache

@@ -4,6 +4,7 @@ import { resolve } from "path";
 // -----------------------------------------------------------------------------------------------
 // constants and helpers for generating and using accounts
 // -----------------------------------------------------------------------------------------------
+const ACCOUNT_COUNT = 20;
 
 const dotenvConfigPath: string = process.env.DOTENV_CONFIG_PATH || "../../.env";
 dotenvConfig({ path: resolve(__dirname, dotenvConfigPath) });
@@ -34,7 +35,7 @@ if (!metamaskPk4) {
 
 // Generated Accounts by Hardhat with the private keys using a mnemonic phrase of 12 words
 export const HD_WALLET_ACCOUNTS = {
-  count: 20,
+  count: ACCOUNT_COUNT,
   mnemonic,
   path: "m/44'/60'/0'/0",
 };

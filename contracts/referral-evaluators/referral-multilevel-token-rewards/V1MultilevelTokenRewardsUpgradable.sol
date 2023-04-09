@@ -13,8 +13,6 @@ import {ReentrancyGuardUpgradeable} from "@openzeppelin/contracts-upgradeable/se
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-import "hardhat/console.sol";
-
 contract V1ReferralMultilevelTokenRewardsUpgradable is
     Initializable,
     OwnableUpgradeable,
