@@ -7,8 +7,6 @@ typechain-types
 .openzeppelin
 
 
-# ignore submodule repos
-visualizations
 
 # extras
 logs
@@ -23,3 +21,5 @@ artifacts
 .idea
 
 
+# ignore submodule repos
+visualizations/
