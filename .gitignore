@@ -6,6 +6,8 @@ typechain-types
 .env
 .openzeppelin
 
+# ignore submodule repos
+visualizations/
 
 
 # extras
@@ -21,5 +23,3 @@ artifacts
 .idea
 
 
-# ignore submodule repos
-visualizations/
