@@ -6,6 +6,10 @@ typechain-types
 .env
 .openzeppelin
 
+
+# ignore submodule repos
+visualizations
+
 # extras
 logs
 gas-reporter-logs
@@ -18,6 +22,4 @@ artifacts
 # Webstorm files
 .idea
 
-# ignore submodule repos
-visualizations/
 
