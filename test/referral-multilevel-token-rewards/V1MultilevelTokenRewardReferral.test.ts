@@ -16,7 +16,6 @@ import { PercentageType } from "../../types/PercentageTypes";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import {
   Deferral,
-  TwinDeferral,
   V1ReferralMultilevelTokenRewardsUpgradable,
 } from "../../typechain-types";
 import { createTokenReferralChain } from "../../helpers/test-helpers/create-token-referral-chain";
@@ -372,24 +371,6 @@ describe(testDescribeTitle, async () => {
           await expect(updatePromise).to.be.rejectedWith(MIN_REWARD_LEVELS);
         }
       });
-
-      it(`${CONTRACT_NAME} should update reward token`, async () => {
-        const { admin, proxyContract } = await loadFixture(defaultFixture);
-
-        // deploy second erc20 token
-        const TokenContract = await ethers.getContractFactory("TwinDeferral");
-        const deployedToken: TwinDeferral = (await TokenContract.deploy(
-          DEFAULT_TOKEN_SUPPLY
-        )) as TwinDeferral;
-        const updatedTokenAddress: string = deployedToken.address;
-
-        // update values and assert they are updated
-        await proxyContract
-          .connect(admin)
-          .updateReferralToken(updatedTokenAddress);
-        const token = await proxyContract.token();
-        expect(token).to.equal(updatedTokenAddress);
-      });
     });
 
     // -----------------------------------------------------------------------------------------------
@@ -401,16 +382,7 @@ describe(testDescribeTitle, async () => {
         const { rootReferrer, updatedReceiver, proxyContract } =
           await loadFixture(defaultFixture);
 
-        // deploy token contract
-        const TokenContract: ContractFactory = await ethers.getContractFactory(
-          DEFAULT_TOKEN
-        );
-        const deployedTokenContract: Contract = await TokenContract.deploy(
-          DEFAULT_TOKEN_SUPPLY
-        );
-
         // get valid values for updating
-        const tokenAddress: string = deployedTokenContract.address;
         const nonAdminSigner: SignerWithAddress = rootReferrer;
         const validReferralReward: PercentageType = 50;
         const validRefereeReward: PercentageType = 40;
@@ -421,9 +393,6 @@ describe(testDescribeTitle, async () => {
         const expectedError: string = OWNABLE_ERROR_STRING;
 
         // execute tx with valid values and non-admin signer
-        const tokenUpdatedPromise = proxyContract
-          .connect(nonAdminSigner)
-          .updateReferralToken(tokenAddress);
         const referralRewardUpdatePromise = proxyContract
           .connect(nonAdminSigner)
           .updateReferralReward(validReferralReward);
@@ -443,7 +412,6 @@ describe(testDescribeTitle, async () => {
           .connect(nonAdminSigner)
           .updateMaxRewardLevels(validMaxRewardLevels);
         // await tx calls to be rejected since they are not owner of the contract
-        await expect(tokenUpdatedPromise).to.be.rejectedWith(expectedError);
         await expect(referralRewardUpdatePromise).to.be.rejectedWith(
           expectedError
         );

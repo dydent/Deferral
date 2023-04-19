@@ -23,6 +23,7 @@ contract V1ReferralMultilevelTokenRewardsUpgradable is
     // -----------------------------------------------------------------------------------------------
 
     // token / currency that is accepted for payments
+    // NOTE: CANNOT BE UPDATED AFTER CREATION --> would lead to inconsistencies in the referral process data
     IERC20 public token;
     // address of the payment receiver wallet
     address payable public receiverAddress;
@@ -80,7 +81,6 @@ contract V1ReferralMultilevelTokenRewardsUpgradable is
     event PaymentRegistered(address indexed sender, uint256 amount);
     event PaymentForwarded(address indexed receiverAddress, uint256 amount);
     // events when owner is updating contracts variables
-    event ReferralTokenUpdated(IERC20 _newToken);
     event ReceiverAddressChanged(address indexed newReceiver);
     event RewardPercentageChanged(uint256 newReward);
     event RefereeRewardPercentageChanged(uint256 newRefereeRewardPercentage);
@@ -363,12 +363,6 @@ contract V1ReferralMultilevelTokenRewardsUpgradable is
     // -----------------------------------------------------------------------------------------------
     // updating contract variables (only contract owner can update these)
     // -----------------------------------------------------------------------------------------------
-
-    function updateReferralToken(IERC20 _updatedToken) public onlyOwner {
-        token = _updatedToken;
-        emit ReferralTokenUpdated(_updatedToken);
-    }
-
     function updateReceiverAddress(
         address payable _updatedReceiverAddress
     ) public onlyOwner {
