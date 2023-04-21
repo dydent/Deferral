@@ -5,6 +5,7 @@ import {
   HD_WALLET_ACCOUNTS,
   METAMASK_ACCOUNTS,
 } from "./constants/accounts";
+import { ChainType } from "../types/ChainTypes";
 
 // -----------------------------------------------------------------------------------------------
 // helper functions for configuring the different chains in the hardhat.config.ts file
@@ -21,7 +22,7 @@ export const getChainConfig = ({
   chain,
   hdWalletAccounts,
 }: {
-  chain: keyof typeof CHAIN_IDS;
+  chain: ChainType;
   hdWalletAccounts?: boolean;
 }): NetworkUserConfig => {
   let jsonRpcUrl: string;
@@ -36,6 +37,15 @@ export const getChainConfig = ({
       break;
     case "bsc":
       jsonRpcUrl = "https://bsc-dataseed1.binance.org";
+      break;
+    case "polygon-mainnet":
+      jsonRpcUrl = "https://polygon-rpc.com/";
+      break;
+    case "arbitrum-mainnet":
+      jsonRpcUrl = "https://arb1.arbitrum.io/rpc";
+      break;
+    case "optimism-mainnet":
+      jsonRpcUrl = "https://mainnet.optimism.io";
       break;
     default:
       jsonRpcUrl = "https://" + chain + ".infura.io/v3/" + infuraApiKey;

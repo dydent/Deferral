@@ -1,4 +1,4 @@
-import { BigNumber, BigNumberish, utils } from "ethers";
+import { BigNumber, utils } from "ethers";
 import { toBn } from "evm-bn";
 import { EtherUnits } from "../types/ValidUnitTypes";
 
@@ -8,13 +8,21 @@ import { EtherUnits } from "../types/ValidUnitTypes";
 
 const ETHER_TO_GWEI_FACTOR: BigNumber = BigNumber.from(1000000000);
 
-export const ethToWeiConverter = (weiInputValue: BigNumberish): string => {
+export const weiToEthConverter = (weiInputValue: BigNumber): string => {
   return utils.formatEther(weiInputValue);
 };
 
-export const weiToEthConverter = (weiInputValue: BigNumber): BigNumber => {
-  return toBn(utils.formatUnits(weiInputValue, 18));
-};
+export function weiToGweiConverter(weiInputValue: BigNumber): string {
+  return utils.formatUnits(weiInputValue, 9);
+}
+
+/**
+ * takes a number of bignumber as input and converts it to the ether units
+ * E.g. Input:1
+ *  --> wei: 1
+ *  --> gwei: 1000000000
+ *  --> ether: 1000000000000000000
+ */
 
 export const etherUnitConverter = {
   [EtherUnits.Ether]: (value: BigNumber | number): BigNumber => {
