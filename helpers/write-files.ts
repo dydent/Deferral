@@ -46,7 +46,7 @@ export const writeLogFile = <InputType>({
     "." +
     fileTypeExtension;
 
-  console.log("writing log file...");
+  console.log("\nWriting log file...");
   ensureDirectoryExistence(fullPath);
 
   let data: Array<InputType & InputIDType> = [];
@@ -78,7 +78,9 @@ export const writeLogFile = <InputType>({
   // Write the updated data to the file
   try {
     fs.writeFileSync(fullPath, JSON.stringify(data, null, 4));
-    console.log(`${action} log file - successfully written in ${fullPath}!`);
+    console.log(
+      `... ${action} log file - successfully written in ${fullPath}!`
+    );
   } catch (err) {
     console.error(err);
   }

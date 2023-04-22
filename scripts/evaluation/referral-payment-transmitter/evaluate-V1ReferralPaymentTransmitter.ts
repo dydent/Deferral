@@ -22,11 +22,11 @@ import { logEvaluationTx } from "../../../helpers/evaluation-helpers/evaluation-
 import { getFiatChainPrices } from "../../../helpers/evaluation-helpers/get-fiat-chain-prices";
 import { EVALUATION_CHAIN_DATA } from "../../../helpers/constants/evaluation-chains";
 import { getGasChainPrices } from "../../../helpers/evaluation-helpers/get-gas-chain-prices";
-import { CoinGeckoCurrencies } from "../../../types/ChainTypes";
+import { CoinGeckoCurrencies } from "../../../types/CoinGeckoTypes";
 
-// -----------------------------------------------------
+// ---------------------------------------------------------------------------
 // Evaluation script for V1ReferralPaymentTransmitter Contract
-// -----------------------------------------------------
+// ---------------------------------------------------------------------------
 
 const CONTRACT = "V1ReferralPaymentTransmitter";
 
@@ -38,6 +38,8 @@ const LOG_DIRECTORY = "evaluations/referral-payment-transmitter/";
 
 const LOG_FILE_NAME = `${CONTRACT}-contract-evaluation`;
 
+// ETHER UNIT THAT IS USED TO CONVERT VALUES
+// --> changing the ether unit can have impacts on the precision of the results
 const ETHER_UNIT = EtherUnits.Wei;
 
 // CONTRACT PARAMETERS
@@ -69,6 +71,7 @@ async function main() {
   console.log(`... starting evaluation process ...\n`);
 
   const evaluationStartTime = performance.now();
+
   // get all accounts/signers
   const allSigners = await ethers.getSigners();
 
@@ -141,6 +144,7 @@ async function main() {
 
     // log values
     logEvaluationTx({
+      fiatCurrency: FIAT_CURRENCY,
       user: refereeUser,
       userSignerAddress: refereeUser.address,
       userIteration: i,
@@ -176,11 +180,11 @@ async function main() {
       avalancheGasCost: txEvaluationData.avalancheGasCost?.toString(),
       goerliGasCost: txEvaluationData.goerliGasCost?.toString(),
     };
-    // append result data to evaluation data
+    // append readable result data to readable evaluation data
     readableEvaluationResultData.push(readableResultData);
   }
 
-  console.log(`$ Calculating transaction metrics for evaluation...`);
+  console.log(`\nCalculating evaluation metrics ...`);
   const evaluationMetrics: EvaluationMetricsType =
     calculateEvaluationMetrics(evaluationResultData);
 
@@ -189,7 +193,7 @@ async function main() {
   const evaluationDurationInMs = evaluationEndTime - evaluationStartTime;
   // log message
   console.log(
-    `$ Evaluation of ${CONTRACT} contract finished in ${evaluationDurationInMs} ms`
+    `\nEvaluation of ${CONTRACT} contract finished in ${evaluationDurationInMs} ms`
   );
 
   // create (write & store) log files of deployments for overview
@@ -223,7 +227,7 @@ async function main() {
   });
 }
 
-// catch deployment errors
+// catch evaluation errors
 main().catch((error) => {
   console.error(
     `Something went wrong with the ${CONTRACT} evaluation:\n`,

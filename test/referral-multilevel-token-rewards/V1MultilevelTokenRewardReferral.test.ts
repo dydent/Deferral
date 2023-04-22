@@ -32,13 +32,16 @@ const CONTRACT_NAME = "V1ReferralMultilevelTokenRewardsUpgradable";
 // TEST DEFAULT VALUES
 // -----------------------------------------------------------------------------------------------
 
+// token specific values
 const DEFAULT_TOKEN: string = "Deferral";
 type DEFAULT_TOKEN_TYPE = Deferral;
 const DEFAULT_TOKEN_SUPPLY: BigNumber = BigNumber.from(1000000000);
 const DEFAULT_TOKEN_SUPPLY_PER_ACCOUNT: BigNumber = BigNumber.from(1000);
+
 // must be between 0 and 100!
 const DEFAULT_REFERRAL_PERCENTAGE: PercentageType = 30;
 const DEFAULT_REFEREE_PERCENTAGE: PercentageType = 40;
+
 // number of payment transactions for a referral process to be complete = thresholds + 1
 const DEFAULT_QUANTITY_THRESHOLD: BigNumber = BigNumber.from(2);
 const DEFAULT_VALUE_THRESHOLD: BigNumber = BigNumber.from(100);

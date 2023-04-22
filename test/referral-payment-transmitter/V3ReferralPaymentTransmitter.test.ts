@@ -24,14 +24,23 @@ const CONTRACT_NAME = "V3ReferralPaymentTransmitterUpgradable";
 // -----------------------------------------------------------------------------------------------
 // TEST DEFAULT VALUES
 // -----------------------------------------------------------------------------------------------
+
+// ETHER UNIT THAT IS USED TO CONVERT VALUES
+// --> changing the ether unit can have impacts on the precision of the results
+// --> can impact the test results
 const DEFAULT_UNIT: EtherUnits = EtherUnits.Ether;
+
+// default exact payment amount that is sent in referral payment
 const DEFAULT_PAYMENT_AMOUNT: BigNumber = etherUnitConverter[DEFAULT_UNIT](10);
+
 // must be smaller than payment amount
 const DEFAULT_REFERRAL_REWARD: BigNumber = etherUnitConverter[DEFAULT_UNIT](1);
 const DEFAULT_PRICE: BigNumber = DEFAULT_PAYMENT_AMOUNT.sub(
   DEFAULT_REFERRAL_REWARD
 );
 
+// several tests use the same code to test the contracts since the contract include a lot of similarities
+// noinspection DuplicatedCode
 describe(`Testing ${CONTRACT_NAME} Referral Contract`, async () => {
   // helper function to deploy the referral contract
   const defaultFixture = async () => {

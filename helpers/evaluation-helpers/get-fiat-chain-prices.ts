@@ -2,7 +2,7 @@ import {
   CoinGeckoCurrencies,
   CoinGeckoCurrencyTypes,
   CoinGeckoIds,
-} from "../../types/ChainTypes";
+} from "../../types/CoinGeckoTypes";
 
 import { CoinGeckoClient } from "coingecko-api-v3";
 import {
@@ -31,8 +31,8 @@ export const getFiatChainPrices = async (
   fiatPrices: ChainFiatPriceType<number>;
 }> => {
   // initialize an empty object to store the fetched fiat prices
-  let resultFiatPrices = {} as ChainFiatPriceType<number>;
-  let chainIds: CoinGeckoIds[] = [];
+  const resultFiatPrices = {} as ChainFiatPriceType<number>;
+  const chainIds: CoinGeckoIds[] = [];
 
   // get all chain ids from the chainData object
   Object.entries(chainData).map(([, value]) => {

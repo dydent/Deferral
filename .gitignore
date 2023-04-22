@@ -19,5 +19,8 @@ artifacts
 # Webstorm files
 .idea
 
-# ignore submodule repos
+## ignore submodule repos
 /visualizations-deferral/
+
+# ignore contract viusalization outputs
+solidity-contract-diagrams

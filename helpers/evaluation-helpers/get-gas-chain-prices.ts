@@ -28,10 +28,10 @@ export async function getGasChainPrices(
   gasPricesInGwei: ChainGasPricesType<string>;
   gasPricesInEth: ChainGasPricesType<string>;
 }> {
-  let bnResultGasPricesInWei = {} as ChainGasPricesType<BigNumber>;
-  let resultGasPricesInWei = {} as ChainGasPricesType<string>;
-  let resultGasPricesInGwei = {} as ChainGasPricesType<string>;
-  let resultGasPricesInEther = {} as ChainGasPricesType<string>;
+  const bnResultGasPricesInWei = {} as ChainGasPricesType<BigNumber>;
+  const resultGasPricesInWei = {} as ChainGasPricesType<string>;
+  const resultGasPricesInGwei = {} as ChainGasPricesType<string>;
+  const resultGasPricesInEther = {} as ChainGasPricesType<string>;
   let jsonRpcUrl: string;
 
   for (const chainString of Object.keys(chainData)) {

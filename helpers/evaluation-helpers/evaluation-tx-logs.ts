@@ -1,4 +1,5 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import { CoinGeckoCurrencyTypes } from "../../types/CoinGeckoTypes";
 import { TransactionEvaluationType } from "../../types/EvaluationTypes";
 
 // -----------------------------------------------------------------------------------------------
@@ -8,6 +9,7 @@ import { TransactionEvaluationType } from "../../types/EvaluationTypes";
 type LogParams = TransactionEvaluationType & {
   user?: SignerWithAddress;
   referralCompleted?: boolean;
+  fiatCurrency: CoinGeckoCurrencyTypes;
 };
 
 export function logEvaluationTx(params: LogParams): void {
@@ -16,13 +18,13 @@ export function logEvaluationTx(params: LogParams): void {
     "\n-----------------------------------------------------------------------------------------------"
   );
   if (params.userIteration !== undefined)
-    console.log(" User Iteration", params.userIteration, "");
+    console.log(" User Iteration:", params.userIteration, "");
   if (params.user?.address !== undefined)
     console.log(" User Address:", params.user?.address, "");
   if (params.userTxIteration !== undefined)
-    console.log(" User Tx Iteration", params.userTxIteration, "");
+    console.log(" User Tx Iteration:", params.userTxIteration, "");
   if (params.referralCompleted !== undefined)
-    console.log(" Referral Process Completed", params.referralCompleted, "");
+    console.log(" Referral Process Completed:", params.referralCompleted, "");
   console.log("");
   if (params.durationInMs !== undefined)
     console.log(` TX Duration in Ms: ${params.durationInMs}`);
@@ -30,45 +32,57 @@ export function logEvaluationTx(params: LogParams): void {
   console.log("");
   // log gas costs values
   if (params.bscGasCost !== undefined)
-    console.log(` BSC TX GasCost: ${params.bscGasCost}`);
+    console.log(` BSC TX GasCost (in wei): ${params.bscGasCost}`);
   if (params.ethereumGasCost !== undefined)
-    console.log(` ETH TX GasCost: ${params.ethereumGasCost}`);
+    console.log(` ETH TX GasCost (in wei): ${params.ethereumGasCost}`);
   if (params.polygonMainnetGasCost !== undefined)
-    console.log(` Polygon Mainnet TX GasCost: ${params.polygonMainnetGasCost}`);
+    console.log(
+      ` Polygon Mainnet TX GasCost (in wei): ${params.polygonMainnetGasCost}`
+    );
   if (params.arbitrumMainnetGasCost !== undefined)
     console.log(
-      ` Arbitrum Mainnet TX GasCost: ${params.arbitrumMainnetGasCost}`
+      ` Arbitrum Mainnet TX GasCost (in wei): ${params.arbitrumMainnetGasCost}`
     );
   if (params.optimismMainnetGasCost !== undefined)
     console.log(
-      ` Optimism Mainnet TX GasCost: ${params.optimismMainnetGasCost}`
+      ` Optimism Mainnet TX GasCost (in wei): ${params.optimismMainnetGasCost}`
     );
   if (params.avalancheGasCost !== undefined)
-    console.log(` Avalanche Mainnet TX GasCost: ${params.avalancheGasCost}`);
+    console.log(
+      ` Avalanche Mainnet TX GasCost (in wei): ${params.avalancheGasCost}`
+    );
   if (params.goerliGasCost !== undefined)
-    console.log(` Goerli Testnet TX GasCost: ${params.goerliGasCost}`);
+    console.log(` Goerli Testnet TX GasCost (in wei): ${params.goerliGasCost}`);
   console.log("");
   // log fiat costs values
   if (params.bscFiatCost !== undefined)
-    console.log(` BSC TX FiatCost: ${params.bscFiatCost}`);
+    console.log(
+      ` BSC TX FiatCost (in ${params.fiatCurrency}): ${params.bscFiatCost}`
+    );
   if (params.ethereumFiatCost !== undefined)
-    console.log(` ETH TX FiatCost: ${params.ethereumFiatCost}`);
+    console.log(
+      ` ETH TX FiatCost (in ${params.fiatCurrency}): ${params.ethereumFiatCost}`
+    );
   if (params.polygonMainnetFiatCost !== undefined)
     console.log(
-      ` Polygon Mainnet TX FiatCost: ${params.polygonMainnetFiatCost}`
+      ` Polygon Mainnet TX FiatCost (in ${params.fiatCurrency}): ${params.polygonMainnetFiatCost}`
     );
   if (params.arbitrumMainnetFiatCost !== undefined)
     console.log(
-      ` Arbitrum Mainnet TX FiatCost: ${params.arbitrumMainnetFiatCost}`
+      ` Arbitrum Mainnet TX FiatCost (in ${params.fiatCurrency}): ${params.arbitrumMainnetFiatCost}`
     );
   if (params.optimismMainnetFiatCost !== undefined)
     console.log(
-      ` Optimism Mainnet TX FiatCost: ${params.optimismMainnetFiatCost}`
+      ` Optimism Mainnet TX FiatCost (in ${params.fiatCurrency}): ${params.optimismMainnetFiatCost}`
     );
   if (params.avalancheFiatCost !== undefined)
-    console.log(` Avalanche Mainnet TX FiatCost: ${params.avalancheFiatCost}`);
+    console.log(
+      ` Avalanche Mainnet TX FiatCost (in ${params.fiatCurrency}): ${params.avalancheFiatCost}`
+    );
   if (params.goerliFiatCost !== undefined)
-    console.log(` Goerli Testnet TX FiatCost: ${params.goerliFiatCost}`);
+    console.log(
+      ` Goerli Testnet TX FiatCost (in ${params.fiatCurrency}): ${params.goerliFiatCost}`
+    );
   console.log(
     "-----------------------------------------------------------------------------------------------\n"
   );

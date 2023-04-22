@@ -132,7 +132,9 @@ function calculateBigNumberMetrics(
   values: BigNumber[]
 ): TransactionEvaluationMetricsType {
   // sort the input values in ascending order
-  const sortedValues = values.slice().sort((a, b) => a.sub(b).toNumber());
+  const sortedValues = values
+    .slice()
+    .sort((a, b) => (a.sub(b).isNegative() ? -1 : 1));
   const length = values.length;
   const min = sortedValues[0].toString();
   const max = sortedValues[length - 1].toString();

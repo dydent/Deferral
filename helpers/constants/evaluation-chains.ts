@@ -1,4 +1,4 @@
-import { CoinGeckoIds, CoinGeckoSymbols } from "../../types/ChainTypes";
+import { CoinGeckoIds, CoinGeckoSymbols } from "../../types/CoinGeckoTypes";
 import { EvaluationChainDataType } from "../../types/EvaluationTypes";
 
 // -----------------------------------------------------
