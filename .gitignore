@@ -19,6 +19,9 @@ artifacts
 # Webstorm files
 .idea
 
+# yarn error log
+yarn-error.log
+
 ## ignore submodule repos
 /visualizations-deferral/
 
