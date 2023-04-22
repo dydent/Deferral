@@ -24,6 +24,8 @@
     "prettier:check": "prettier --check \"**/*.{js,json,md,sol,ts}\"",
     "prettier:write": "prettier --write \"**/*.{js,json,md,sol,ts}\"",
     "remove-logs": "rm -rf logs",
+    "remove-evaluation-logs": "rm -rf logs/evaluations",
+    "remove-deployment-logs": "rm -rf logs/deployments",
     "remove-diagrams": "rm -rf solidity-contract-diagrams",
     "generate-contract-diagrams": "sol2uml class ./contracts --outputFileName solidity-contract-diagrams/all-contracts.svg",
     "compile": "npx hardhat compile",

@@ -9,11 +9,12 @@
 # or you can set the value to a custom network
 # ./deploy.sh my_custom_network
 
-
-
 network="${1:-hardhat}"
 
-echo "Running deployment scripts with --network $network"
+echo "******************************************************************************************************************"
+echo " Running deployment scripts with --network $network"
+echo "******************************************************************************************************************"
+echo ""
 
 hardhat run scripts/deployment/referral-payment-transmitter/deploy-V1ReferralPaymentTransmitter.ts --network $network
 hardhat run scripts/deployment/referral-payment-transmitter/deploy-V2ReferralPaymentTransmitterUpgradable.ts --network $network
