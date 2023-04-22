@@ -1,5 +1,9 @@
 import { BigNumber } from "ethers";
 
+// -----------------------------------------------------------------------------------------------
+// helper functions to calculate fiat costs based on fiat prices and gas costs (both chain specific)
+// -----------------------------------------------------------------------------------------------
+
 /**
  * Calculate the fiat price given the gas price in Wei and the fiat price for one default value.
  *

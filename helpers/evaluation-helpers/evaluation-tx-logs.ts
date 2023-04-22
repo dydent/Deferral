@@ -1,6 +1,10 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { TransactionEvaluationType } from "../../types/EvaluationTypes";
 
+// -----------------------------------------------------------------------------------------------
+// helper function for logging data in the console during the evaluation runs
+// -----------------------------------------------------------------------------------------------
+
 type LogParams = TransactionEvaluationType & {
   user?: SignerWithAddress;
   referralCompleted?: boolean;

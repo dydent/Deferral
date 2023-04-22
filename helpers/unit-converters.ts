@@ -3,9 +3,23 @@ import { toBn } from "evm-bn";
 import { EtherUnits } from "../types/ValidUnitTypes";
 
 // -----------------------------------------------------------------------------------------------
-// helper functions for converting numbers to wei and ether units
+// helper functions for converting units
 // -----------------------------------------------------------------------------------------------
 
+/**
+ * Ether (EVM Based) units:
+ *
+ * 1. Wei: Smallest unit of ether.
+ *    1 Ether = 1 x 10^18 Wei
+ *
+ * 2. Gwei: Larger unit of ether, often used in gas prices.
+ *    1 Ether = 1 x 10^9 Gwei
+ *    1 Gwei = 1 x 10^9 Wei
+ *
+ * 3. Ether: Base unit of the Ethereum same as e.g. MATIC on Polygon etc....
+ */
+
+// conversion factor constant used for calculations
 const ETHER_TO_GWEI_FACTOR: BigNumber = BigNumber.from(1000000000);
 
 export const weiToEthConverter = (weiInputValue: BigNumber): string => {
@@ -17,7 +31,8 @@ export function weiToGweiConverter(weiInputValue: BigNumber): string {
 }
 
 /**
- * takes a number of bignumber as input and converts it to the ether units
+ * takes a regular number or bignumber as input and converts it to the desired unit
+ *
  * E.g. Input:1
  *  --> wei: 1
  *  --> gwei: 1000000000

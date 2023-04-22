@@ -3,13 +3,16 @@ import { EvaluationChainDataType } from "../../types/EvaluationTypes";
 
 // -----------------------------------------------------
 // Evaluation Chains Data for the Evaluation Scripts
-// Note: if this object is types and scripts must also be updated!
+// !!!NOTE!!!: if this object is changed or extended evaluation types, scripts and helper methods will have to be updated!
 // -----------------------------------------------------
 
 export const EVALUATION_CHAIN_DATA: EvaluationChainDataType = {
   bsc: {
+    // string info / name of chain --> for clarity
     chain: "binance",
+    // chain id used for CoinGecko API request
     coinGeckoId: CoinGeckoIds.bsc,
+    // default unit name by CoinGecko
     defaultUnitName: CoinGeckoSymbols.bsc,
   },
   mainnet: {

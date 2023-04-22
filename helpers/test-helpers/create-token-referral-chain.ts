@@ -6,6 +6,11 @@ import {
 } from "../../typechain-types";
 import { BaseContract, BigNumber } from "ethers";
 
+// -----------------------------------------------------------------------------------------------
+// specific and adapted helper functions to create a referral chain using token payments during the testing and evaluation processes
+// used for the multilevel token payment rewards
+// -----------------------------------------------------------------------------------------------
+
 type ValidContractType = V1ReferralMultilevelTokenRewardsUpgradable;
 
 type ReturnType = {

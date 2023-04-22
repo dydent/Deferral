@@ -9,6 +9,10 @@ import {
 import { V3ReferralPaymentValueUpgradable } from "../../typechain-types/contracts/referral-evaluators/referral-payment-value/V3ReferralPaymentValueUpgradable";
 import { BigNumber } from "ethers";
 
+// -----------------------------------------------------------------------------------------------
+// test helper functions to execute a referral payment transaction
+// -----------------------------------------------------------------------------------------------
+
 type ValidContractType =
   | V1ReferralPaymentValueUpgradable
   | V2ReferralPaymentValueUpgradable

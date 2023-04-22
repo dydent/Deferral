@@ -1,10 +1,14 @@
-// helper function to execute payments to the referral contract n times
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import {
   V1ReferralMultilevelRewardsUpgradable,
   V2ReferralMultilevelRewardsUpgradable,
 } from "../../typechain-types";
 import { BigNumber } from "ethers";
+
+// -----------------------------------------------------------------------------------------------
+// helper functions to create a referral chain during the testing and evaluation processes
+// used for the multilevel payment rewards
+// -----------------------------------------------------------------------------------------------
 
 type ValidContractType =
   | V1ReferralMultilevelRewardsUpgradable

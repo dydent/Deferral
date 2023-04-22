@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 
 // -----------------------------------------------------------------------------------------------
-// helper function for writing logs of the contract deployment scripts
+// helper function for writing logs of the evaluation & contract deployment scripts
 // -----------------------------------------------------------------------------------------------
 
 type InputIDType = {

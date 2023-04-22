@@ -8,6 +8,20 @@ import {
 import { BigNumber, ContractTransaction } from "ethers";
 import { calculateFiatCosts } from "./calculate-fiat-costs";
 
+// -----------------------------------------------------------------------------------------------
+// helper functions to calculate evaluation metrics and values
+// -----------------------------------------------------------------------------------------------
+
+/**
+ * calculate values per transaction need for the evaluation
+ *
+ * @param txStartTime - start time of the transaction for calculating the duration.
+ * @param txEndTime - end time of the transaction for calculating the duration.
+ * @param referralPaymentTx - the referral payment transaction.
+ * @param chainGasPrices - the chain gas prices of the different chains used fo the evaluation as Big Numbers.
+ * @param chainFiatPrices - the fiat chain prices of the different chains used for the evaluation as numbers.
+ * @returns TransactionEvaluationValuesType - returns the calculated values for one transaction that are used and stored for the evaluation.
+ */
 export async function getTxEvaluationData(
   txStartTime: number,
   txEndTime: number,
@@ -84,11 +98,14 @@ export async function getTxEvaluationData(
   };
 }
 
+// calculate the different metric types from numbers including min, max, avg, median and sum
 function calculateMetrics(values: number[]): TransactionEvaluationMetricsType {
+  // sort the input values in ascending order
   const sortedValues = values.slice().sort((a, b) => a - b);
   const length = values.length;
   const min = sortedValues[0].toString();
   const max = sortedValues[length - 1].toString();
+  // calculate the median based on the length of the input values
   const median =
     length % 2 === 0
       ? (
@@ -110,13 +127,16 @@ function calculateMetrics(values: number[]): TransactionEvaluationMetricsType {
   };
 }
 
+// calculate the different metric types from Big Numbers including min, max, avg, median and sum
 function calculateBigNumberMetrics(
   values: BigNumber[]
 ): TransactionEvaluationMetricsType {
+  // sort the input values in ascending order
   const sortedValues = values.slice().sort((a, b) => a.sub(b).toNumber());
   const length = values.length;
   const min = sortedValues[0].toString();
   const max = sortedValues[length - 1].toString();
+  // calculate the median based on the length of the input values
   const median =
     length % 2 === 0
       ? sortedValues[length / 2 - 1]
@@ -124,6 +144,7 @@ function calculateBigNumberMetrics(
           .div(2)
           .toString()
       : sortedValues[Math.floor(length / 2)].toString();
+  // calculate the sum of the input values
   const sum = values.reduce((acc, val) => acc.add(val), BigNumber.from(0));
   const avg = sum.div(length).toString();
 
@@ -136,6 +157,12 @@ function calculateBigNumberMetrics(
   };
 }
 
+/**
+ * calculate the metrics per evaluation run for all the transactions made in this evaluation rung
+ *
+ * @param txs - list of all recorded transactions that have been done during the evaluation run
+ * @returns EvaluationMetricsType - returns the metric types per evaluation run considering all transactions.
+ */
 export function calculateEvaluationMetrics(
   txs: TransactionEvaluationValuesType[]
 ): EvaluationMetricsType {

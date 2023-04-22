@@ -7,6 +7,14 @@ import {
 import { weiToEthConverter, weiToGweiConverter } from "../unit-converters";
 import { ChainType } from "../../types/ChainTypes";
 
+// -----------------------------------------------------------------------------------------------
+// helper function to get cast costs of chains by using ethers.js
+// ethers.js connects to rpc blockchain node (through a provider) & sends a JSON-RPC request for the current gas price to the provider
+// there are multiple different providers available for different chains
+// if method does not return gas price for a specific chain double-check the connection and jsonRpcUrl or switch to another node (change jsonRPCUrl)
+// -----------------------------------------------------------------------------------------------
+
+// for multiple chains infura can be used to connect to a node --> needs valid INFURA_API_KEY in .env file
 const infuraApiKey: string | undefined = process.env.INFURA_API_KEY;
 if (!infuraApiKey) {
   throw new Error("Please set the INFURA_API_KEY in a .env file");
