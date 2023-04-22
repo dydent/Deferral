@@ -2,12 +2,12 @@
 
 
 # to execute this script run in the console:
-# chmod +x deploy_all.sh
+# chmod +x deploy.sh
 # then to execute the script run:
 # Using the default value (hardhat)
-# ./deploy_all.sh
+# ./deploy.sh
 # or you can set the value to a custom network
-# ./deploy_all.sh my_custom_network
+# ./deploy.sh my_custom_network
 
 
 

@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# to execute this script run in the console:
+# chmod +x generate_contract_diagrams.sh
+#./generate_contract_diagrams.sh
+
 # Check if the solidity-contract-diagrams folder exists, create it if it doesn't
 if [ ! -d "solidity-contract-diagrams" ]; then
   mkdir "solidity-contract-diagrams"
