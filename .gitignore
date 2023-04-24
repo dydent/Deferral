@@ -23,7 +23,7 @@ artifacts
 yarn-error.log
 
 ## ignore submodule repos
-/visualizations-deferral/
+visualizations-deferral/*
 
 # ignore contract viusalization outputs
 solidity-contract-diagrams
