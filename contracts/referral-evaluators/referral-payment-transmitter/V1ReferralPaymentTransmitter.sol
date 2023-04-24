@@ -14,9 +14,6 @@ contract V1ReferralPaymentTransmitter is Ownable {
     // value of the referral reward that is a portion of the paymentAmount
     uint256 public referralReward;
 
-    // owner address that has created the contract
-    address public contractOwner;
-
     // modifier to guarantee the exact amount
     modifier exactAmount() {
         require(
@@ -50,7 +47,6 @@ contract V1ReferralPaymentTransmitter is Ownable {
         receiver = _receiver;
         paymentAmount = _amount;
         referralReward = _referralReward;
-        contractOwner = msg.sender;
     }
 
     // forward paymentAmount to the receiver and send referralReward to the referrerAddress
