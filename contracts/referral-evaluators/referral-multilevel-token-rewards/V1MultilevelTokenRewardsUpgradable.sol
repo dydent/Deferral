@@ -9,14 +9,13 @@ pragma solidity 0.8.9;
 
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-import {ReentrancyGuardUpgradeable} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract V1ReferralMultilevelTokenRewardsUpgradable is
-    Initializable,
-    OwnableUpgradeable,
-    ReentrancyGuardUpgradeable
+Initializable,
+OwnableUpgradeable
+
 {
     // -----------------------------------------------------------------------------------------------
     // VARS, STRUCTS & MAPPINGS
@@ -99,7 +98,7 @@ contract V1ReferralMultilevelTokenRewardsUpgradable is
         uint256 _paymentValue
     ) internal {
         ReferralProcess storage refereeProcess = refereeProcessMapping[
-            _referee
+        _referee
         ];
         // set and update values
         if (!refereeProcess.referrerAddressHasBeenSet) {
@@ -113,7 +112,7 @@ contract V1ReferralMultilevelTokenRewardsUpgradable is
 
     function evaluateReferralProcess(address _referee) internal {
         ReferralProcess storage refereeProcess = refereeProcessMapping[
-            _referee
+        _referee
         ];
         // require referrer address has been set
         require(
@@ -132,14 +131,14 @@ contract V1ReferralMultilevelTokenRewardsUpgradable is
         }
     }
 
-    function distributeRewards(address _referee) internal nonReentrant {
+    function distributeRewards(address _referee) internal {
         ReferralProcess storage refereeCompletedProcess = refereeProcessMapping[
-            _referee
+        _referee
         ];
 
         // calculate the total reward based on the referee payment value/volume
         uint256 calculatedTotalReward = (refereeCompletedProcess.paymentsValue *
-            rewardPercentage) / 100;
+        rewardPercentage) / 100;
         require(
             token.balanceOf(address(this)) >= calculatedTotalReward,
             "Contract has not enough funds to pay rewards"
@@ -147,7 +146,7 @@ contract V1ReferralMultilevelTokenRewardsUpgradable is
 
         // calculate and distribute referee rewards
         uint256 refereeReward = (calculatedTotalReward *
-            refereeRewardPercentage) / 100;
+        refereeRewardPercentage) / 100;
         token.transfer(_referee, refereeReward);
         emit RefereeRewardsDistributed(_referee, refereeReward);
 
@@ -155,12 +154,12 @@ contract V1ReferralMultilevelTokenRewardsUpgradable is
         uint256 referrerReward = calculatedTotalReward - refereeReward;
         // get all eligible referral addresses
         address payable[]
-            memory rewardAddresses = getAllParentReferrerAddresses(_referee);
+        memory rewardAddresses = getAllParentReferrerAddresses(_referee);
 
         // calculate reward per referrer in reward chain
         uint256 numberOfRewardAddresses = rewardAddresses.length;
         uint256 referrerRewardProportion = referrerReward /
-            numberOfRewardAddresses;
+        numberOfRewardAddresses;
 
         // distribute rewards to all eligible referrers
         for (uint256 i = 0; i < numberOfRewardAddresses; i++) {
@@ -185,7 +184,7 @@ contract V1ReferralMultilevelTokenRewardsUpgradable is
         ) {
             length++;
             currentRefereeAddress = refereeProcessMapping[currentRefereeAddress]
-                .parentReferrerAddress;
+            .parentReferrerAddress;
         }
 
         parentReferrerAddresses = new address payable[](length);
@@ -193,14 +192,14 @@ contract V1ReferralMultilevelTokenRewardsUpgradable is
         currentRefereeAddress = _referee;
         for (uint256 i = 0; i < length; i++) {
             parentReferrerAddresses[i] = refereeProcessMapping[
-                currentRefereeAddress
+            currentRefereeAddress
             ].parentReferrerAddress;
             currentRefereeAddress = parentReferrerAddresses[i];
         }
         return parentReferrerAddresses;
     }
 
-    function forwardPayment(uint256 _paymentValue) internal nonReentrant {
+    function forwardPayment(uint256 _paymentValue) internal {
         // Transfer tokens to the receiver address
         token.transfer(receiverAddress, _paymentValue);
         emit PaymentForwarded(receiverAddress, _paymentValue);
@@ -213,7 +212,7 @@ contract V1ReferralMultilevelTokenRewardsUpgradable is
     // overload function for referral payments without a referrer address
     function registerReferralPayment(uint256 _paymentValue) external {
         ReferralProcess storage refereeProcess = refereeProcessMapping[
-            msg.sender
+        msg.sender
         ];
         // referral process must not be completed
         require(
@@ -238,9 +237,9 @@ contract V1ReferralMultilevelTokenRewardsUpgradable is
             evaluateReferralProcess(msg.sender);
 
             uint256 rewardPercentageValue = (_paymentValue * rewardPercentage) /
-                100;
+            100;
             uint256 paymentValueAfterReward = _paymentValue -
-                rewardPercentageValue;
+            rewardPercentageValue;
 
             // forward value to the receiver address
             forwardPayment(paymentValueAfterReward);
@@ -250,7 +249,7 @@ contract V1ReferralMultilevelTokenRewardsUpgradable is
             // if sender not yet registered as root --> register
             if (
                 !refereeProcess.referrerAddressHasBeenSet &&
-                !refereeProcess.isRoot
+            !refereeProcess.isRoot
             ) {
                 // register address as new root address
                 refereeProcess.isRoot = true;
@@ -277,7 +276,7 @@ contract V1ReferralMultilevelTokenRewardsUpgradable is
         );
         // get current referrer process data
         ReferralProcess storage referrerProcess = refereeProcessMapping[
-            _referrerAddress
+        _referrerAddress
         ];
         // referrer address must be registered address --< root referrer or other registered referee
         require(
@@ -289,7 +288,7 @@ contract V1ReferralMultilevelTokenRewardsUpgradable is
 
         // get current referee process data
         ReferralProcess storage currentProcess = refereeProcessMapping[
-            msg.sender
+        msg.sender
         ];
         // address cannot be root & referral process must not be completed
         require(!currentProcess.isRoot, "Root address cannot be a referee");
@@ -308,7 +307,7 @@ contract V1ReferralMultilevelTokenRewardsUpgradable is
         evaluateReferralProcess(msg.sender);
 
         uint256 rewardPercentageValue = (_paymentValue * rewardPercentage) /
-            100;
+        100;
         uint256 paymentValueAfterReward = _paymentValue - rewardPercentageValue;
 
         // forward value to the receiver address
@@ -334,9 +333,9 @@ contract V1ReferralMultilevelTokenRewardsUpgradable is
         );
         require(
             _rewardPercentage >= 0 &&
-                _rewardPercentage <= 100 &&
-                _refereeRewardPercentage >= 0 &&
-                _refereeRewardPercentage <= 100,
+            _rewardPercentage <= 100 &&
+            _refereeRewardPercentage >= 0 &&
+            _refereeRewardPercentage <= 100,
             "percentage value must be between 0 and 100"
         );
         __Ownable_init();
@@ -388,7 +387,7 @@ contract V1ReferralMultilevelTokenRewardsUpgradable is
     ) public onlyOwner {
         require(
             _newRefereeRewardPercentage >= 0 &&
-                _newRefereeRewardPercentage <= 100,
+            _newRefereeRewardPercentage <= 100,
             "percentage value must be between 0 and 100"
         );
         refereeRewardPercentage = _newRefereeRewardPercentage;
