@@ -146,6 +146,7 @@ async function main() {
 
       const txStartTime = performance.now();
 
+      // execute the referral payment transactions / complete referral process
       const referralPaymentTx = await proxyContract
         .connect(refereeUser)
         ["registerReferralPayment(address)"](referrerUser.address, {

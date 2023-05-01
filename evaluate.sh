@@ -5,7 +5,7 @@
 #./evaluate.sh
 
 # define the different number of accounts the evaluation scripts should be run with
-evaluation_accounts_values=(10 100 500)
+evaluation_accounts_values=(10 100 1000)
 use_evaluation_accounts="${1:-true}"
 
 

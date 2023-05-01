@@ -38,7 +38,7 @@ type CONTRACT_PARAMS_TYPE = V3EvaluationPaymentValueContractParams;
 
 const LOG_DIRECTORY = "evaluations/referral-payment-value/";
 
-const LOG_FILE_NAME = `${LOG_DIRECTORY}${CONTRACT}-contract-evaluation`;
+const LOG_FILE_NAME = `${CONTRACT}-contract-evaluation`;
 
 // ETHER UNIT THAT IS USED TO CONVERT VALUES
 // --> changing the ether unit can have impacts on the precision of the results
@@ -136,6 +136,7 @@ async function main() {
 
       const txStartTime = performance.now();
 
+      // execute the referral payment transactions / complete referral process
       const referralPaymentTx = await proxyContract
         .connect(refereeUser)
         .registerReferralPayment(referrerUser.address, {

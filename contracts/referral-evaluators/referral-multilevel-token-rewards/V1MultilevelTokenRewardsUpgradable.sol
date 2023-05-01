@@ -13,9 +13,8 @@ import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Own
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract V1ReferralMultilevelTokenRewardsUpgradable is
-Initializable,
-OwnableUpgradeable
-
+    Initializable,
+    OwnableUpgradeable
 {
     // -----------------------------------------------------------------------------------------------
     // VARS, STRUCTS & MAPPINGS
@@ -98,7 +97,7 @@ OwnableUpgradeable
         uint256 _paymentValue
     ) internal {
         ReferralProcess storage refereeProcess = refereeProcessMapping[
-        _referee
+            _referee
         ];
         // set and update values
         if (!refereeProcess.referrerAddressHasBeenSet) {
@@ -112,7 +111,7 @@ OwnableUpgradeable
 
     function evaluateReferralProcess(address _referee) internal {
         ReferralProcess storage refereeProcess = refereeProcessMapping[
-        _referee
+            _referee
         ];
         // require referrer address has been set
         require(
@@ -133,12 +132,12 @@ OwnableUpgradeable
 
     function distributeRewards(address _referee) internal {
         ReferralProcess storage refereeCompletedProcess = refereeProcessMapping[
-        _referee
+            _referee
         ];
 
         // calculate the total reward based on the referee payment value/volume
         uint256 calculatedTotalReward = (refereeCompletedProcess.paymentsValue *
-        rewardPercentage) / 100;
+            rewardPercentage) / 100;
         require(
             token.balanceOf(address(this)) >= calculatedTotalReward,
             "Contract has not enough funds to pay rewards"
@@ -146,7 +145,7 @@ OwnableUpgradeable
 
         // calculate and distribute referee rewards
         uint256 refereeReward = (calculatedTotalReward *
-        refereeRewardPercentage) / 100;
+            refereeRewardPercentage) / 100;
         token.transfer(_referee, refereeReward);
         emit RefereeRewardsDistributed(_referee, refereeReward);
 
@@ -154,12 +153,12 @@ OwnableUpgradeable
         uint256 referrerReward = calculatedTotalReward - refereeReward;
         // get all eligible referral addresses
         address payable[]
-        memory rewardAddresses = getAllParentReferrerAddresses(_referee);
+            memory rewardAddresses = getAllParentReferrerAddresses(_referee);
 
         // calculate reward per referrer in reward chain
         uint256 numberOfRewardAddresses = rewardAddresses.length;
         uint256 referrerRewardProportion = referrerReward /
-        numberOfRewardAddresses;
+            numberOfRewardAddresses;
 
         // distribute rewards to all eligible referrers
         for (uint256 i = 0; i < numberOfRewardAddresses; i++) {
@@ -184,7 +183,7 @@ OwnableUpgradeable
         ) {
             length++;
             currentRefereeAddress = refereeProcessMapping[currentRefereeAddress]
-            .parentReferrerAddress;
+                .parentReferrerAddress;
         }
 
         parentReferrerAddresses = new address payable[](length);
@@ -192,7 +191,7 @@ OwnableUpgradeable
         currentRefereeAddress = _referee;
         for (uint256 i = 0; i < length; i++) {
             parentReferrerAddresses[i] = refereeProcessMapping[
-            currentRefereeAddress
+                currentRefereeAddress
             ].parentReferrerAddress;
             currentRefereeAddress = parentReferrerAddresses[i];
         }
@@ -212,7 +211,7 @@ OwnableUpgradeable
     // overload function for referral payments without a referrer address
     function registerReferralPayment(uint256 _paymentValue) external {
         ReferralProcess storage refereeProcess = refereeProcessMapping[
-        msg.sender
+            msg.sender
         ];
         // referral process must not be completed
         require(
@@ -237,9 +236,9 @@ OwnableUpgradeable
             evaluateReferralProcess(msg.sender);
 
             uint256 rewardPercentageValue = (_paymentValue * rewardPercentage) /
-            100;
+                100;
             uint256 paymentValueAfterReward = _paymentValue -
-            rewardPercentageValue;
+                rewardPercentageValue;
 
             // forward value to the receiver address
             forwardPayment(paymentValueAfterReward);
@@ -249,7 +248,7 @@ OwnableUpgradeable
             // if sender not yet registered as root --> register
             if (
                 !refereeProcess.referrerAddressHasBeenSet &&
-            !refereeProcess.isRoot
+                !refereeProcess.isRoot
             ) {
                 // register address as new root address
                 refereeProcess.isRoot = true;
@@ -276,7 +275,7 @@ OwnableUpgradeable
         );
         // get current referrer process data
         ReferralProcess storage referrerProcess = refereeProcessMapping[
-        _referrerAddress
+            _referrerAddress
         ];
         // referrer address must be registered address --< root referrer or other registered referee
         require(
@@ -288,7 +287,7 @@ OwnableUpgradeable
 
         // get current referee process data
         ReferralProcess storage currentProcess = refereeProcessMapping[
-        msg.sender
+            msg.sender
         ];
         // address cannot be root & referral process must not be completed
         require(!currentProcess.isRoot, "Root address cannot be a referee");
@@ -307,7 +306,7 @@ OwnableUpgradeable
         evaluateReferralProcess(msg.sender);
 
         uint256 rewardPercentageValue = (_paymentValue * rewardPercentage) /
-        100;
+            100;
         uint256 paymentValueAfterReward = _paymentValue - rewardPercentageValue;
 
         // forward value to the receiver address
@@ -333,9 +332,9 @@ OwnableUpgradeable
         );
         require(
             _rewardPercentage >= 0 &&
-            _rewardPercentage <= 100 &&
-            _refereeRewardPercentage >= 0 &&
-            _refereeRewardPercentage <= 100,
+                _rewardPercentage <= 100 &&
+                _refereeRewardPercentage >= 0 &&
+                _refereeRewardPercentage <= 100,
             "percentage value must be between 0 and 100"
         );
         __Ownable_init();
@@ -387,7 +386,7 @@ OwnableUpgradeable
     ) public onlyOwner {
         require(
             _newRefereeRewardPercentage >= 0 &&
-            _newRefereeRewardPercentage <= 100,
+                _newRefereeRewardPercentage <= 100,
             "percentage value must be between 0 and 100"
         );
         refereeRewardPercentage = _newRefereeRewardPercentage;

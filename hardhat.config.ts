@@ -53,7 +53,7 @@ const hardhatAccounts: HardhatNetworkHDAccountsUserConfig = {
   mnemonic,
 };
 
-// Config APIs for gas prices
+// Config APIs for gas prices in gas reporter
 // -----------------------------------------------------------------------------------------------
 // Ethereum -> Token: ETH
 const ETH_GAS_PRICE_API = `https://api.etherscan.io/api?module=proxy&action=eth_gasPrice`;
@@ -146,22 +146,25 @@ const config: HardhatUserConfig = {
     enabled: !!process.env.REPORT_GAS,
     currency: "USD",
     // !!! for accurate gas reporter output --> run test files one by one and exclude not needed contracts here !!!
-    excludeContracts: [
-      // "V1ReferralPaymentTransmitter",
-      // "UpgradableV1ReferralPaymentTransmitter",
-      // "UpgradableV2ReferralPaymentTransmitter",
-      // "V2MultilevelRewardReferralUpgradable",
-      // "V1ReferralPaymentEvaluatorUpgradable",
-      // "V1ReferralQuantityPaymentUpgradable",
-      // "V2ReferralQuantityPaymentUpgradable",
-      // "V1ReferralPaymentValueUpgradable",
-      // "V2ReferralPaymentValueUpgradable",
-      // "V1MultilevelRewardReferralUpgradable",
-      // "V2MultilevelRewardReferralUpgradable",
-    ],
+    // excludeContracts: [
+    //   "V1ReferralPaymentQuantityUpgradable",
+    //   "V2ReferralPaymentQuantityUpgradable",
+    //   "V1ReferralPaymentTransmitter",
+    //   "V3ReferralPaymentTransmitterUpgradable.sol",
+    //   "V2ReferralPaymentTransmitterUpgradable.sol",
+    //   "V1ReferralPaymentQuantityUpgradable.sol.sol",
+    //   "V2ReferralPaymentQuantityUpgradable.sol.sol",
+    //   "V1ReferralPaymentValueUpgradable",
+    //   "V2ReferralPaymentValueUpgradable",
+    //   "V3ReferralPaymentValueUpgradable",
+    //   "V1ReferralMultilevelRewardsUpgradable.sol",
+    //   "V2ReferralMultilevelRewardsUpgradable.sol",
+    //   // "V1MultilevelTokenRewardsUpgradable.sol",
+    // ],
     showTimeSpent: false,
     coinmarketcap: process.env.COINMARKETCAP_API_KEY,
     gasPriceApi: ETH_GAS_PRICE_API,
+    // token: "MATIC",
     token: "ETH",
     // outputFile: `gas-reporter-logs/gasReporterOutput-${RUNS}.txt`,
     // gasPrice: 34,
