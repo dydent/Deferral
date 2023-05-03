@@ -2,7 +2,7 @@
 
 # to execute this script run in the console:
 # chmod +x evaluate.sh
-#./evaluate.sh
+# ./evaluate.sh
 
 # define the different number of accounts the evaluation scripts should be run with
 evaluation_accounts_values=(10 100 500)
