@@ -54,9 +54,13 @@ export const getFiatChainPrices = async (
         CoinGeckoIds,
         key
       ) as keyof ChainFiatPriceType<BigNumber>;
+
       // add the fetched price to the resultFiatPrices object
       resultFiatPrices[resultKey] = value[currency];
     });
+    // adapt fiat prices for chains that use ETH as native unit to pay for gas fees
+    resultFiatPrices["optimism-mainnet"] = data["ethereum"][currency];
+    resultFiatPrices["arbitrum-mainnet"] = data["ethereum"][currency];
   } catch (e) {
     console.log(`could not get current fiat prices for evaluation chains !`, e);
   }

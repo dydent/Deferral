@@ -14,8 +14,10 @@ export enum CoinGeckoSymbols {
   bsc = "bnb",
   mainnet = "eth",
   "polygon-mainnet" = "matic",
-  "arbitrum-mainnet" = "arb",
-  "optimism-mainnet" = "op",
+  // uses ETH as default units to pay gas fees
+  "arbitrum-mainnet" = "eth",
+  // uses ETH as default units to pay gas fees
+  "optimism-mainnet" = "eth",
   avalanche = "avax",
   goerli = "geth",
 }
