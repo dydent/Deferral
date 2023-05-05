@@ -1,0 +1,18 @@
+%===============================================================================
+\begin{table}[]
+\centering
+{\small
+\begin{tabular}{lcccc}
+\toprule
+Nr. of Users & Avg arbitrumMainnetGasCost & Min arbitrumMainnetGasCost & Max arbitrumMainnetGasCost & Median arbitrumMainnetGasCost\\
+\midrule
+\numprint{7} & \numprint{12587846666666} & \numprint{8947100000000} & \numprint{16107300000000} & \numprint{14396100000000}\\
+\numprint{97} & \numprint{12661779298245} & \numprint{8947100000000} & \numprint{16107300000000} & \numprint{14397300000000}\\
+\numprint{497} & \numprint{13759340936727} & \numprint{9720129440000} & \numprint{17498970720000} & \numprint{15641226720000}\\
+\bottomrule
+\end{tabular}
+} % Close the \small command here
+\caption{ArbitrumMainnetGasCost for Evaluation Runs of V1ReferralMultilevelTokenRewardsUpgradable}
+\label{tab:arbitrumMainnetGasCost_evaluation_runs_table_for_V1ReferralMultilevelTokenRewardsUpgradable}
+\end{table}
+%===============================================================================

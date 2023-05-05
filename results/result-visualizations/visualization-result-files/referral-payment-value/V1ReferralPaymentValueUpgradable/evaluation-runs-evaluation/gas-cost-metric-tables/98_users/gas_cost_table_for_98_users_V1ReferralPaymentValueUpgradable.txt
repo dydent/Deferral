@@ -1,0 +1,23 @@
+%===============================================================================
+% Evaluation Gas Costs Metrics (98 Users) for V1ReferralPaymentValueUpgradable
+% rounded to 3 decimals
+%===============================================================================
+\begin{table}[]
+\centering
+{\small
+\begin{tabular}{lccccc} \toprule
+{Gas Costs (in Wei)} & Avg & Min & Max & Median & Sum \\ \midrule
+bscGasCost & \numprint{228411780927835.0} & \numprint{176616000000000.0} & \numprint{339792000000000.0} & \numprint{198589500000000.0} & \numprint{8.8623771e+16} \\ 
+ethereumGasCost & \numprint{5979454810673500.0} & \numprint{4623524174418864.0} & \numprint{8895210661967968.0} & \numprint{5198755231891533.0} & \numprint{2.320028466541318e+18} \\ 
+polygonMainnetGasCost & \numprint{1.8479037447469216e+16} & \numprint{1.4288639861589984e+16} & \numprint{2.748995286864941e+16} & \numprint{1.6066346456681298e+16} & \numprint{7.169866529618055e+18} \\ 
+arbitrumMainnetGasCost & \numprint{7613726030927.0} & \numprint{5887200000000.0} & \numprint{11326400000000.0} & \numprint{6619650000000.0} & \numprint{2954125700000000.0} \\ 
+optimismMainnetGasCost & \numprint{76137260309.0} & \numprint{58872000000.0} & \numprint{113264000000.0} & \numprint{66196500000.0} & \numprint{29541257000000.0} \\ 
+avalancheGasCost & \numprint{1903431507731958.0} & \numprint{1471800000000000.0} & \numprint{2831600000000000.0} & \numprint{1654912500000000.0} & \numprint{7.38531425e+17} \\ 
+goerliGasCost & \numprint{6.736888666268177e+16} & \numprint{5.2091985967113576e+16} & \numprint{1.0021991266780731e+17} & \numprint{5.857295741731271e+16} & \numprint{2.6139128025120526e+19} \\ 
+\bottomrule
+\end{tabular}
+} % Close the \small command here
+\caption{Evaluation Gas Costs Metrics (98 Users) for V1ReferralPaymentValueUpgradable}
+\label{tab:gas_costs_metrics_for_98_users_for_V1ReferralPaymentValueUpgradable}
+\end{table}
+%===============================================================================

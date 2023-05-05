@@ -1,0 +1,18 @@
+%===============================================================================
+\begin{table}[]
+\centering
+{\small
+\begin{tabular}{lcccc}
+\toprule
+Nr. of Users & Avg optimismMainnetGasCost & Min optimismMainnetGasCost & Max optimismMainnetGasCost & Median optimismMainnetGasCost\\
+\midrule
+\numprint{8} & \numprint{81865952380} & \numprint{58850000000} & \numprint{113242000000} & \numprint{73499000000}\\
+\numprint{98} & \numprint{81866676975} & \numprint{58850000000} & \numprint{113242000000} & \numprint{73499000000}\\
+\numprint{498} & \numprint{81866652582} & \numprint{58838000000} & \numprint{113242000000} & \numprint{73499000000}\\
+\bottomrule
+\end{tabular}
+} % Close the \small command here
+\caption{OptimismMainnetGasCost for Evaluation Runs of V2ReferralPaymentQuantityUpgradable}
+\label{tab:optimismMainnetGasCost_evaluation_runs_table_for_V2ReferralPaymentQuantityUpgradable}
+\end{table}
+%===============================================================================

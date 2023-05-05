@@ -1,0 +1,18 @@
+%===============================================================================
+\begin{table}[]
+\centering
+{\small
+\begin{tabular}{lcccc}
+\toprule
+Nr. of Users & Avg durationInMs & Min durationInMs & Max durationInMs & Median durationInMs\\
+\midrule
+\numprint{8} & \numprint{6.9574878215789795} & \numprint{6.333874940872192} & \numprint{7.881083011627197} & \numprint{7.130665898323059}\\
+\numprint{98} & \numprint{6.285251772280821} & \numprint{5.124333024024963} & \numprint{9.245666980743408} & \numprint{6.195917010307312}\\
+\numprint{498} & \numprint{7.522880130850333} & \numprint{5.035166025161743} & \numprint{28.872583031654358} & \numprint{7.334625005722046}\\
+\bottomrule
+\end{tabular}
+} % Close the \small command here
+\caption{DurationInMs for Evaluation Runs of V3ReferralPaymentTransmitterUpgradable}
+\label{tab:durationInMs_evaluation_runs_table_for_V3ReferralPaymentTransmitterUpgradable}
+\end{table}
+%===============================================================================

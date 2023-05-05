@@ -1,0 +1,23 @@
+%===============================================================================
+% Evaluation Gas Costs Metrics (7 Users) for V1ReferralMultilevelTokenRewardsUpgradable
+% rounded to 3 decimals
+%===============================================================================
+\begin{table}[]
+\centering
+{\small
+\begin{tabular}{lccccc} \toprule
+{Gas Costs (in Wei)} & Avg & Min & Max & Median & Sum \\ \midrule
+bscGasCost & \numprint{377635400000000.0} & \numprint{268413000000000.0} & \numprint{483219000000000.0} & \numprint{431883000000000.0} & \numprint{5664531000000000.0} \\ 
+ethereumGasCost & \numprint{1.0255339550108984e+16} & \numprint{7289217204381271.0} & \numprint{1.3122644016064472e+16} & \numprint{1.172852653887776e+16} & \numprint{1.5383009325163478e+17} \\ 
+polygonMainnetGasCost & \numprint{2.9397106884891e+16} & \numprint{2.0894666258232804e+16} & \numprint{3.761628436266871e+16} & \numprint{3.3620022679990756e+16} & \numprint{4.4095660327336506e+17} \\ 
+arbitrumMainnetGasCost & \numprint{12587846666666.0} & \numprint{8947100000000.0} & \numprint{16107300000000.0} & \numprint{14396100000000.0} & \numprint{188817700000000.0} \\ 
+optimismMainnetGasCost & \numprint{125878466666.0} & \numprint{89471000000.0} & \numprint{161073000000.0} & \numprint{143961000000.0} & \numprint{1888177000000.0} \\ 
+avalancheGasCost & \numprint{3146961666666666.0} & \numprint{2236775000000000.0} & \numprint{4026825000000000.0} & \numprint{3599025000000000.0} & \numprint{4.7204425e+16} \\ 
+goerliGasCost & \numprint{1.3901422619250923e+17} & \numprint{9.880754159967518e+16} & \numprint{1.778814045677871e+17} & \numprint{1.5898372094009053e+17} & \numprint{2.0852133928876383e+18} \\ 
+\bottomrule
+\end{tabular}
+} % Close the \small command here
+\caption{Evaluation Gas Costs Metrics (7 Users) for V1ReferralMultilevelTokenRewardsUpgradable}
+\label{tab:gas_costs_metrics_for_7_users_for_V1ReferralMultilevelTokenRewardsUpgradable}
+\end{table}
+%===============================================================================

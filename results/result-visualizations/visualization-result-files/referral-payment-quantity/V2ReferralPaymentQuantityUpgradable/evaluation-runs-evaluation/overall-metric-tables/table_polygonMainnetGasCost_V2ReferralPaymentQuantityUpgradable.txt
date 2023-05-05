@@ -1,0 +1,18 @@
+%===============================================================================
+\begin{table}[]
+\centering
+{\small
+\begin{tabular}{lcccc}
+\toprule
+Nr. of Users & Avg polygonMainnetGasCost & Min polygonMainnetGasCost & Max polygonMainnetGasCost & Median polygonMainnetGasCost\\
+\midrule
+\numprint{8} & \numprint{19648163930308676} & \numprint{14124241075435150} & \numprint{27178543888945238} & \numprint{17640061084170061}\\
+\numprint{98} & \numprint{19042917669270162} & \numprint{13689033758703050} & \numprint{26341097041683106} & \numprint{17096521533235607}\\
+\numprint{498} & \numprint{21581446218431403} & \numprint{15510700542271636} & \numprint{29852523043066124} & \numprint{19375590250457578}\\
+\bottomrule
+\end{tabular}
+} % Close the \small command here
+\caption{PolygonMainnetGasCost for Evaluation Runs of V2ReferralPaymentQuantityUpgradable}
+\label{tab:polygonMainnetGasCost_evaluation_runs_table_for_V2ReferralPaymentQuantityUpgradable}
+\end{table}
+%===============================================================================

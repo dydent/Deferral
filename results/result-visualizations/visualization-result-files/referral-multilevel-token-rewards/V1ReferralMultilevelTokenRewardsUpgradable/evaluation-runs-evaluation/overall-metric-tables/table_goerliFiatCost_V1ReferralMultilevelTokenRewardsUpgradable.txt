@@ -1,0 +1,18 @@
+%===============================================================================
+\begin{table}[]
+\centering
+{\small
+\begin{tabular}{lcccc}
+\toprule
+Nr. of Users & Avg goerliFiatCost & Min goerliFiatCost & Max goerliFiatCost & Median goerliFiatCost\\
+\midrule
+\numprint{7} & \numprint{0.0189686300973456} & \numprint{0.013482387776991} & \numprint{0.024272095457203997} & \numprint{0.021693487577719998}\\
+\numprint{97} & \numprint{0.01635354410892762} & \numprint{0.011555784665963999} & \numprint{0.020803667137148} & \numprint{0.018595086397209}\\
+\numprint{497} & \numprint{0.013812896614811271} & \numprint{0.00975796323745} & \numprint{0.017567082191011} & \numprint{0.015702107259193}\\
+\bottomrule
+\end{tabular}
+} % Close the \small command here
+\caption{GoerliFiatCost for Evaluation Runs of V1ReferralMultilevelTokenRewardsUpgradable}
+\label{tab:goerliFiatCost_evaluation_runs_table_for_V1ReferralMultilevelTokenRewardsUpgradable}
+\end{table}
+%===============================================================================

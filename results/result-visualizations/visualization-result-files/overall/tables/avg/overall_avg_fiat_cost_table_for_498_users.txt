@@ -1,0 +1,25 @@
+%===============================================================================
+\begin{sidewaystable}[]
+\centering
+{\small
+\begin{tabular}{lccccccc}
+\toprule
+Deferral Contract & bscFiatCost & ethereumFiatCost & polygonMainnetFiatCost & arbitrumMainnetFiatCost & optimismMainnetFiatCost & avalancheFiatCost & goerliFiatCost\\
+\midrule
+V2ReferralMultilevelRewardsUpgradable & \numprint{0.101} & \numprint{16.704} & \numprint{0.025} & \numprint{0.02} & \numprint{0.0} & \numprint{0.044} & \numprint{0.013}\\
+V1ReferralMultilevelRewardsUpgradable & \numprint{1.196} & \numprint{202.967} & \numprint{0.33} & \numprint{0.233} & \numprint{0.002} & \numprint{0.522} & \numprint{0.153}\\
+V1ReferralMultilevelTokenRewardsUpgradable & \numprint{0.124} & \numprint{20.475} & \numprint{0.031} & \numprint{0.026} & \numprint{0.0} & \numprint{0.055} & \numprint{0.014}\\
+V1ReferralPaymentTransmitter & \numprint{0.047} & \numprint{7.329} & \numprint{0.012} & \numprint{0.009} & \numprint{0.0} & \numprint{0.021} & \numprint{0.006}\\
+V3ReferralPaymentTransmitterUpgradable & \numprint{0.055} & \numprint{8.479} & \numprint{0.014} & \numprint{0.011} & \numprint{0.0} & \numprint{0.024} & \numprint{0.007}\\
+V2ReferralPaymentQuantityUpgradable & \numprint{0.08} & \numprint{12.447} & \numprint{0.021} & \numprint{0.016} & \numprint{0.0} & \numprint{0.036} & \numprint{0.011}\\
+V1ReferralPaymentQuantityUpgradable & \numprint{0.08} & \numprint{12.182} & \numprint{0.021} & \numprint{0.016} & \numprint{0.0} & \numprint{0.035} & \numprint{0.011}\\
+V1ReferralPaymentValueUpgradable & \numprint{0.074} & \numprint{12.646} & \numprint{0.02} & \numprint{0.014} & \numprint{0.0} & \numprint{0.032} & \numprint{0.01}\\
+V3ReferralPaymentValueUpgradable & \numprint{0.077} & \numprint{13.505} & \numprint{0.02} & \numprint{0.015} & \numprint{0.0} & \numprint{0.034} & \numprint{0.011}\\
+V2ReferralPaymentValueUpgradable & \numprint{0.078} & \numprint{14.523} & \numprint{0.021} & \numprint{0.015} & \numprint{0.0} & \numprint{0.034} & \numprint{0.01}\\
+\bottomrule
+\end{tabular}
+} % Close the \small command here
+\caption{Avg Fiat Costs in USD Rounded to 3 Decimals Across all Contract Evaluations with 498 Users for All Evaluation Chains}
+\label{tab:overall_avg_fiat_costs_for_498_users}
+\end{sidewaystable}
+%===============================================================================

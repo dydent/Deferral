@@ -1,0 +1,18 @@
+%===============================================================================
+\begin{table}[]
+\centering
+{\small
+\begin{tabular}{lcccc}
+\toprule
+Nr. of Users & Avg arbitrumMainnetFiatCost & Min arbitrumMainnetFiatCost & Max arbitrumMainnetFiatCost & Median arbitrumMainnetFiatCost\\
+\midrule
+\numprint{8} & \numprint{0.014471782037499995} & \numprint{0.01119030395} & \numprint{0.021529027099999997} & \numprint{0.01258172615}\\
+\numprint{98} & \numprint{0.014472915252680381} & \numprint{0.01119106926} & \numprint{0.02153049948} & \numprint{0.01258258662}\\
+\numprint{498} & \numprint{0.014472912334708307} & \numprint{0.01118916828} & \numprint{0.02153049948} & \numprint{0.01258163613}\\
+\bottomrule
+\end{tabular}
+} % Close the \small command here
+\caption{ArbitrumMainnetFiatCost for Evaluation Runs of V1ReferralPaymentValueUpgradable}
+\label{tab:arbitrumMainnetFiatCost_evaluation_runs_table_for_V1ReferralPaymentValueUpgradable}
+\end{table}
+%===============================================================================

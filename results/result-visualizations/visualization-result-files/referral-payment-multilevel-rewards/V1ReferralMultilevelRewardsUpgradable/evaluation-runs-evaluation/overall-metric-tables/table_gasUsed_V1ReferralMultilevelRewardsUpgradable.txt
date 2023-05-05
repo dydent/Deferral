@@ -1,0 +1,18 @@
+%===============================================================================
+\begin{table}[]
+\centering
+{\small
+\begin{tabular}{lcccc}
+\toprule
+Nr. of Users & Avg gasUsed & Min gasUsed & Max gasUsed & Median gasUsed\\
+\midrule
+\numprint{7} & \numprint{95711} & \numprint{61800} & \numprint{136686} & \numprint{108990}\\
+\numprint{97} & \numprint{303457} & \numprint{61800} & \numprint{1383025} & \numprint{116302}\\
+\numprint{497} & \numprint{1226711} & \numprint{61800} & \numprint{6922694} & \numprint{116302}\\
+\bottomrule
+\end{tabular}
+} % Close the \small command here
+\caption{GasUsed for Evaluation Runs of V1ReferralMultilevelRewardsUpgradable}
+\label{tab:gasUsed_evaluation_runs_table_for_V1ReferralMultilevelRewardsUpgradable}
+\end{table}
+%===============================================================================

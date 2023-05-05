@@ -1,0 +1,18 @@
+%===============================================================================
+\begin{table}[]
+\centering
+{\small
+\begin{tabular}{lcccc}
+\toprule
+Nr. of Users & Avg avalancheGasCost & Min avalancheGasCost & Max avalancheGasCost & Median avalancheGasCost\\
+\midrule
+\numprint{8} & \numprint{2046648809523809} & \numprint{1471250000000000} & \numprint{2831050000000000} & \numprint{1837475000000000}\\
+\numprint{98} & \numprint{2046666924398625} & \numprint{1471250000000000} & \numprint{2831050000000000} & \numprint{1837475000000000}\\
+\numprint{498} & \numprint{2098010384821984} & \numprint{1507851257241420} & \numprint{2902071655605780} & \numprint{1883571153947910}\\
+\bottomrule
+\end{tabular}
+} % Close the \small command here
+\caption{AvalancheGasCost for Evaluation Runs of V2ReferralPaymentQuantityUpgradable}
+\label{tab:avalancheGasCost_evaluation_runs_table_for_V2ReferralPaymentQuantityUpgradable}
+\end{table}
+%===============================================================================

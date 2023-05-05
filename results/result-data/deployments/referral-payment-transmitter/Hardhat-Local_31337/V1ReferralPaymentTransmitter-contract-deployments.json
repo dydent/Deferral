@@ -1,0 +1,13 @@
+[
+    {
+        "id": 0,
+        "date": "2023-05-05T10:26:19.497Z",
+        "contract": "V1ReferralPaymentTransmitter",
+        "contractAddress": "0x4228fa1D8CB6d1594F9FEFcE648C28382170Ba46",
+        "signer": "0x43b3E4bc4443cb32242b283DF4f2aF9AAe77C4DB",
+        "gasUsed": "500093",
+        "effectiveGasPrice": "1875000000",
+        "cost": "937674375000000",
+        "durationInMs": 852.5013329982758
+    }
+]

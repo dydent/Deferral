@@ -1,0 +1,18 @@
+%===============================================================================
+\begin{table}[]
+\centering
+{\small
+\begin{tabular}{lcccc}
+\toprule
+Nr. of Users & Avg goerliGasCost & Min goerliGasCost & Max goerliGasCost & Median goerliGasCost\\
+\midrule
+\numprint{8} & \numprint{88665546989197058} & \numprint{63967449369805452} & \numprint{122435512590254100} & \numprint{79586307999624522}\\
+\numprint{98} & \numprint{80186202462828145} & \numprint{57849547672557288} & \numprint{110725675201725400} & \numprint{71974605272917868}\\
+\numprint{498} & \numprint{80689275140444417} & \numprint{58200762968842056} & \numprint{111420379557467900} & \numprint{72426181401894718}\\
+\bottomrule
+\end{tabular}
+} % Close the \small command here
+\caption{GoerliGasCost for Evaluation Runs of V1ReferralPaymentQuantityUpgradable}
+\label{tab:goerliGasCost_evaluation_runs_table_for_V1ReferralPaymentQuantityUpgradable}
+\end{table}
+%===============================================================================
