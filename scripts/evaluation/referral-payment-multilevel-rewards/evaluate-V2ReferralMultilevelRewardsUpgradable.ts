@@ -7,8 +7,10 @@ import { writeLogFile } from "../../../helpers/write-files";
 import { HARDHAT_ACCOUNTS_COUNT } from "../../../hardhat.config";
 import {
   EvaluationLogJsonInputType,
-  TransactionEvaluationMetrics,
+  EvaluationMetricsType,
+  JsonReadableTransactionEvaluationType,
   TransactionEvaluationType,
+  TransactionEvaluationValuesType,
 } from "../../../types/EvaluationTypes";
 import {
   calculateEvaluationMetrics,
@@ -19,10 +21,14 @@ import { PercentageType } from "../../../types/PercentageTypes";
 import { V2EvaluationPaymentMultilevelRewardContractParams } from "../../../types/EvaluationContractParameterTypes";
 import { V2ReferralMultilevelRewardsUpgradable } from "../../../typechain-types";
 import { logEvaluationTx } from "../../../helpers/evaluation-helpers/evaluation-tx-logs";
+import { getFiatChainPrices } from "../../../helpers/evaluation-helpers/get-fiat-chain-prices";
+import { EVALUATION_CHAIN_DATA } from "../../../helpers/constants/evaluation-chains";
+import { getGasChainPrices } from "../../../helpers/evaluation-helpers/get-gas-chain-prices";
+import { CoinGeckoCurrencies } from "../../../types/CoinGeckoTypes";
 
-// -----------------------------------------------------
+// ---------------------------------------------------------------------------
 // Evaluation script for V2ReferralMultilevelRewardsUpgradable Contract
-// -----------------------------------------------------
+// ---------------------------------------------------------------------------
 
 const CONTRACT = "V2ReferralMultilevelRewardsUpgradable";
 
@@ -34,6 +40,8 @@ const LOG_DIRECTORY = "evaluations/referral-payment-multilevel-rewards/";
 
 const LOG_FILE_NAME = `${CONTRACT}-contract-evaluation`;
 
+// ETHER UNIT THAT IS USED TO CONVERT VALUES
+// --> changing the ether unit can have impacts on the precision of the results
 const ETHER_UNIT = EtherUnits.Ether;
 
 // CONTRACT PARAMETERS
@@ -46,11 +54,30 @@ const MAX_REWARD_LEVEL: BigNumber = BigNumber.from(3);
 // TX / REFERRAL PROCESS PARAMS
 const PAYMENT_AMOUNT = VALUE_THRESHOLD.div(QUANTITY_THRESHOLD);
 
-async function main() {
-  const evaluationStartTime = performance.now();
+// CURRENCY FOR FIAT CHAIN PRICES
+const FIAT_CURRENCY = CoinGeckoCurrencies.USD;
 
+async function main() {
   console.log(`Evaluating ${CONTRACT} contract ...\n`);
-  console.log(`Initializing ${HARDHAT_ACCOUNTS_COUNT} Hardhat accounts ...\n`);
+
+  // fetch fiat prices for evaluation chains
+  console.log(
+    `... fetching fiat ${FIAT_CURRENCY} prices for evaluation chains ...\n`
+  );
+  const { fiatPrices } = await getFiatChainPrices(EVALUATION_CHAIN_DATA);
+
+  // fetch gas prices for evaluation chains
+  console.log(`... fetching gas prices for evaluation chains ...\n`);
+  const { bnGasPricesInWei, gasPricesInWei, gasPricesInGwei, gasPricesInEth } =
+    await getGasChainPrices(EVALUATION_CHAIN_DATA);
+
+  // initializing hardhat accounts for evaluation process
+  console.log(
+    `... initializing ${HARDHAT_ACCOUNTS_COUNT} Hardhat accounts ...\n`
+  );
+
+  console.log(`... starting evaluation process ...\n`);
+  const evaluationStartTime = performance.now();
 
   // get all accounts/signers
   const allSigners = await ethers.getSigners();
@@ -87,6 +114,9 @@ async function main() {
   const networkId = networkInfo.id;
 
   const evaluationResultData: TransactionEvaluationType[] = [];
+  // for json log files
+  const readableEvaluationResultData: JsonReadableTransactionEvaluationType[] =
+    [];
 
   // number of txs per user to complete the referral process
   // make sure it completes the process based on the contract params specified above
@@ -116,6 +146,7 @@ async function main() {
 
       const txStartTime = performance.now();
 
+      // execute the referral payment transactions / complete referral process
       const referralPaymentTx = await proxyContract
         .connect(refereeUser)
         ["registerReferralPayment(address)"](referrerUser.address, {
@@ -130,20 +161,25 @@ async function main() {
       );
       const referralCompleted: boolean = mapping.referralProcessCompleted;
 
-      // calculate tx evaluation metrics data
-      const { txDurationInMs, txCost, txEffectiveGasPrice, txGasUsed } =
-        await getTxEvaluationData(txStartTime, txEndTime, referralPaymentTx);
+      // calculate tx evaluation data including gas costs and fiat prices
+      const txEvaluationData: TransactionEvaluationValuesType =
+        await getTxEvaluationData(
+          txStartTime,
+          txEndTime,
+          referralPaymentTx,
+          bnGasPricesInWei,
+          fiatPrices
+        );
 
       // log values
       logEvaluationTx({
+        fiatCurrency: FIAT_CURRENCY,
         user: refereeUser,
+        referralCompleted,
+        userSignerAddress: refereeUser.address,
         userIteration: i,
         userTxIteration: j,
-        referralCompleted,
-        txGasUsed,
-        txEffectiveGasPrice,
-        txCost,
-        txDurationInMs,
+        ...txEvaluationData,
       });
 
       // create result data
@@ -151,18 +187,37 @@ async function main() {
         userSignerAddress: refereeUser.address,
         userIteration: i,
         userTxIteration: j,
-        gasUsed: txGasUsed.toNumber(),
-        effectiveGasPrice: txEffectiveGasPrice.toNumber(),
-        cost: txCost.toNumber(),
-        durationInMs: txDurationInMs,
+        ...txEvaluationData,
       };
       // append result data to evaluation data
       evaluationResultData.push(resultData);
+
+      //  create and append result data in json readable format
+      const readableResultData: JsonReadableTransactionEvaluationType = {
+        userSignerAddress: refereeUser.address,
+        userIteration: i,
+        userTxIteration: j,
+        ...txEvaluationData,
+        // include big number values as strings for readability
+        gasUsed: txEvaluationData.gasUsed?.toString(),
+        bscGasCost: txEvaluationData.bscGasCost?.toString(),
+        ethereumGasCost: txEvaluationData.ethereumGasCost?.toString(),
+        polygonMainnetGasCost:
+          txEvaluationData.polygonMainnetGasCost?.toString(),
+        arbitrumMainnetGasCost:
+          txEvaluationData.arbitrumMainnetGasCost?.toString(),
+        optimismMainnetGasCost:
+          txEvaluationData.optimismMainnetGasCost?.toString(),
+        avalancheGasCost: txEvaluationData.avalancheGasCost?.toString(),
+        goerliGasCost: txEvaluationData.goerliGasCost?.toString(),
+      };
+      // append readable result data to readable evaluation data
+      readableEvaluationResultData.push(readableResultData);
     }
   }
 
-  console.log(`$ Calculating transaction metrics for evaluation...`);
-  const evaluationMetrics: TransactionEvaluationMetrics =
+  console.log(`\nCalculating evaluation metrics ...`);
+  const evaluationMetrics: EvaluationMetricsType =
     calculateEvaluationMetrics(evaluationResultData);
 
   // time measuring
@@ -170,7 +225,7 @@ async function main() {
   const evaluationDurationInMs = evaluationEndTime - evaluationStartTime;
   // log message
   console.log(
-    `$ Evaluation of ${CONTRACT} contract finished in ${evaluationDurationInMs} ms`
+    `\nEvaluation of ${CONTRACT} contract finished in ${evaluationDurationInMs} ms`
   );
 
   // create (write & store) log files of deployments for overview
@@ -187,9 +242,16 @@ async function main() {
       valueThreshold: VALUE_THRESHOLD.toString(),
       maxRewardLevel: MAX_REWARD_LEVEL.toString(),
     },
+    fiatPriceCurrency: FIAT_CURRENCY,
+    chainFiatPrices: fiatPrices,
+    chainGasPrices: {
+      gasPricesInWei,
+      gasPricesInGwei,
+      gasPricesInEth,
+    },
     numberOfUsers: numberOfUsers,
     metrics: evaluationMetrics,
-    data: evaluationResultData,
+    data: readableEvaluationResultData,
   };
   writeLogFile({
     directory: LOG_DIRECTORY,

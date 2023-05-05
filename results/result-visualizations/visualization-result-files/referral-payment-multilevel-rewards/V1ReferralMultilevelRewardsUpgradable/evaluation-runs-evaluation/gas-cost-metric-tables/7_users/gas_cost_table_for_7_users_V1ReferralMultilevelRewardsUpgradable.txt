@@ -1,0 +1,23 @@
+%===============================================================================
+% Evaluation Gas Costs Metrics (7 Users) for V1ReferralMultilevelRewardsUpgradable
+% rounded to 3 decimals
+%===============================================================================
+\begin{table}[]
+\centering
+{\small
+\begin{tabular}{lccccc} \toprule
+{Gas Costs (in Wei)} & Avg & Min & Max & Median & Sum \\ \midrule
+bscGasCost & \numprint{287133600000000.0} & \numprint{185400000000000.0} & \numprint{410058000000000.0} & \numprint{326970000000000.0} & \numprint{4307004000000000.0} \\ 
+ethereumGasCost & \numprint{7568347528450456.0} & \numprint{4886824919740200.0} & \numprint{1.0808423155009854e+16} & \numprint{8618366472532110.0} & \numprint{1.1352521292675685e+17} \\ 
+polygonMainnetGasCost & \numprint{2.2743667985965856e+16} & \numprint{1.46854148890902e+16} & \numprint{3.248043073673435e+16} & \numprint{2.589908363692461e+16} & \numprint{3.411550197894879e+17} \\ 
+arbitrumMainnetGasCost & \numprint{9571120000000.0} & \numprint{6180000000000.0} & \numprint{13668600000000.0} & \numprint{10899000000000.0} & \numprint{143566800000000.0} \\ 
+optimismMainnetGasCost & \numprint{95711200000.0} & \numprint{61800000000.0} & \numprint{136686000000.0} & \numprint{108990000000.0} & \numprint{1435668000000.0} \\ 
+avalancheGasCost & \numprint{2396080354179948.0} & \numprint{1547131013803200.0} & \numprint{3421863264606864.0} & \numprint{2728508239391760.0} & \numprint{3.594120531269923e+16} \\ 
+goerliGasCost & \numprint{9.33184487091487e+16} & \numprint{6.02550185372808e+16} & \numprint{1.3326889099978582e+17} & \numprint{1.0626528269220445e+17} & \numprint{1.3997767306372306e+18} \\ 
+\bottomrule
+\end{tabular}
+} % Close the \small command here
+\caption{Evaluation Gas Costs Metrics (7 Users) for V1ReferralMultilevelRewardsUpgradable}
+\label{tab:gas_costs_metrics_for_7_users_for_V1ReferralMultilevelRewardsUpgradable}
+\end{table}
+%===============================================================================

@@ -4,3 +4,5 @@ cache
 coverage*
 logs
 gasReporterOutput.json
+/visualizations-deferral/
+/results/

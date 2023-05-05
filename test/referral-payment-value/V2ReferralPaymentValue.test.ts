@@ -28,14 +28,20 @@ const CONTRACT_NAME = "V2ReferralPaymentValueUpgradable";
 // -----------------------------------------------------------------------------------------------
 // TEST DEFAULT VALUES
 // -----------------------------------------------------------------------------------------------
+
+// ETHER UNIT THAT IS USED TO CONVERT VALUES
+// --> changing the ether unit can have impacts on the precision of the results
+// --> can impact the test results
 const DEFAULT_UNIT: EtherUnits = EtherUnits.Ether;
 
 // must be between 0 and 100!
 const DEFAULT_REWARD_PERCENTAGE: PercentageType = 30;
+
 // default payments value threshold
 const DEFAULT_PAYMENTS_VALUE_THRESHOLD: BigNumber =
   etherUnitConverter[DEFAULT_UNIT](50);
 
+// several tests use the same code to test the contracts since the contract include a lot of similarities
 // noinspection DuplicatedCode
 describe(`Testing ${CONTRACT_NAME} Referral Contract`, async () => {
   // get default fixture function for testing

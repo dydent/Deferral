@@ -9,20 +9,19 @@ pragma solidity 0.8.9;
 
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-import {ReentrancyGuardUpgradeable} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract V1ReferralMultilevelTokenRewardsUpgradable is
     Initializable,
-    OwnableUpgradeable,
-    ReentrancyGuardUpgradeable
+    OwnableUpgradeable
 {
     // -----------------------------------------------------------------------------------------------
     // VARS, STRUCTS & MAPPINGS
     // -----------------------------------------------------------------------------------------------
 
     // token / currency that is accepted for payments
+    // NOTE: CANNOT BE UPDATED AFTER CREATION --> would lead to inconsistencies in the referral process data
     IERC20 public token;
     // address of the payment receiver wallet
     address payable public receiverAddress;
@@ -80,7 +79,6 @@ contract V1ReferralMultilevelTokenRewardsUpgradable is
     event PaymentRegistered(address indexed sender, uint256 amount);
     event PaymentForwarded(address indexed receiverAddress, uint256 amount);
     // events when owner is updating contracts variables
-    event ReferralTokenUpdated(IERC20 _newToken);
     event ReceiverAddressChanged(address indexed newReceiver);
     event RewardPercentageChanged(uint256 newReward);
     event RefereeRewardPercentageChanged(uint256 newRefereeRewardPercentage);
@@ -132,7 +130,7 @@ contract V1ReferralMultilevelTokenRewardsUpgradable is
         }
     }
 
-    function distributeRewards(address _referee) internal nonReentrant {
+    function distributeRewards(address _referee) internal {
         ReferralProcess storage refereeCompletedProcess = refereeProcessMapping[
             _referee
         ];
@@ -200,7 +198,7 @@ contract V1ReferralMultilevelTokenRewardsUpgradable is
         return parentReferrerAddresses;
     }
 
-    function forwardPayment(uint256 _paymentValue) internal nonReentrant {
+    function forwardPayment(uint256 _paymentValue) internal {
         // Transfer tokens to the receiver address
         token.transfer(receiverAddress, _paymentValue);
         emit PaymentForwarded(receiverAddress, _paymentValue);
@@ -363,12 +361,6 @@ contract V1ReferralMultilevelTokenRewardsUpgradable is
     // -----------------------------------------------------------------------------------------------
     // updating contract variables (only contract owner can update these)
     // -----------------------------------------------------------------------------------------------
-
-    function updateReferralToken(IERC20 _updatedToken) public onlyOwner {
-        token = _updatedToken;
-        emit ReferralTokenUpdated(_updatedToken);
-    }
-
     function updateReceiverAddress(
         address payable _updatedReceiverAddress
     ) public onlyOwner {

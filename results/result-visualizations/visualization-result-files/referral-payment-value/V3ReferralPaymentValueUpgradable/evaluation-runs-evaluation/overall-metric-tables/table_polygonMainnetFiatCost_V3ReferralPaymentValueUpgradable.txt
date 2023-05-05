@@ -1,0 +1,18 @@
+%===============================================================================
+\begin{table}[]
+\centering
+{\small
+\begin{tabular}{lcccc}
+\toprule
+Nr. of Users & Avg polygonMainnetFiatCost & Min polygonMainnetFiatCost & Max polygonMainnetFiatCost & Median polygonMainnetFiatCost\\
+\midrule
+\numprint{8} & \numprint{0.018874064086732145} & \numprint{0.014063893310391} & \numprint{0.027062420652659} & \numprint{0.0171829230982085}\\
+\numprint{98} & \numprint{0.018926157456305315} & \numprint{0.014102581391988} & \numprint{0.027136865205879} & \numprint{0.017230190533967498}\\
+\numprint{498} & \numprint{0.020170696985862657} & \numprint{0.015026873106149998} & \numprint{0.028921329581663997} & \numprint{0.0183616808718595}\\
+\bottomrule
+\end{tabular}
+} % Close the \small command here
+\caption{PolygonMainnetFiatCost for Evaluation Runs of V3ReferralPaymentValueUpgradable}
+\label{tab:polygonMainnetFiatCost_evaluation_runs_table_for_V3ReferralPaymentValueUpgradable}
+\end{table}
+%===============================================================================

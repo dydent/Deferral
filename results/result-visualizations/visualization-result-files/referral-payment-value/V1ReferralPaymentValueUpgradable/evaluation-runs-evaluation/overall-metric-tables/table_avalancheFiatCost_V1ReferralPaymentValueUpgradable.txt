@@ -1,0 +1,18 @@
+%===============================================================================
+\begin{table}[]
+\centering
+{\small
+\begin{tabular}{lcccc}
+\toprule
+Nr. of Users & Avg avalancheFiatCost & Min avalancheFiatCost & Max avalancheFiatCost & Median avalancheFiatCost\\
+\midrule
+\numprint{8} & \numprint{0.03239609594642858} & \numprint{0.025050036} & \numprint{0.048193832} & \numprint{0.02816661075}\\
+\numprint{98} & \numprint{0.03237736994652057} & \numprint{0.025035318000000004} & \numprint{0.048165516000000005} & \numprint{0.028150061625}\\
+\numprint{498} & \numprint{0.032453049067605225} & \numprint{0.025088729400000002} & \numprint{0.0482781222} & \numprint{0.028213304805000002}\\
+\bottomrule
+\end{tabular}
+} % Close the \small command here
+\caption{AvalancheFiatCost for Evaluation Runs of V1ReferralPaymentValueUpgradable}
+\label{tab:avalancheFiatCost_evaluation_runs_table_for_V1ReferralPaymentValueUpgradable}
+\end{table}
+%===============================================================================

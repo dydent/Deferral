@@ -10,12 +10,10 @@ pragma solidity 0.8.9;
 
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-import {ReentrancyGuardUpgradeable} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
 contract V2ReferralMultilevelRewardsUpgradable is
     Initializable,
-    OwnableUpgradeable,
-    ReentrancyGuardUpgradeable
+    OwnableUpgradeable
 {
     // -----------------------------------------------------------------------------------------------
     // VARS, STRUCTS & MAPPINGS
@@ -122,7 +120,7 @@ contract V2ReferralMultilevelRewardsUpgradable is
         }
     }
 
-    function distributeRewards(address _referee) internal nonReentrant {
+    function distributeRewards(address _referee) internal {
         ReferralProcess storage refereeCompletedProcess = refereeProcessMapping[
             _referee
         ];
@@ -191,7 +189,7 @@ contract V2ReferralMultilevelRewardsUpgradable is
         return parentReferrerAddresses;
     }
 
-    function forwardPayment(uint256 _paymentValue) internal nonReentrant {
+    function forwardPayment(uint256 _paymentValue) internal {
         // forward payment value to receiver
         receiverAddress.transfer(_paymentValue);
         emit PaymentForwarded(receiverAddress, _paymentValue);

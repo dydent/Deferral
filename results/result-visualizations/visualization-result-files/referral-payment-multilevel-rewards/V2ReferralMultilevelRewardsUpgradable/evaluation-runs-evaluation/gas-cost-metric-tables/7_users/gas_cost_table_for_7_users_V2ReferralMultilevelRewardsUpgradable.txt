@@ -1,0 +1,23 @@
+%===============================================================================
+% Evaluation Gas Costs Metrics (7 Users) for V2ReferralMultilevelRewardsUpgradable
+% rounded to 3 decimals
+%===============================================================================
+\begin{table}[]
+\centering
+{\small
+\begin{tabular}{lccccc} \toprule
+{Gas Costs (in Wei)} & Avg & Min & Max & Median & Sum \\ \midrule
+bscGasCost & \numprint{301014600000000.0} & \numprint{193782000000000.0} & \numprint{377742000000000.0} & \numprint{356922000000000.0} & \numprint{4515219000000000.0} \\ 
+ethereumGasCost & \numprint{8197859834813000.0} & \numprint{5277477153964402.0} & \numprint{1.0287461039171962e+16} & \numprint{9720447207414942.0} & \numprint{1.22967897522195e+17} \\ 
+polygonMainnetGasCost & \numprint{2.4211255896244864e+16} & \numprint{1.5586305747582086e+16} & \numprint{3.038260677309117e+16} & \numprint{2.8708009103211304e+16} & \numprint{3.6316883844367296e+17} \\ 
+arbitrumMainnetGasCost & \numprint{10033820000000.0} & \numprint{6459400000000.0} & \numprint{12591400000000.0} & \numprint{11897400000000.0} & \numprint{150507300000000.0} \\ 
+optimismMainnetGasCost & \numprint{100338200000.0} & \numprint{64594000000.0} & \numprint{125914000000.0} & \numprint{118974000000.0} & \numprint{1505073000000.0} \\ 
+avalancheGasCost & \numprint{2514364368420914.0} & \numprint{1618654231526782.0} & \numprint{3155265642450742.0} & \numprint{2981356914599922.0} & \numprint{3.771546552631372e+16} \\ 
+goerliGasCost & \numprint{1.0974699061506219e+17} & \numprint{7.065102933667663e+16} & \numprint{1.3772105316125803e+17} & \numprint{1.3013028399389674e+17} & \numprint{1.6462048592259328e+18} \\ 
+\bottomrule
+\end{tabular}
+} % Close the \small command here
+\caption{Evaluation Gas Costs Metrics (7 Users) for V2ReferralMultilevelRewardsUpgradable}
+\label{tab:gas_costs_metrics_for_7_users_for_V2ReferralMultilevelRewardsUpgradable}
+\end{table}
+%===============================================================================

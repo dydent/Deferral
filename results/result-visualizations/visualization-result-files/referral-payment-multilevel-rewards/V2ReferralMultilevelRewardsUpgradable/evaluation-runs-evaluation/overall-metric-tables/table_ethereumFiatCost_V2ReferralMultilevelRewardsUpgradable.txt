@@ -1,0 +1,18 @@
+%===============================================================================
+\begin{table}[]
+\centering
+{\small
+\begin{tabular}{lcccc}
+\toprule
+Nr. of Users & Avg ethereumFiatCost & Min ethereumFiatCost & Max ethereumFiatCost & Median ethereumFiatCost\\
+\midrule
+\numprint{7} & \numprint{15.583966508748002} & \numprint{10.03237822746} & \numprint{19.556257611779998} & \numprint{18.47837533806}\\
+\numprint{97} & \numprint{15.5119130768387} & \numprint{9.71958337434} & \numprint{18.94652397972} & \numprint{17.92060689528}\\
+\numprint{497} & \numprint{16.703920390610186} & \numprint{10.4539812377} & \numprint{20.37809573072} & \numprint{19.274662283239998}\\
+\bottomrule
+\end{tabular}
+} % Close the \small command here
+\caption{EthereumFiatCost for Evaluation Runs of V2ReferralMultilevelRewardsUpgradable}
+\label{tab:ethereumFiatCost_evaluation_runs_table_for_V2ReferralMultilevelRewardsUpgradable}
+\end{table}
+%===============================================================================

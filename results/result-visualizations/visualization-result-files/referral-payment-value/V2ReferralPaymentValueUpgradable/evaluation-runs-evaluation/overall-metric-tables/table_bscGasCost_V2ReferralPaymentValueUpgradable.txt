@@ -1,0 +1,18 @@
+%===============================================================================
+\begin{table}[]
+\centering
+{\small
+\begin{tabular}{lcccc}
+\toprule
+Nr. of Users & Avg bscGasCost & Min bscGasCost & Max bscGasCost & Median bscGasCost\\
+\midrule
+\numprint{8} & \numprint{238834607142857} & \numprint{176616000000000} & \numprint{339792000000000} & \numprint{219439500000000}\\
+\numprint{98} & \numprint{238836780927835} & \numprint{176616000000000} & \numprint{339792000000000} & \numprint{219439500000000}\\
+\numprint{498} & \numprint{238836707746478} & \numprint{176580000000000} & \numprint{339792000000000} & \numprint{219421500000000}\\
+\bottomrule
+\end{tabular}
+} % Close the \small command here
+\caption{BscGasCost for Evaluation Runs of V2ReferralPaymentValueUpgradable}
+\label{tab:bscGasCost_evaluation_runs_table_for_V2ReferralPaymentValueUpgradable}
+\end{table}
+%===============================================================================

@@ -1,0 +1,13 @@
+[
+    {
+        "id": 0,
+        "date": "2023-05-05T10:26:35.742Z",
+        "contract": "V1ReferralMultilevelRewardsUpgradable",
+        "contractAddress": "0x0549a3532Bd73C3F1b48c61beD23682095B4f502",
+        "signer": "0x43b3E4bc4443cb32242b283DF4f2aF9AAe77C4DB",
+        "gasUsed": "728329",
+        "effectiveGasPrice": "1679631005",
+        "cost": "1223323970240645",
+        "durationInMs": 747.3219999074936
+    }
+]

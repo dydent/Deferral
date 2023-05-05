@@ -1,0 +1,18 @@
+%===============================================================================
+\begin{table}[]
+\centering
+{\small
+\begin{tabular}{lcccc}
+\toprule
+Nr. of Users & Avg durationInMs & Min durationInMs & Max durationInMs & Median durationInMs\\
+\midrule
+\numprint{7} & \numprint{14.263319476445515} & \numprint{10.493375062942505} & \numprint{20.763500094413757} & \numprint{11.728874921798706}\\
+\numprint{97} & \numprint{14.316334928546036} & \numprint{8.551500082015991} & \numprint{23.97962498664856} & \numprint{12.097415924072266}\\
+\numprint{497} & \numprint{23.045343687237313} & \numprint{8.732333064079285} & \numprint{99.13212502002716} & \numprint{20.875874996185303}\\
+\bottomrule
+\end{tabular}
+} % Close the \small command here
+\caption{DurationInMs for Evaluation Runs of V1ReferralMultilevelTokenRewardsUpgradable}
+\label{tab:durationInMs_evaluation_runs_table_for_V1ReferralMultilevelTokenRewardsUpgradable}
+\end{table}
+%===============================================================================

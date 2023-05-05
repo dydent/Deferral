@@ -6,6 +6,7 @@ typechain-types
 .env
 .openzeppelin
 
+
 # extras
 logs
 gas-reporter-logs
@@ -18,3 +19,11 @@ artifacts
 # Webstorm files
 .idea
 
+# yarn error log
+yarn-error.log
+
+## ignore submodule repos
+visualizations-deferral/*
+
+# ignore contract viusalization outputs
+solidity-contract-diagrams

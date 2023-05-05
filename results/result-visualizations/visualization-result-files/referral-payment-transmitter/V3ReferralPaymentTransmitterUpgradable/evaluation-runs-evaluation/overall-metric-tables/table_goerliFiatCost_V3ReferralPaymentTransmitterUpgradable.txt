@@ -1,0 +1,18 @@
+%===============================================================================
+\begin{table}[]
+\centering
+{\small
+\begin{tabular}{lcccc}
+\toprule
+Nr. of Users & Avg goerliFiatCost & Min goerliFiatCost & Max goerliFiatCost & Median goerliFiatCost\\
+\midrule
+\numprint{8} & \numprint{0.008323806736812} & \numprint{0.008322275508396} & \numprint{0.008324061941548} & \numprint{0.008324061941548}\\
+\numprint{98} & \numprint{0.007541385162485344} & \numprint{0.007539900197199999} & \numprint{0.007541518642511} & \numprint{0.007541518642511}\\
+\numprint{498} & \numprint{0.007443390952717519} & \numprint{0.007440330947343} & \numprint{0.0074435259475079995} & \numprint{0.0074435259475079995}\\
+\bottomrule
+\end{tabular}
+} % Close the \small command here
+\caption{GoerliFiatCost for Evaluation Runs of V3ReferralPaymentTransmitterUpgradable}
+\label{tab:goerliFiatCost_evaluation_runs_table_for_V3ReferralPaymentTransmitterUpgradable}
+\end{table}
+%===============================================================================

@@ -9,7 +9,7 @@ import {
 } from "../../types/fixture-types/MultilevelTokenRewardReferralFixtureTypes";
 
 // -----------------------------------------------------------------------------------------------
-// Fixture helper functions for testing multilevel reward referral contracts
+// Fixture helper functions for testing multilevel token reward referral contracts
 // -----------------------------------------------------------------------------------------------
 
 export async function deployMultilevelTokenReferralRewardFixture<

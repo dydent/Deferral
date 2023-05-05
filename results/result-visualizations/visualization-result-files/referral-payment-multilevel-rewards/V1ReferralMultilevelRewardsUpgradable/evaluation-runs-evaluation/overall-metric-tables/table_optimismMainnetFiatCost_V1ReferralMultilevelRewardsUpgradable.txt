@@ -1,0 +1,18 @@
+%===============================================================================
+\begin{table}[]
+\centering
+{\small
+\begin{tabular}{lcccc}
+\toprule
+Nr. of Users & Avg optimismMainnetFiatCost & Min optimismMainnetFiatCost & Max optimismMainnetFiatCost & Median optimismMainnetFiatCost\\
+\midrule
+\numprint{7} & \numprint{0.00018084656400000002} & \numprint{0.00011595978} & \numprint{0.00025853328} & \numprint{0.00020530584}\\
+\numprint{97} & \numprint{0.0005757834966315797} & \numprint{0.00011595978} & \numprint{0.00262905534} & \numprint{0.00022051368}\\
+\numprint{497} & \numprint{0.0023308600644848425} & \numprint{0.00011595978} & \numprint{0.01315858356} & \numprint{0.00022051368}\\
+\bottomrule
+\end{tabular}
+} % Close the \small command here
+\caption{OptimismMainnetFiatCost for Evaluation Runs of V1ReferralMultilevelRewardsUpgradable}
+\label{tab:optimismMainnetFiatCost_evaluation_runs_table_for_V1ReferralMultilevelRewardsUpgradable}
+\end{table}
+%===============================================================================

@@ -1,0 +1,18 @@
+%===============================================================================
+\begin{table}[]
+\centering
+{\small
+\begin{tabular}{lcccc}
+\toprule
+Nr. of Users & Avg ethereumGasCost & Min ethereumGasCost & Max ethereumGasCost & Median ethereumGasCost\\
+\midrule
+\numprint{8} & \numprint{3834659295770334} & \numprint{3833846980296970} & \numprint{3834794681682562} & \numprint{3834794681682562}\\
+\numprint{98} & \numprint{3955866210531972} & \numprint{3954969198809545} & \numprint{3955946840799157} & \numprint{3955946840799157}\\
+\numprint{498} & \numprint{3855413478426691} & \numprint{3853588364452901} & \numprint{3855493998160829} & \numprint{3855493998160829}\\
+\bottomrule
+\end{tabular}
+} % Close the \small command here
+\caption{EthereumGasCost for Evaluation Runs of V1ReferralPaymentTransmitter}
+\label{tab:ethereumGasCost_evaluation_runs_table_for_V1ReferralPaymentTransmitter}
+\end{table}
+%===============================================================================

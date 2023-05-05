@@ -1,0 +1,23 @@
+%===============================================================================
+% Evaluation Fiat Costs Metrics (97 Users) rounded to 3 decimals for V1ReferralMultilevelRewardsUpgradable
+% rounded to 3 decimals
+%===============================================================================
+\begin{table}[]
+\centering
+{\small
+\begin{tabular}{lccccc} \toprule
+{Fiat Costs (in USD)} & Avg & Min & Max & Median & Sum \\ \midrule
+bscFiatCost & \numprint{0.296} & \numprint{0.06} & \numprint{1.348} & \numprint{0.113} & \numprint{84.321} \\ 
+ethereumFiatCost & \numprint{46.998} & \numprint{9.571} & \numprint{214.197} & \numprint{18.012} & \numprint{13394.501} \\ 
+polygonMainnetFiatCost & \numprint{0.07} & \numprint{0.014} & \numprint{0.318} & \numprint{0.027} & \numprint{19.909} \\ 
+arbitrumMainnetFiatCost & \numprint{0.058} & \numprint{0.012} & \numprint{0.263} & \numprint{0.022} & \numprint{16.441} \\ 
+optimismMainnetFiatCost & \numprint{0.001} & \numprint{0.0} & \numprint{0.003} & \numprint{0.0} & \numprint{0.164} \\ 
+avalancheFiatCost & \numprint{0.129} & \numprint{0.026} & \numprint{0.588} & \numprint{0.049} & \numprint{36.778} \\ 
+goerliFiatCost & \numprint{0.031} & \numprint{0.006} & \numprint{0.141} & \numprint{0.012} & \numprint{8.829} \\ 
+\bottomrule
+\end{tabular}
+} % Close the \small command here
+\caption{Evaluation Fiat Costs Metrics (97 Users) rounded to 3 decimals for V1ReferralMultilevelRewardsUpgradable}
+\label{tab:fiat_costs_metrics_for_97_users_for_V1ReferralMultilevelRewardsUpgradable}
+\end{table}
+%===============================================================================

@@ -8,3 +8,6 @@ artifacts
 *.env
 *.log
 
+/visualizations-deferral/
+/results/
+

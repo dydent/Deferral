@@ -1,0 +1,18 @@
+%===============================================================================
+\begin{table}[]
+\centering
+{\small
+\begin{tabular}{lcccc}
+\toprule
+Nr. of Users & Avg bscFiatCost & Min bscFiatCost & Max bscFiatCost & Median bscFiatCost\\
+\midrule
+\numprint{7} & \numprint{0.09782673485400001} & \numprint{0.06297721218} & \numprint{0.12276237258} & \numprint{0.11599608078000001}\\
+\numprint{97} & \numprint{0.10050810761084195} & \numprint{0.06297721218} & \numprint{0.12276237258} & \numprint{0.11611502711999999}\\
+\numprint{497} & \numprint{0.10068092448266797} & \numprint{0.06301015512000001} & \numprint{0.12282658872} & \numprint{0.11617576608}\\
+\bottomrule
+\end{tabular}
+} % Close the \small command here
+\caption{BscFiatCost for Evaluation Runs of V2ReferralMultilevelRewardsUpgradable}
+\label{tab:bscFiatCost_evaluation_runs_table_for_V2ReferralMultilevelRewardsUpgradable}
+\end{table}
+%===============================================================================
