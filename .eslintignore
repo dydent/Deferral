@@ -9,3 +9,5 @@ artifacts
 *.log
 
 /visualizations-deferral/
+/results/
+
