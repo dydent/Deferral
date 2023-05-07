@@ -91,6 +91,7 @@ The GitHub secrets should be defined in the repository's settings.
       - Hardhat-Local_31337/
         - evaluations/
           - referral-payment-value/
+- results/ --> RESULT FILES USED FOR THE EVALUATION & ANALYSIS
 - scripts/
   - deployment/
     - referral-multilevel-token-rewards/
