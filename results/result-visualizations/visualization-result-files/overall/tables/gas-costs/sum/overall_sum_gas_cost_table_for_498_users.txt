@@ -1,0 +1,25 @@
+%===============================================================================
+\begin{sidewaystable}[]
+\centering
+{\small
+\begin{tabular}{lccccccc}
+\toprule
+Deferral Contract & bscGasCost & ethereumGasCost & polygonMainnetGasCost & arbitrumMainnetGasCost & optimismMainnetGasCost & avalancheGasCost & goerliGasCost\\
+\midrule
+V2ReferralMultilevelRewardsUpgradable & \numprint{459808011.0} & \numprint{13048634259.669} & \numprint{37577817564.604} & \numprint{15326933.7} & \numprint{153269.337} & \numprint{3855049621.137} & \numprint{143188556622.948}\\
+V1ReferralMultilevelRewardsUpgradable & \numprint{5464999956.0} & \numprint{158552820074.796} & \numprint{494821087283.011} & \numprint{182166665.2} & \numprint{1821666.652} & \numprint{45541666300.0} & \numprint{1668428072208.24}\\
+V1ReferralMultilevelTokenRewardsUpgradable & \numprint{564229233.0} & \numprint{15994158873.273} & \numprint{45906597825.879} & \numprint{20432621.291} & \numprint{188076.411} & \numprint{4826487460.522} & \numprint{149917423179.847}\\
+V1ReferralPaymentTransmitter & \numprint{72396975.0} & \numprint{1916140498.778} & \numprint{5864679127.772} & \numprint{2413232.5} & \numprint{24132.325} & \numprint{603308125.0} & \numprint{22842287419.498}\\
+V3ReferralPaymentTransmitterUpgradable & \numprint{83369244.0} & \numprint{2216745348.892} & \numprint{7143607688.029} & \numprint{2778974.8} & \numprint{27789.748} & \numprint{694743700.0} & \numprint{27111309609.805}\\
+V2ReferralPaymentQuantityUpgradable & \numprint{366189537.0} & \numprint{9762708828.655} & \numprint{32177936311.681} & \numprint{12206317.9} & \numprint{122063.179} & \numprint{3128133483.77} & \numprint{124657203196.577}\\
+V1ReferralPaymentQuantityUpgradable & \numprint{368955342.0} & \numprint{9554819106.229} & \numprint{31477364063.852} & \numprint{12298511.4} & \numprint{122985.114} & \numprint{3074627850.0} & \numprint{120307709234.403}\\
+V1ReferralPaymentValueUpgradable & \numprint{454082475.0} & \numprint{13225057786.581} & \numprint{40390366070.259} & \numprint{15136082.5} & \numprint{151360.825} & \numprint{3792867654.777} & \numprint{143007334803.044}\\
+V3ReferralPaymentValueUpgradable & \numprint{471029181.0} & \numprint{14123285412.895} & \numprint{40519574865.606} & \numprint{15700972.7} & \numprint{157009.727} & \numprint{3925243175.0} & \numprint{158241358202.732}\\
+V2ReferralPaymentValueUpgradable & \numprint{474807375.0} & \numprint{15187487382.876} & \numprint{41343143561.354} & \numprint{15826912.5} & \numprint{158269.125} & \numprint{3956728125.0} & \numprint{139000311735.234}\\
+\bottomrule
+\end{tabular}
+} % Close the \small command here
+\caption{Sum Gas Costs in Gwei Rounded to 3 Decimals Across all Contract Evaluations with 498 Users for All Evaluation Chains}
+\label{tab:overall_sum_gas_costs_for_498_users}
+\end{sidewaystable}
+%===============================================================================
