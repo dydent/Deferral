@@ -57,11 +57,14 @@ const hardhatAccounts: HardhatNetworkHDAccountsUserConfig = {
 // -----------------------------------------------------------------------------------------------
 // Ethereum -> Token: ETH
 const ETH_GAS_PRICE_API = `https://api.etherscan.io/api?module=proxy&action=eth_gasPrice`;
+// further options...
 // Polygon -> Token: MATIC
 // const POLYGON_GAS_PRICE_API = `https://api.polygonscan.com/api?module=proxy&action=eth_gasPrice`;
 // Binance -> Token: BNB
 // const BINANCE_GAS_PRICE_API = `https://api.bscscan.com/api?module=proxy&action=eth_gasPrice`;
 
+// HARDHAT CONFIGURATION
+// -----------------------------------------------------------------------------------------------
 const config: HardhatUserConfig = {
   solidity: {
     version: "0.8.9",
@@ -73,7 +76,9 @@ const config: HardhatUserConfig = {
     },
   },
   defaultNetwork: "hardhat",
+  // SETUP SUPPORTED NETWORKS / CHAINS
   networks: {
+    // LOCAL HARDHAT NETWORK CONFIG
     hardhat: {
       accounts: hardhatAccounts,
       chainId: CHAIN_IDS.hardhat,
@@ -84,7 +89,7 @@ const config: HardhatUserConfig = {
       // accounts: [...METAMASK_ACCOUNTS],
       hdWalletAccounts: USE_HD_WALLET_ACCOUNTS,
     }),
-    // LOCAL GANACHE NETWORK
+    // LOCAL GANACHE NETWORK --> requires to be set up and running local Ganache network on your machine
     ganache: getChainConfig({
       chain: "ganache",
       // accounts: [...METAMASK_ACCOUNTS],
@@ -142,10 +147,11 @@ const config: HardhatUserConfig = {
   etherscan: {
     apiKey: process.env.ETHERSCAN_API_KEY,
   },
+  // GAS REPORTER PLUGIN CONFIGURATION
   gasReporter: {
     enabled: !!process.env.REPORT_GAS,
     currency: "USD",
-    // !!! for accurate gas reporter output --> run test files one by one and exclude not needed contracts here !!!
+    // NOTE: for accurate gas reporter output --> run test files one by one and exclude not needed contracts here !!!
     // excludeContracts: [
     //   "V1ReferralPaymentQuantityUpgradable",
     //   "V2ReferralPaymentQuantityUpgradable",
@@ -164,15 +170,8 @@ const config: HardhatUserConfig = {
     showTimeSpent: false,
     coinmarketcap: process.env.COINMARKETCAP_API_KEY,
     gasPriceApi: ETH_GAS_PRICE_API,
-    // token: "MATIC",
     token: "ETH",
-    // outputFile: `gas-reporter-logs/gasReporterOutput-${RUNS}.txt`,
-    // gasPrice: 34,
-    // proxyResolver,
   },
-  // typechain: {
-  //   target: "ethers-v5",
-  // },
 };
 
 export default config;
