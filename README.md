@@ -104,6 +104,7 @@ The required GitHub secrets should be defined in the repository's settings for t
   - referral-payment-quantity/
   - referral-payment-transmitter/
   - referral-payment-value/
+ - **thesis**/ *contains relevant source files and PDF version of the thesis*
 - **types**/
   - contract-parameter-types/
   - fixture-types/
