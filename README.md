@@ -1,4 +1,3 @@
-
 # Deferral - High-Volume Decentralized Blockchain-Based Referral Systems
 
 This GitHub repository entails the source code and files developed as part of the Master's Thesis of Tobias Boner at the
@@ -104,7 +103,6 @@ The required GitHub secrets should be defined in the repository's settings for t
   - referral-payment-quantity/
   - referral-payment-transmitter/
   - referral-payment-value/
- - **thesis**/ *contains relevant source files and PDF version of the thesis*
 - **types**/
   - contract-parameter-types/
   - fixture-types/
