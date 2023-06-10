@@ -140,25 +140,24 @@ The Hardhat project can be configured and adapted in the `hardhat.config.ts` fil
 Hardhat can be used to execute the [tests](https://hardhat.org/tutorial/testing-contracts) and the [scripts](https://hardhat.org/hardhat-runner/docs/advanced/scripts).
 More details on this can be found in the linked Hardhat documentation.
 
+### UML Class Diagrams
+To generate UML class diagrams of all the Solidity contracts, the `generate_contract_diagrams.sh` script can be run.
+
 ### Tests
 The developed tests can be executed by running the `npx hardhat test` command in the console or by executing the test scripts found in the `package.json` file.
 
-### Deployment Scripts
+## Deployment Scripts
 You can run the deployment scripts using the Hardhat CLI commands or the deployment scripts configured in the `package.json` file.
 Additionally, to execute all the deployment scripts at once, the `deploy.sh` script can be executed by running `.\deploy.sh` in the terminal.
 
 
-### Evaluation Scripts
+## Evaluation Scripts
 To generate the result data and run the evaluation scripts, you can use the Hardhat CLI commands or the evaluation scripts configured in the `package.json` file.
 Additionally, to execute all the evaluation scripts at once the `evaluate.sh` script can be executed by running `.\evaluate.sh` in the terminal.
 To adapt several parameters of the evaluation execution the values in the `evaluate.sh` script can be adjusted.
 
-### UML Class Diagrams
-To generate UML class diagrams of all the Solidity contracts, the `generate_contract_diagrams.sh` script can be run.
-
 
 ## Logging and Result Data
-
 The deployment and evaluation scripts record several measures and metrics during their execution and store the collected data as `.json` files locally inside the `./logs` directory.
 Thereby the different log files are further grouped by the folders of the solution contracts and the network the evaluation or deployment was executed on.
 
@@ -166,7 +165,7 @@ The log data that was used for the evaluation in the thesis was extracted and ad
 
 
 
-# Evaluation and Analysis
+# Result Evaluation and Analysis
 The result data is evaluated and analyzed by scripts collected in a separate [Deferral Visualizations](https://github.com/dydent/visualizations-deferral) submodule repository.
 
 Eventually, for the proper setup of this repository, the visualization submodule repository should be installed as a subfolder or subproject in the root folder of this repository.
