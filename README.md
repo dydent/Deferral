@@ -1,5 +1,7 @@
 # Deferral - High-Volume Decentralized Blockchain-Based Referral Systems
 
+<img width="1774" height="887" alt="image" src="https://github.com/user-attachments/assets/7353e11f-863f-4a4f-8feb-7539217386e4" />
+
 This GitHub repository entails the source code and files developed as part of the Master's Thesis of Tobias Boner at the
 University of Zurich in 2022/2023.
 
